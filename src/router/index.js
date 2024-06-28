@@ -1,17 +1,25 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import home from '../views/home/home.vue';
 
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: home
+    redirect: '/home'  // 添加重定向，访问根路径时跳转到/home
   },
-  // {
-  //   path: '/about',
-  //   name: 'About',
-  //   component: () => import('../views/About.vue')
-  // }
+  {
+    path: '/home',
+    name: 'Home',
+    component: () => import('../views/home/home.vue'),
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/login/login.vue'),
+  },
+  {
+    path: '/purchase',
+    name: 'Purchase',
+    component: () => import('../views/purchase/purchase.vue'),
+  },
 ];
 
 const router = createRouter({

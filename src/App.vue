@@ -1,18 +1,21 @@
 <template>
   <div class="app">
-    <el-container class="wrapper">
-      <el-header class="header">
+    <el-container class="app-wrapper" v-if="!isLogin">
+      <el-header class="app-header">
         <Header />
       </el-header>
-      <el-container class="container">
-        <el-aside class="aside">
+      <el-container class="app-container">
+        <el-aside class="app-aside">
           <Menu />
         </el-aside>
-        <el-main class="main">
-          Main
+        <el-main class="app-main">
+          <router-view />
         </el-main>
       </el-container>
     </el-container>
+    <div v-if="isLogin">
+      <router-view />
+    </div>
   </div>
 </template>
 
@@ -20,32 +23,43 @@
   import Header from './components/layout/Header/Header.vue';
   import Menu from './components/layout/Menu/Menu.vue';
 
+  import { onMounted, watch, nextTick, ref } from 'vue';
+  import { useRoute } from 'vue-router';
+
+  const route = useRoute();
+
+  let isLogin = ref(false)
+
+  // 在组件加载后监听路由变化
+  onMounted(() => {
+    // 使用 watch 监听 route 的变化
+    watch(() => route.path, (newVal, oldVal) => {
+      isLogin.value = newVal === '/login'
+    });
+  });
+
 </script>
 
 <style lang="less" scoped>
 .app {
   height: 100vh;
-  .wrapper {
+  .app-wrapper {
     display: flex;
     flex-direction: column;
     height: 100%;
-    .header {
-      height: 100px;
-      background-color: aqua;
+    .app-header {
       padding: 0;
+      box-sizing: border-box;
     }
-    .container {
+    .app-container {
       flex: 1;
       display: flex;
-      .aside {
+      .app-aside {
         width: 200px;
-        background-color: orange;
-        padding: 20px;
         box-sizing: border-box;
       }
-      .main {
+      .app-main {
         flex: 1;
-        background-color: pink;
         padding: 20px;
         box-sizing: border-box;
       }
