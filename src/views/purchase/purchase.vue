@@ -5,65 +5,33 @@
         <el-row :gutter="20">
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">批次号：</div>
+              <div class="search-item-label">批次：</div>
               <div class="search-item-input">
-                <el-input placeholder="请输入"></el-input>
+                <el-input placeholder="请输入" clearable v-model="searchParams.batch"></el-input>
               </div>
             </div>
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">批次名称：</div>
+              <div class="search-item-label">商品名称：</div>
               <div class="search-item-input">
-                <el-input placeholder="请输入"></el-input>
+                <el-input placeholder="请输入" clearable v-model="searchParams.name"></el-input>
               </div>
             </div>
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">批次名称：</div>
+              <div class="search-item-label">进货日期：</div>
               <div class="search-item-input">
-                <el-input placeholder="请输入"></el-input>
-              </div>
-            </div>
-          </el-col>
-          <el-col :span="6">
-            <div class="saerch-item">
-              <div class="search-item-label">批次名称：</div>
-              <div class="search-item-input">
-                <el-input placeholder="请输入"></el-input>
-              </div>
-            </div>
-          </el-col>
-          <el-col :span="6">
-            <div class="saerch-item">
-              <div class="search-item-label">批次名称：</div>
-              <div class="search-item-input">
-                <el-input placeholder="请输入"></el-input>
-              </div>
-            </div>
-          </el-col>
-          <el-col :span="6">
-            <div class="saerch-item">
-              <div class="search-item-label">批次名称：</div>
-              <div class="search-item-input">
-                <el-input placeholder="请输入"></el-input>
-              </div>
-            </div>
-          </el-col>
-          <el-col :span="6">
-            <div class="saerch-item">
-              <div class="search-item-label">批次名称：</div>
-              <div class="search-item-input">
-                <el-input placeholder="请输入"></el-input>
+                <el-date-picker type="date" format="YYYY/MM/DD" value-format="YYYY-MM-DD" placeholder="请选择" clearable v-model="searchParams.date" />
               </div>
             </div>
           </el-col>
         </el-row>
       </div>
       <div class="search-btns">
-        <el-button type="primary">查询</el-button>
-        <el-button>重置</el-button>
+        <el-button type="primary" @click="search">查询</el-button>
+        <el-button @click="searchReset">重置</el-button>
       </div>
     </div>
 
@@ -73,9 +41,14 @@
 
     <div class="table-wrapper">
       <el-table :height="tableHeight" :data="tableData">
-        <el-table-column prop="date" label="批次" align="center" />
-        <el-table-column prop="name" label="产品" align="center" />
-        <el-table-column prop="address" label="数量" align="center" />
+        <el-table-column prop="batch" label="批次" align="center" />
+        <el-table-column prop="name" label="商品名称" align="center" />
+        <el-table-column prop="realQuantity" label="实际售卖量" align="center" />
+        <el-table-column prop="unit" label="单位" align="center" />
+        <el-table-column prop="totalCost" label="总成本" align="center" />
+        <el-table-column prop="date" label="进货日期" align="center" />
+        <el-table-column prop="source" label="进货来源" align="center" />
+        <el-table-column prop="remark" label="备注" align="center" />
         <el-table-column fixed="right" label="操作" width="160" align="center" >
           <template #default="scope">
             <el-button link type="primary" @click="tableDetail(scope.row)">详情</el-button>
@@ -107,19 +80,67 @@
       center 
     >
       <div class="form-content">
-        <el-form ref="formRef" :model="form" :rules="formRules" label-width="auto">
-          <el-form-item label="批次1111" prop="name">
-            <el-input v-model="form.name" placeholder="自动生成" readonly />
+        <el-form ref="formRef" :model="form" :rules="formRules" label-width="auto" :disabled="formTitle==='详情'">
+          <el-form-item label="批次" prop="batch">
+            <el-input v-model="form.batch" placeholder="自动生成" readonly />
           </el-form-item>
-          <el-form-item label="选择" prop="desc">
-            <el-select v-model="form.desc" placeholder="请选择">
-              <el-option label="Zone No.1" value="shanghai" />
-              <el-option label="Zone No.2" value="beijing" />
+          <el-form-item label="商品名称" prop="name">
+            <el-input v-model="form.name" placeholder="请输入" maxlength="20" clearable />
+          </el-form-item>
+          <el-form-item label="单位" prop="unit">
+            <el-input v-model="form.unit" placeholder="请输入" maxlength="10" clearable />
+          </el-form-item>
+          <el-form-item label="数量" required>
+            <div style="display: flex;align-items: center;justify-content: space-between;">
+              <el-form-item prop="totalQuantity" style="flex: 1;">
+                <el-input-number v-model="form.totalQuantity" placeholder="总量" maxlength="20" :controls="false" style="width: 100%;" />
+              </el-form-item>
+              <div style="text-align: center;margin: 0 10px;">-</div>
+              <el-form-item prop="lossQuantity" style="flex: 1;">
+                <el-input-number v-model="form.lossQuantity" placeholder="损耗量" maxlength="20" :controls="false" style="width: 100%;" />
+              </el-form-item>
+              <div style="text-align: center;margin: 0 10px;">=</div>
+              <el-form-item prop="realQuantity" style="flex: 1;">
+                <el-input-number v-model="form.realQuantity" placeholder="实际售卖量" maxlength="20" :controls="false" style="width: 100%;" />
+              </el-form-item>
+              <div style="text-align: right;margin-left: 10px;">{{ form.unit || '单位' }}</div>
+            </div>
+          </el-form-item>
+          <el-form-item label="成本" required>
+            <div style="display: flex;align-items: center;justify-content: space-between;">
+              <el-form-item prop="goodsCost" style="flex: 1;">
+                <el-input-number v-model="form.goodsCost" placeholder="商品成本" maxlength="20" :controls="false" style="width: 100%;" />
+              </el-form-item>
+              <div style="text-align: center;margin: 0 10px;">+</div>
+              <el-form-item prop="otherCost" style="flex: 1;">
+                <el-input-number v-model="form.otherCost" placeholder="其他成本" maxlength="20" :controls="false" style="width: 100%;" />
+              </el-form-item>
+              <div style="text-align: center;margin: 0 10px;">=</div>
+              <el-form-item prop="totalCost" style="flex: 1;">
+                <el-input-number v-model="form.totalCost" placeholder="总成本" maxlength="20" :controls="false" style="width: 100%;" />
+              </el-form-item>
+              <div style="text-align: right;margin-left: 10px;">元</div>
+            </div>
+          </el-form-item>
+          <el-form-item label="进货日期" prop="date">
+            <el-date-picker type="date" format="YYYY/MM/DD" value-format="YYYY-MM-DD" v-model="form.date" placeholder="请选择" style="width: 100%;" />
+          </el-form-item>
+          <el-form-item label="进货来源" prop="source">
+            <el-input v-model="form.source" placeholder="请输入" maxlength="50" clearable />
+          </el-form-item>
+          <el-form-item label="备注" prop="remark">
+            <el-input type="textarea" autosize v-model="form.remark" maxlength="200" placeholder="请输入" clearable />
+          </el-form-item>
+          <el-form-item label="状态" prop="status">
+            <el-select v-model="form.status" placeholder="请选择" clearable>
+              <el-option label="状态1" value="状态1" />
+              <el-option label="状态2" value="状态2" />
+              <el-option label="状态3" value="状态3" />
             </el-select>
           </el-form-item>
         </el-form>
       </div>
-      <template #footer>
+      <template #footer v-if="formTitle!=='详情'">
         <div class="form-btns">
           <el-button @click="formCancel">取消</el-button>
           <el-button type="primary" @click="formSubmit(formRef)">提交</el-button>
@@ -131,9 +152,15 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue';
+import { onMounted, reactive, ref, nextTick } from 'vue';
+// const { proxy } = getCurrentInstance();
 
 // Table
+let searchParams = reactive({
+  batch: '',
+  name: '',
+  date: null,
+})
 let tableData = ref([])
 let tableHeight = ref(0)
 let pagination = reactive({
@@ -141,6 +168,59 @@ let pagination = reactive({
   pageSize: 10,
   total: 0,
 })
+
+let isShowForm = ref(false)
+let formTitle = ref('')
+let formRef = ref(null)
+let form = reactive({
+  batch: '',
+  name: '',
+  unit: '',
+  totalQuantity: null,
+  lossQuantity: null,
+  realQuantity: null,
+  goodsCost: null,
+  otherCost: null,
+  totalCost: null,
+  date: null,
+  source: '',
+  remark: '',
+  status: '',
+})
+const formRules = reactive({
+  batch: [{ required: true, message: '请输入批次', trigger: 'blur' },],
+  name: [{ required: true, message: '请输入商品名称', trigger: 'blur' },],
+  unit: [{ required: true, message: '请输入单位', trigger: 'blur' },],
+  totalQuantity: [
+    { required: true, message: '请输入总数量', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
+  ],
+  lossQuantity: [
+    { required: true, message: '请输入损耗量', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 99999999, message: '请输入损耗量', trigger: 'blur' },
+  ],
+  realQuantity: [
+    { required: true, message: '请输入实际售卖量', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 99999999, message: '请输入实际售卖量', trigger: 'blur' },
+  ],
+  goodsCost: [
+    { required: true, message: '请输入商品成本', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 99999999, message: '请输入商品成本', trigger: 'blur' },
+  ],
+  otherCost: [
+    { required: true, message: '请输入其他成本', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 99999999, message: '请输入其他成本', trigger: 'blur' },
+  ],
+  totalCost: [
+    { required: true, message: '请输入总成本', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 99999999, message: '请输入总成本', trigger: 'blur' },
+  ],
+  date: [{ required: true, message: '请选择进货日期', trigger: 'blur' },],
+  source: [{ required: false, message: '请输入进货来源', trigger: 'blur' },],
+  remark: [{ required: false, message: '请输入备注', trigger: 'blur' },],
+  status: [{ required: false, message: '请选择', trigger: 'blur' },],
+})
+
 const calculateTableHeight = () => {
   const viewportHeight = window.innerHeight;
   const searchWrapperHeight = document.querySelector('.search-wrapper').offsetHeight;
@@ -148,6 +228,17 @@ const calculateTableHeight = () => {
   const paginationWrapperHeight = document.querySelector('.pagination-wrapper').offsetHeight;
   tableHeight.value = viewportHeight - searchWrapperHeight - optionsWrapperHeight - paginationWrapperHeight - 130;
 };
+function search() {
+
+}
+function searchReset() {
+  Object.assign(searchParams, {
+    batch: '',
+    name: '',
+    date: null,
+  })
+  pagination.pageNo = 1
+}
 function tablePageSizeChange(newPageSize) {
   console.log(newPageSize)
 }
@@ -158,35 +249,67 @@ function tableAdd(record) {
   // console.log(record.date)
   formTitle.value = '新增'
   isShowForm.value = true
+  nextTick(() => {
+    formRef.value.resetFields()
+
+    const date = new Date()
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    form.batch = `${year}${month}${day}${hours}${minutes}${seconds}`;
+  })
+  
 }
 function tableDetail(record) {
   // console.log(record.date)
   formTitle.value = '详情'
   isShowForm.value = true
+  nextTick(() => {
+    formRef.value.resetFields()
+    Object.assign(form, { // reactive 直接替换对象的引用不会影响原始对象的代理
+      batch: '112233',
+      name: '蓝莓大果',
+      unit: '斤',
+      totalQuantity: 150,
+      lossQuantity: 50,
+      realQuantity: 100,
+      goodsCost: 100,
+      otherCost: 100,
+      totalCost: 150,
+      date: '2024-06-19',
+      source: '我是进货来源',
+      remark: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
+      status: '状态1'
+    })
+  })
 }
 function tableEdit(record) {
   // console.log(record.date)
   formTitle.value = '编辑'
   isShowForm.value = true
+  nextTick(() => {
+    formRef.value.resetFields()
+    Object.assign(form, { // reactive 直接替换对象的引用不会影响原始对象的代理
+      batch: '112233',
+      name: '蓝莓大果',
+      unit: '斤',
+      totalQuantity: 150,
+      lossQuantity: 50,
+      realQuantity: 100,
+      goodsCost: 100,
+      otherCost: 100,
+      totalCost: 150,
+      date: '2024-06-19',
+      source: '我是进货来源',
+      remark: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
+      status: '状态1'
+    })
+  })
 }
 
-
-// 表单
-let isShowForm = ref(false)
-let formTitle = ref('')
-let formRef = ref(null)
-let form = reactive({
-  name: '',
-  desc: '',
-})
-const formRules = reactive({
-  name: [{ required: true, message: 'Please input activity form', trigger: 'blur' },],
-  desc: [{ required: true, message: 'Please input activity form', trigger: 'blur' },],
-  // example: [
-  //   { required: true, message: 'Please input Activity name', trigger: 'blur' },
-  //   { min: 3, max: 5, message: 'Length should be 3 to 5', trigger: 'blur' },
-  // ],
-})
 
 function formCancel() {
   isShowForm.value = false
@@ -196,7 +319,7 @@ function formSubmit(formEl) {
   // const formEl = formRef.value;
   formEl.validate((valid, fields) => {
     if (valid) {
-      console.log('submit!')
+      console.log('submit!', form)
     } else {
       console.log('error submit!', fields)
     }
@@ -208,9 +331,19 @@ function formSubmit(formEl) {
 onMounted(() => {
   for (let i = 0; i < 100; i++) {
     tableData.value.push({
-      date: '2016-05-03',
-      name: 'Tom',
-      address: 'No. 189, Grove St, Los Angeles',
+      batch: '112233',
+      name: '蓝莓大果',
+      unit: '斤',
+      totalQuantity: 150,
+      lossQuantity: 50,
+      realQuantity: 100,
+      goodsCost: 100,
+      otherCost: 100,
+      totalCost: 150,
+      date: '2024-06-19',
+      source: '我是进货来源',
+      remark: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
+      status: '状态1'
     })
   }
   pagination.total = tableData.value.length
@@ -244,6 +377,8 @@ onMounted(() => {
     }
     .search-btns {
       width: 200px;
+      display: flex;
+      justify-content: center;
     }
   }
   .options {
@@ -264,10 +399,23 @@ onMounted(() => {
   .form-content {
     padding: 10px;
     box-sizing: border-box;
+    .form-item-wrapper {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
   }
   .form-btns {
     display: flex;
     justify-content: flex-end;
   }
+}
+.el-input[readonly] .el-input__inner,
+.el-input[disabled] .el-input__inner,
+.el-select[disabled] .el-select__inner {
+  background-color: #f5f7fa;
+  color: #c0c4cc;
+  cursor: not-allowed;
 }
 </style>
