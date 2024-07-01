@@ -14,6 +14,8 @@
                 class="addressInput" 
                 v-model="item.address" 
                 placeholder="请输入详细地址"
+                maxlength="200" 
+                show-word-limit
               />
             </div>
             <div class="content-right-item" style="margin-top: 10px;">

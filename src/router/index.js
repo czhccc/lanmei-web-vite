@@ -21,9 +21,14 @@ const routes = [
     component: () => import('../views/purchase/purchase.vue'),
   },
   {
-    path: '/purchase',
-    name: 'Purchase',
-    component: () => import('../views/purchase/purchase.vue'),
+    path: '/goods',
+    name: 'Goods',
+    component: () => import('../views/goods/goods.vue'),
+  },
+  {
+    path: '/order',
+    name: 'Order',
+    component: () => import('../views/order/order.vue'),
   },
 
   {
@@ -31,7 +36,11 @@ const routes = [
     name: 'ConfigureSeller',
     component: () => import('../views/configureSeller/configureSeller.vue'),
   },
-
+  {
+    path: '/comment',
+    name: 'Comment',
+    component: () => import('../views/comment/comment.vue'),
+  },
   {
     path: '/account',
     name: 'Account',

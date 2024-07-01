@@ -63,6 +63,7 @@
       :title="formTitle" 
       width="600" 
       center 
+      align-center
     >
       <div class="form-content">
         <el-form ref="formRef" :model="form" :rules="formRules" label-width="auto" :disabled="formTitle==='详情'">
@@ -82,7 +83,7 @@
             </el-select>
           </el-form-item>
           <el-form-item label="备注" prop="remark">
-            <el-input type="textarea" autosize v-model="form.remark" maxlength="200" placeholder="请输入" clearable />
+            <el-input type="textarea" autosize v-model="form.remark" maxlength="200" show-word-limit placeholder="请输入" clearable />
           </el-form-item>
           <el-form-item label="状态" prop="usable">
             <el-switch v-model="form.usable" active-text="启用" inactive-text="冻结" />
@@ -92,7 +93,7 @@
       <template #footer v-if="formTitle!=='详情'">
         <div class="form-btns">
           <el-button @click="formCancel">取消</el-button>
-          <el-button type="primary" @click="formSubmit(formRef)">提交</el-button>
+          <el-button type="primary" @click="formSubmit">提交</el-button>
         </div>
       </template>
     </el-dialog>
@@ -226,8 +227,8 @@ let isFormSubmiting = ref(false)
 function formCancel() {
   isShowForm.value = false
 }
-function formSubmit(formEl) {
-  formEl.validate((valid, fields) => {
+function formSubmit() {
+  formRef.value.validate((valid, fields) => {
     if (valid) {
       isFormSubmiting.value = true
       console.log('submit!', form)
