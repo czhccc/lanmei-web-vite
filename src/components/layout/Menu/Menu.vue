@@ -1,15 +1,9 @@
 <template>
   <div class="Menu">
     <el-menu
-      default-active="1-1"
+      default-active="3"
       class="el-menu-vertical-demo"
     >
-      <el-sub-menu index="1">
-        <template #title>
-          <span>父级菜单</span>
-        </template>
-        <el-menu-item index="1-1">子级菜单</el-menu-item>
-      </el-sub-menu>
       <el-menu-item index="3" @click="changeRoute('/home')">
         <span>首页</span>
       </el-menu-item>
@@ -19,6 +13,15 @@
       <el-menu-item index="5" @click="changeRoute('/configureSeller')">
         <span>配置卖家信息</span>
       </el-menu-item>
+      <el-menu-item index="6" @click="changeRoute('/account')">
+        <span>账号管理</span>
+      </el-menu-item>
+      <!-- <el-sub-menu index="10">
+        <template #title>
+          <span>系统管理</span>
+        </template>
+        <el-menu-item index="10-1">账号管理</el-menu-item>
+      </el-sub-menu> -->
     </el-menu>
   </div>
 </template>

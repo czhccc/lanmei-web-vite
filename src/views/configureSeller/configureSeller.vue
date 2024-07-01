@@ -32,11 +32,7 @@
             </div>
           </div>
           <div class="delete-wrapper">
-            <el-popconfirm title="确认删除?" @confirm="addressDelete(item)">
-              <template #reference>
-                <el-icon class="delete-icon"><i-ep-Delete class="loginOut" /></el-icon>
-              </template>
-            </el-popconfirm>
+            <el-icon class="delete-icon"><i-ep-Delete class="loginOut" @click="addressDelete(item)" /></el-icon>
           </div>
         </div>
         <el-button type="primary" @click="addressAddNew">新增</el-button>
@@ -54,11 +50,7 @@
             </div>
           </div>
           <div class="delete-wrapper">
-            <el-popconfirm title="确认删除?" @confirm="contactDelete(item)">
-              <template #reference>
-                <el-icon class="delete-icon"><i-ep-Delete class="loginOut" /></el-icon>
-              </template>
-            </el-popconfirm>
+            <el-icon class="delete-icon"><i-ep-Delete class="loginOut" @click="contactDelete(item)" /></el-icon>
           </div>
         </div>
         <el-button type="primary" @click="contactAddNew">新增</el-button>
@@ -66,10 +58,24 @@
     </div>
     <div class="item aboutUs">
       <div class="title">关于我们</div>
-      <div class="content">
-        <div class="content-item">
-          
-        </div>
+      <div class="isShowAboutUs-wrapper">
+        是否展示：
+        <el-switch v-model="isShowAboutUs" size="large" active-text="展示" inactive-text="隐藏" />
+      </div>
+      <div class="richText-wrapper">
+        <Toolbar
+          :editor="richTextEditorRef"
+          :defaultConfig="richTextEditorToolbarConfig"
+          :mode="richTextEditorMode"
+        />
+        <Editor
+          style="height: 500px; overflow-y: hidden;"
+          v-model="richTextValue"
+          :defaultConfig="richTextEditorConfig"
+          :mode="richTextEditorMode"
+          @onCreated="richTextEditorHandleCreated"
+        />
+        
       </div>
     </div>
 
@@ -80,7 +86,12 @@
 </template>
 
 <script setup>
-import { reactive } from "vue";
+
+
+import { onBeforeUnmount, ref, reactive, shallowRef, onMounted } from 'vue'
+import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
+import '@wangeditor/editor/dist/css/style.css' // 引入 css
+
 
 // 线下地址
 let offlineAddressList = reactive([
@@ -117,6 +128,18 @@ function latChange(e, index) {
 }
 function addressDelete(item) {
   console.log(item)
+  ElMessageBox.confirm(
+    '确定删除?',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    
+  }).catch(() => {
+    
+  })
 }
 function addressAddNew() {
   offlineAddressList.push({
@@ -140,7 +163,18 @@ let contactList = reactive([
   },
 ])
 function contactDelete(item) {
-  console.log(item)
+  ElMessageBox.confirm(
+    '确定删除?',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    
+  }).catch(() => {
+    
+  })
 }
 function contactAddNew() {
   contactList.push({
@@ -150,10 +184,54 @@ function contactAddNew() {
 }
 
 // 关于我们
+let isShowAboutUs = ref(false)
+
+// 富文本编辑器
+// 编辑器实例，必须用 shallowRef
+const richTextEditorRef = shallowRef()
+
+// 内容 HTML
+const richTextEditorMode = 'default' // default or simple
+const richTextValue = ref('<p>hello</p>')
+const richTextEditorToolbarConfig = {}
+const richTextEditorConfig = { placeholder: '请输入内容...' }
+
+const richTextEditorHandleCreated = (editor) => {
+  richTextEditorRef.value = editor // 记录 editor 实例，重要！
+}
+
+onBeforeUnmount(() => {
+  // 组件销毁时，也及时销毁编辑器
+  const editor = richTextEditorRef.value
+  if (editor == null) return;
+  editor.destroy()
+})
 
 
 // 其他
 function submit() {
+  for (const item of offlineAddressList) {
+    if (!item.address || !item.lon || !item.lat || item.isShowLonError || item.isShowLatError) {
+      ElMessage({
+        message: '请检查线下地址项',
+        type: 'warning',
+        plain: true,
+      })
+      return;
+    }
+  }
+
+  for (const item of offlineAddressList) {
+    if (!item.type || !item.value) {
+      ElMessage({
+        message: '请检查联系方式项',
+        type: 'warning',
+        plain: true,
+      })
+      return;
+    }
+  }
+
   ElMessageBox.confirm(
     '确定提交保存?',
     {
@@ -264,7 +342,16 @@ function submit() {
     }
   }
   .aboutUs {
-
+    box-sizing: border-box;
+    padding-bottom: 60px;
+    .isShowAboutUs-wrapper {
+      margin-top: 10px;
+      font-size: 24px;
+    }
+    .richText-wrapper {
+      margin-top: 10px;
+      border: 1px solid gray;
+    }
   }
   .btns {
     position: fixed;

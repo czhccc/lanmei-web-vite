@@ -31,6 +31,12 @@ const routes = [
     name: 'ConfigureSeller',
     component: () => import('../views/configureSeller/configureSeller.vue'),
   },
+
+  {
+    path: '/account',
+    name: 'Account',
+    component: () => import('../views/account/account.vue'),
+  },
 ];
 
 const router = createRouter({

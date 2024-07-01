@@ -157,7 +157,7 @@
       <template #footer v-if="formTitle!=='详情'">
         <div class="form-btns">
           <el-button @click="formCancel">取消</el-button>
-          <el-button type="primary" @click="formSubmit(formRef)">提交</el-button>
+          <el-button type="primary" :loading="isFormSubmiting" @click="formSubmit(formRef)">提交</el-button>
         </div>
       </template>
     </el-dialog>
@@ -322,19 +322,31 @@ function tableEdit(record) {
     })
   })
 }
+function tableDelete(record) {
+  ElMessageBox.confirm(
+    '确定删除?',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    
+  }).catch(() => {
+    
+  })
+}
 
-
+let isFormSubmiting = ref(false)
 function formCancel() {
   isShowForm.value = false
 }
 function formSubmit(formEl) {
-  console.log(formEl)
-  // const formEl = formRef.value;
+  console.log(111);
   formEl.validate((valid, fields) => {
     if (valid) {
+      isFormSubmiting.value = true
       console.log('submit!', form)
-    } else {
-      console.log('error submit!', fields)
     }
   })
 }
