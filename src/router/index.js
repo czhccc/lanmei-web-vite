@@ -20,6 +20,17 @@ const routes = [
     name: 'Purchase',
     component: () => import('../views/purchase/purchase.vue'),
   },
+  {
+    path: '/purchase',
+    name: 'Purchase',
+    component: () => import('../views/purchase/purchase.vue'),
+  },
+
+  {
+    path: '/configureSeller',
+    name: 'ConfigureSeller',
+    component: () => import('../views/configureSeller/configureSeller.vue'),
+  },
 ];
 
 const router = createRouter({

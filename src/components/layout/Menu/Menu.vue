@@ -16,6 +16,9 @@
       <el-menu-item index="4" @click="changeRoute('/purchase')">
         <span>采购</span>
       </el-menu-item>
+      <el-menu-item index="5" @click="changeRoute('/configureSeller')">
+        <span>配置卖家信息</span>
+      </el-menu-item>
     </el-menu>
   </div>
 </template>

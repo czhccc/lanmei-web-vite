@@ -48,6 +48,7 @@
     flex-direction: column;
     height: 100%;
     .app-header {
+      height: 50px;
       padding: 0;
       box-sizing: border-box;
     }
@@ -62,6 +63,8 @@
         flex: 1;
         padding: 20px;
         box-sizing: border-box;
+        height: calc(100vh - 50px);
+        overflow-y: auto;
       }
     }
   }

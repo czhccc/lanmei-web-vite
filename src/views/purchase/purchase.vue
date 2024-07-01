@@ -23,7 +23,14 @@
             <div class="saerch-item">
               <div class="search-item-label">进货日期：</div>
               <div class="search-item-input">
-                <el-date-picker type="date" format="YYYY/MM/DD" value-format="YYYY-MM-DD" placeholder="请选择" clearable v-model="searchParams.date" />
+                <el-date-picker 
+                  type="date" 
+                  format="YYYY/MM/DD" value-format="YYYY-MM-DD" 
+                  placeholder="请选择" 
+                  clearable 
+                  v-model="searchParams.date" 
+                  style="width: 100%;"
+                />
               </div>
             </div>
           </el-col>
@@ -43,9 +50,16 @@
       <el-table :height="tableHeight" :data="tableData">
         <el-table-column prop="batch" label="批次" align="center" />
         <el-table-column prop="name" label="商品名称" align="center" />
-        <el-table-column prop="realQuantity" label="实际售卖量" align="center" />
-        <el-table-column prop="unit" label="单位" align="center" />
-        <el-table-column prop="totalCost" label="总成本" align="center" />
+        <el-table-column prop="realQuantity" label="实际售卖量" align="center" >
+          <template #default="scope">
+            {{ scope.row.totalCost }} {{ scope.row.unit }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="totalCost" label="总成本" align="center" >
+          <template #default="scope">
+            {{ scope.row.totalCost }} 元
+          </template>
+        </el-table-column>
         <el-table-column prop="date" label="进货日期" align="center" />
         <el-table-column prop="source" label="进货来源" align="center" />
         <el-table-column prop="remark" label="备注" align="center" />
@@ -153,7 +167,6 @@
 
 <script setup>
 import { onMounted, reactive, ref, nextTick } from 'vue';
-// const { proxy } = getCurrentInstance();
 
 // Table
 let searchParams = reactive({
@@ -226,7 +239,7 @@ const calculateTableHeight = () => {
   const searchWrapperHeight = document.querySelector('.search-wrapper').offsetHeight;
   const optionsWrapperHeight = document.querySelector('.options').offsetHeight;
   const paginationWrapperHeight = document.querySelector('.pagination-wrapper').offsetHeight;
-  tableHeight.value = viewportHeight - searchWrapperHeight - optionsWrapperHeight - paginationWrapperHeight - 130;
+  tableHeight.value = viewportHeight - searchWrapperHeight - optionsWrapperHeight - paginationWrapperHeight - 120;
 };
 function search() {
 
