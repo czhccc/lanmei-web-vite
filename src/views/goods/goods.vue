@@ -48,21 +48,32 @@
 
     <div class="table-wrapper">
       <el-table :height="tableHeight" :data="tableData">
-        <el-table-column prop="batch" label="批次" align="center" />
+        <el-table-column prop="batch" label="商品编号" align="center" />
         <el-table-column prop="name" label="商品名称" align="center" />
-        <el-table-column prop="realQuantity" label="实际售卖量" align="center" >
+        <el-table-column prop="name" label="总数量" align="center">
           <template #default="scope">
-            {{ scope.row.totalCost }} {{ scope.row.unit }}
+            {{ scope.row.quantity }} {{ scope.row.unit }}
           </template>
         </el-table-column>
-        <el-table-column prop="totalCost" label="总成本" align="center" >
+        <el-table-column prop="remark" label="当前状态" align="center" />
+        <el-table-column prop="name" label="剩余数量" align="center">
           <template #default="scope">
-            {{ scope.row.totalCost }} 元
+            {{ scope.row.quantity }} {{ scope.row.unit }}
           </template>
         </el-table-column>
-        <el-table-column prop="date" label="进货日期" align="center" />
-        <el-table-column prop="source" label="进货来源" align="center" />
+        <el-table-column prop="date" label="价格" align="center">
+          <template #default="scope">
+            <span style="color: black;">
+              {{ scope.row.currentPrice }}
+            </span>
+            <span style="color: gray;text-decoration-line: line-through;">
+              {{ scope.row.oldPrice }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="source" label="现价" align="center" />
         <el-table-column prop="remark" label="备注" align="center" />
+        <el-table-column prop="remark" label="是否上架" align="center" />
         <el-table-column fixed="right" label="操作" width="160" align="center" >
           <template #default="scope">
             <el-button link type="primary" @click="tableDetail(scope.row)">详情</el-button>
@@ -369,7 +380,10 @@ onMounted(() => {
       date: '2024-06-19',
       source: '我是进货来源',
       remark: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-      status: '状态1'
+      status: '状态1',
+
+      currentPrice: '2.00',
+      oldPrice: '1.00'
     })
   }
   pagination.total = tableData.value.length
