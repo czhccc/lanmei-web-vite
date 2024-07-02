@@ -5,7 +5,7 @@
         <el-row :gutter="20">
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">批次：</div>
+              <div class="search-item-label">订单号：</div>
               <div class="search-item-input">
                 <el-input placeholder="请输入" clearable v-model="searchParams.batch"></el-input>
               </div>
@@ -13,7 +13,15 @@
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">商品名称：</div>
+              <div class="search-item-label">商品编号：</div>
+              <div class="search-item-input">
+                <el-input placeholder="请输入" clearable v-model="searchParams.batch"></el-input>
+              </div>
+            </div>
+          </el-col>
+          <el-col :span="6">
+            <div class="saerch-item">
+              <div class="search-item-label">客户手机号：</div>
               <div class="search-item-input">
                 <el-input placeholder="请输入" clearable v-model="searchParams.name"></el-input>
               </div>
@@ -21,12 +29,27 @@
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">进货日期：</div>
+              <div class="search-item-label">订单状态：</div>
+              <div class="search-item-input">
+                <el-select v-model="searchParams.haveResponsed" placeholder="请选择" clearable>
+                  <el-option label="预订中" value="ydz" />
+                  <el-option label="待付款" value="dfk" />
+                  <el-option label="已付款" value="yfk" />
+                  <el-option label="已完结" value="ywj" />
+                  <el-option label="已取消" value="yqx" />
+                </el-select>
+              </div>
+            </div>
+          </el-col>
+          <el-col :span="6">
+            <div class="saerch-item">
+              <div class="search-item-label">下单日期：</div>
               <div class="search-item-input">
                 <el-date-picker 
-                  type="date" 
+                  type="daterange"
                   format="YYYY/MM/DD" value-format="YYYY-MM-DD" 
-                  placeholder="请选择" 
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
                   clearable 
                   v-model="searchParams.date" 
                   style="width: 100%;"
@@ -48,26 +71,41 @@
 
     <div class="table-wrapper">
       <el-table :height="tableHeight" :data="tableData">
-        <el-table-column prop="batch" label="批次" align="center" />
-        <el-table-column prop="name" label="商品名称" align="center" />
-        <el-table-column prop="realQuantity" label="实际售卖量" align="center" >
+        <el-table-column prop="orderNo" label="订单号" align="center" />
+        <el-table-column prop="orderTypeText" label="订单类型" align="center" />
+        <el-table-column prop="goodsNo" label="商品" align="center" >
           <template #default="scope">
-            {{ scope.row.totalCost }} {{ scope.row.unit }}
+            <el-tooltip :content="'商品编号：'+scope.row.goodsNo">
+              <div>{{ scope.row.goodsName }}</div>
+            </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column prop="totalCost" label="总成本" align="center" >
+        <el-table-column prop="goodsQuantity" label="数量" align="center" >
           <template #default="scope">
-            {{ scope.row.totalCost }} 元
+            <div>{{ scope.row.goodsQuantity }} {{ scope.row.goodsUnit }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="date" label="进货日期" align="center" />
-        <el-table-column prop="source" label="进货来源" align="center" />
-        <el-table-column prop="remark" label="备注" align="center" />
-        <el-table-column fixed="right" label="操作" width="160" align="center" >
+        <el-table-column prop="payAmount" label="实付金额" align="center" >
+          <template #default="scope">
+            <el-tooltip :content="'总金额：'+(scope.row.goodsPrice+scope.row.goodsPostage)+' 元'">
+              <div>{{ scope.row.goodsPrice }} + {{ scope.row.goodsPostage }} 元</div>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+        <el-table-column prop="customerPhone" label="客户手机号" align="center" />
+        <el-table-column prop="orderCreateTime" label="下单时间" width="170" align="center" />
+        <el-table-column prop="orderStatus" label="订单状态" align="center">
+          <template #default="scope">
+            <el-tooltip :content="'取消原因：'+scope.row.orderCancelReason">
+              <div>{{ scope.row.orderStatusText }}</div>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+        <el-table-column prop="selfRemark" label="己方备注" align="center" />
+        <el-table-column fixed="right" label="操作" width="120" align="center" >
           <template #default="scope">
             <el-button link type="primary" @click="tableDetail(scope.row)">详情</el-button>
             <el-button link type="primary" @click="tableEdit(scope.row)">编辑</el-button>
-            <el-button link type="primary" @click="tableDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -96,27 +134,27 @@
     >
       <div class="form-content">
         <el-form ref="formRef" :model="form" :rules="formRules" label-width="auto" :disabled="formTitle==='详情'">
-          <el-form-item label="批次" prop="batch">
-            <el-input v-model="form.batch" placeholder="自动生成" readonly />
+          <el-form-item label="订单号" prop="orderNo" v-if="formTitle!=='新增'">
+            <el-input v-model="form.orderNo" placeholder="自动生成" readonly />
           </el-form-item>
-          <el-form-item label="商品名称" prop="name">
-            <el-input v-model="form.name" placeholder="请输入" maxlength="20" clearable />
+          <el-form-item label="订单类型">
+            手动添加
           </el-form-item>
-          <el-form-item label="单位" prop="unit">
-            <el-input v-model="form.unit" placeholder="请输入" maxlength="10" clearable />
+          <el-form-item label="商品编号" prop="goodsNo">
+            <div style="width: 100%;display: flex;justify-content: space-between">
+              <el-form-item prop="goodsNo" style="flex: 1;">
+                <el-input v-model="form.goodsNo" placeholder="请选择商品" maxlength="20" clearable readonly />
+              </el-form-item>
+              <el-button type="primary" link v-if="formTitle!=='详情'" style="margin-left: 10px;">选择商品</el-button>
+            </div>
+          </el-form-item>
+          <el-form-item label="商品名称" prop="unit">
+            <el-input v-model="form.goodsName" placeholder="请选择商品" maxlength="10" clearable readonly />
           </el-form-item>
           <el-form-item label="数量" required>
-            <div style="display: flex;align-items: center;justify-content: space-between;">
+            <div style="width: 100%;display: flex;align-items: center;justify-content: space-between;">
               <el-form-item prop="totalQuantity" style="flex: 1;">
                 <el-input-number v-model="form.totalQuantity" placeholder="总量" maxlength="20" :controls="false" style="width: 100%;" />
-              </el-form-item>
-              <div style="text-align: center;margin: 0 10px;">-</div>
-              <el-form-item prop="lossQuantity" style="flex: 1;">
-                <el-input-number v-model="form.lossQuantity" placeholder="损耗量" maxlength="20" :controls="false" style="width: 100%;" />
-              </el-form-item>
-              <div style="text-align: center;margin: 0 10px;">=</div>
-              <el-form-item prop="realQuantity" style="flex: 1;">
-                <el-input-number v-model="form.realQuantity" placeholder="实际售卖量" maxlength="20" :controls="false" style="width: 100%;" />
               </el-form-item>
               <div style="text-align: right;margin-left: 10px;">{{ form.unit || '单位' }}</div>
             </div>
@@ -124,15 +162,15 @@
           <el-form-item label="成本" required>
             <div style="display: flex;align-items: center;justify-content: space-between;">
               <el-form-item prop="goodsCost" style="flex: 1;">
-                <el-input-number v-model="form.goodsCost" placeholder="商品成本" maxlength="20" :controls="false" style="width: 100%;" />
+                <el-input-number v-model="form.goodsPrice" placeholder="商品金额" :min="0.01" :max="999999" :precision="2" :controls="false" style="width: 100%;" />
               </el-form-item>
               <div style="text-align: center;margin: 0 10px;">+</div>
               <el-form-item prop="otherCost" style="flex: 1;">
-                <el-input-number v-model="form.otherCost" placeholder="其他成本" maxlength="20" :controls="false" style="width: 100%;" />
+                <el-input-number v-model="form.goodsPostage" placeholder="邮费" :min="0.01" :max="999999" :precision="2" :controls="false" style="width: 100%;" />
               </el-form-item>
               <div style="text-align: center;margin: 0 10px;">=</div>
-              <el-form-item prop="totalCost" style="flex: 1;">
-                <el-input-number v-model="form.totalCost" placeholder="总成本" maxlength="20" :controls="false" style="width: 100%;" />
+              <el-form-item prop="totalCost">
+                {{ (form.goodsPrice + form.goodsPostage).toFixed(2) || 0.00 }}
               </el-form-item>
               <div style="text-align: right;margin-left: 10px;">元</div>
             </div>
@@ -187,19 +225,19 @@ let isShowForm = ref(false)
 let formTitle = ref('')
 let formRef = ref(null)
 let form = reactive({
-  batch: '',
-  name: '',
-  unit: '',
-  totalQuantity: null,
-  lossQuantity: null,
-  realQuantity: null,
-  goodsCost: null,
-  otherCost: null,
-  totalCost: null,
-  date: null,
-  source: '',
-  remark: '',
-  status: '',
+  orderNo: '',
+  orderType: '',
+  orderTypeText: '',
+  goodsNo: '',
+  goodsName: '',
+  goodsQuantity: 0,
+  goodsUnit: '',
+  goodsPrice: 0.00,
+  goodsPostage: 0.00,
+  customerPhone: '',
+  orderCreateTime: '',
+  orderStatus: '',
+  selfRemark: '',
 })
 const formRules = reactive({
   batch: [{ required: true, message: '请输入批次', trigger: 'blur' },],
@@ -284,19 +322,19 @@ function tableDetail(record) {
   nextTick(() => {
     formRef.value.resetFields()
     Object.assign(form, { // reactive 直接替换对象的引用不会影响原始对象的代理
-      batch: '112233',
-      name: '蓝莓大果',
-      unit: '斤',
-      totalQuantity: 150,
-      lossQuantity: 50,
-      realQuantity: 100,
-      goodsCost: 100,
-      otherCost: 100,
-      totalCost: 150,
-      date: '2024-06-19',
-      source: '我是进货来源',
-      remark: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-      status: '状态1'
+      orderNo: '202407022236526936',
+      goodsNo: '202407022236526936',
+      goodsName: '蓝莓大果',
+      goodsQuantity: 200,
+      goodsUnit: '斤',
+      goodsPrice: 150.00,
+      goodsPostage: 10.00,
+      customerPhone: '13989562356',
+      orderCreateTime: '2024-07-02 22:42:26',
+      orderStatus: 'yqx',
+      orderStatusText: '已取消',
+      orderCancelReason: '就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消',
+      selfRemark: '我是备注我是备注我是备注2222222222222222222222222222222我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
     })
   })
 }
@@ -307,34 +345,22 @@ function tableEdit(record) {
   nextTick(() => {
     formRef.value.resetFields()
     Object.assign(form, { // reactive 直接替换对象的引用不会影响原始对象的代理
-      batch: '112233',
-      name: '蓝莓大果',
-      unit: '斤',
-      totalQuantity: 150,
-      lossQuantity: 50,
-      realQuantity: 100,
-      goodsCost: 100,
-      otherCost: 100,
-      totalCost: 150,
-      date: '2024-06-19',
-      source: '我是进货来源',
-      remark: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-      status: '状态1'
+      orderNo: '202407022236526936',
+      goodsNo: '202407022236526936',
+      orderType: '',
+      orderTypeText: '手动添加',
+      goodsName: '蓝莓大果',
+      goodsQuantity: 200,
+      goodsUnit: '斤',
+      goodsPrice: 150.00,
+      goodsPostage: 10.00,
+      customerPhone: '13989562356',
+      orderCreateTime: '2024-07-02 22:42:26',
+      orderStatus: 'yqx',
+      orderStatusText: '已取消',
+      orderCancelReason: '就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消',
+      selfRemark: '我是备注我是备注我是备注2222222222222222222222222222222我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
     })
-  })
-}
-function tableDelete(record) {
-  ElMessageBox.confirm(
-    '确定删除?',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  ).then(() => {
-    
-  }).catch(() => {
-    
   })
 }
 
@@ -357,19 +383,21 @@ function formSubmit() {
 onMounted(() => {
   for (let i = 0; i < 100; i++) {
     tableData.value.push({
-      batch: '112233',
-      name: '蓝莓大果',
-      unit: '斤',
-      totalQuantity: 150,
-      lossQuantity: 50,
-      realQuantity: 100,
-      goodsCost: 100,
-      otherCost: 100,
-      totalCost: 150,
-      date: '2024-06-19',
-      source: '我是进货来源',
-      remark: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-      status: '状态1'
+      orderNo: '202407022236526936',
+      orderType: '',
+      orderTypeText: '手动添加',
+      goodsNo: '202407022236526936',
+      goodsName: '蓝莓大果',
+      goodsQuantity: 200,
+      goodsUnit: '斤',
+      goodsPrice: 150.00,
+      goodsPostage: 10.00,
+      customerPhone: '13989562356',
+      orderCreateTime: '2024-07-02 22:42:26',
+      orderStatus: 'yqx',
+      orderStatusText: '已取消',
+      orderCancelReason: '就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消',
+      selfRemark: '我是备注我是备注我是备注2222222222222222222222222222222我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
     })
   }
   pagination.total = tableData.value.length
@@ -398,6 +426,9 @@ onMounted(() => {
         }
         .search-item-input {
           flex: 1;
+          :deep(div) {
+            box-sizing: border-box !important;
+          }
         }
       }
     }

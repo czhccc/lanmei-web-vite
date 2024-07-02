@@ -5,7 +5,7 @@
         <el-row :gutter="20">
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">批次：</div>
+              <div class="search-item-label">商品编号：</div>
               <div class="search-item-input">
                 <el-input placeholder="请输入" clearable v-model="searchParams.batch"></el-input>
               </div>
