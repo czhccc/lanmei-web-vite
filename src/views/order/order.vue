@@ -7,7 +7,7 @@
             <div class="saerch-item">
               <div class="search-item-label">订单号：</div>
               <div class="search-item-input">
-                <el-input placeholder="请输入" clearable v-model="searchParams.batch"></el-input>
+                <el-input placeholder="请输入" clearable v-model="searchParams.orderNo"></el-input>
               </div>
             </div>
           </el-col>
@@ -15,7 +15,15 @@
             <div class="saerch-item">
               <div class="search-item-label">商品编号：</div>
               <div class="search-item-input">
-                <el-input placeholder="请输入" clearable v-model="searchParams.batch"></el-input>
+                <el-input placeholder="请输入" clearable v-model="searchParams.goodsNo"></el-input>
+              </div>
+            </div>
+          </el-col>
+          <el-col :span="6">
+            <div class="saerch-item">
+              <div class="search-item-label">商品名称：</div>
+              <div class="search-item-input">
+                <el-input placeholder="请输入" clearable v-model="searchParams.goodsName"></el-input>
               </div>
             </div>
           </el-col>
@@ -23,7 +31,7 @@
             <div class="saerch-item">
               <div class="search-item-label">客户手机号：</div>
               <div class="search-item-input">
-                <el-input placeholder="请输入" clearable v-model="searchParams.name"></el-input>
+                <el-input placeholder="请输入" clearable v-model="searchParams.customerPhone"></el-input>
               </div>
             </div>
           </el-col>
@@ -31,7 +39,7 @@
             <div class="saerch-item">
               <div class="search-item-label">订单状态：</div>
               <div class="search-item-input">
-                <el-select v-model="searchParams.haveResponsed" placeholder="请选择" clearable>
+                <el-select v-model="searchParams.orderStatus" placeholder="请选择" clearable>
                   <el-option label="预订中" value="ydz" />
                   <el-option label="待付款" value="dfk" />
                   <el-option label="已付款" value="yfk" />
@@ -51,7 +59,7 @@
                   start-placeholder="开始日期"
                   end-placeholder="结束日期"
                   clearable 
-                  v-model="searchParams.date" 
+                  v-model="searchParams.orderCreateTime" 
                   style="width: 100%;"
                 />
               </div>
@@ -135,9 +143,12 @@ const $router = useRouter()
 
 // Table
 let searchParams = reactive({
-  batch: '',
-  name: '',
-  date: null,
+  orderNo: '',
+  goodsNo: '',
+  goodsName: '',
+  customerPhone: '',
+  orderStatus: '',
+  orderCreateTime: [],
 })
 let tableData = ref([])
 let tableHeight = ref(0)
@@ -176,7 +187,6 @@ function tableAdd(record) {
   $router.push({
     path: '/orderDetail',
     query: {
-      id: '123321',
       flag: 'add'
     }
   })

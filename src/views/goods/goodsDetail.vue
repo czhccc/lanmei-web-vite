@@ -1,264 +1,377 @@
 <template>
-  <div class="configureSeller">
-    <div class="item address">
-      <div class="title">线下地址</div>
-      <div class="content">
-        <div class="content-item" v-for="(item, index) in offlineAddressList" :key="index">
-          <div class="content-left">#{{ index+1 }}</div>
-          <div class="content-right">
-            <div class="content-right-item">
-              <div class="input-label">地址：</div>
-              <el-input 
-                type="textarea"
-                autosize
-                class="addressInput" 
-                v-model="item.address" 
-                placeholder="请输入详细地址"
-                maxlength="200" 
-                show-word-limit
-              />
-            </div>
-            <div class="content-right-item" style="margin-top: 10px;">
-              <div>
-                <div class="input-wrapper">
-                  <div class="input-label">经度：</div>
-                  <el-input class="input" v-model="item.lon" placeholder="请输入经度" @change="e => lonChange(e, index)" />
-                  <div class="error" v-if="item.isShowLonError">经度格式错误</div>
-                </div>
-                <div class="input-wrapper" style="margin-top: 10px;">
-                  <div class="input-label">纬度：</div>
-                  <el-input class="input" v-model="item.lat" placeholder="请输入纬度" @change="e => latChange(e, index)" />
-                  <div class="error" v-if="item.isShowLatError">纬度格式错误</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="delete-wrapper">
-            <el-icon class="delete-icon"><i-ep-Delete class="loginOut" @click="addressDelete(item)" /></el-icon>
+  <div class="goodsDetail">
+    <el-form 
+      ref="formRef" 
+      :model="form" 
+      :rules="formRules" 
+      label-width="auto"
+      :disabled="$route.query.flag==='detail'"
+    >
+      <div class="item">
+        <div class="title">
+          <div style="display: flex;justify-content: space-between;">
+            订单信息
+            <el-button 
+              type="danger" class="deleteBtn" 
+              :loading="isDeleting"
+              @click="toDelete" 
+              v-if="$route.query.flag==='edit'&&form.orderTypeText==='手动添加'"
+            >删 除</el-button>
           </div>
         </div>
-        <el-button type="primary" @click="addressAddNew">新增</el-button>
-      </div>
-    </div>
-    <div class="item contact">
-      <div class="title">联系方式</div>
-      <div class="content">
-        <div class="content-item" v-for="(item, index) in contactList" :key="index">
-          <div class="content-left">#{{ index+1 }}</div>
-          <div class="content-right">
-            <div class="content-right-item">
-              <el-input class="type-input" placeholder="请输入类型" v-model="item.type" />
-              <el-input class="value-input" placeholder="请输入联系方式" v-model="item.value" />
-            </div>
-          </div>
-          <div class="delete-wrapper">
-            <el-icon class="delete-icon"><i-ep-Delete class="loginOut" @click="contactDelete(item)" /></el-icon>
-          </div>
+        <div class="content">
+          <el-row :gutter="20">
+            <el-col :span="8">
+              <el-form-item label="订单号：" v-if="$route.query.flag!=='add'">
+                {{ form.orderNo }}
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="订单类型：" v-if="$route.query.flag!=='add'">
+                {{ form.orderTypeText }}
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="创建人：" v-if="$route.query.flag!=='add'">
+                {{ form.orderCreateBy }}
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="下单时间：" v-if="$route.query.flag!=='add'">
+                {{ form.orderCreateTime }}
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="20">
+            <el-col :span="8">
+              <el-form-item label="订单状态：" prop="orderStatus">
+                <el-select v-model="form.orderStatus" placeholder="请选择">
+                  <el-option label="预订中" value="ydz" />
+                  <el-option label="待付款" value="dfk" />
+                  <el-option label="已付款" value="yfk" />
+                  <el-option label="已完结" value="ywj" />
+                  <el-option label="已取消" value="yqx" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="取消原因：" prop="orderCancelReason" v-if="form.orderStatus==='yqx'">
+                <el-input type="textarea" autosize v-model="form.orderCancelReason" maxlength="200" show-word-limit placeholder="请输入" clearable />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="己方备注：" prop="selfRemark">
+                <el-input type="textarea" autosize v-model="form.remark" maxlength="200" show-word-limit placeholder="请输入" clearable />
+              </el-form-item>
+            </el-col>
+          </el-row>
         </div>
-        <el-button type="primary" @click="contactAddNew">新增</el-button>
       </div>
-    </div>
-    <div class="item aboutUs">
-      <div class="title">关于我们</div>
-      <div class="isShowAboutUs-wrapper">
-        是否展示：
-        <el-switch v-model="isShowAboutUs" size="large" active-text="展示" inactive-text="隐藏" />
+      <div class="item">
+        <div class="title">
+          商品信息
+          <el-button type="primary" v-if="$route.query.flag!=='detail'" @click="toChooseGoods">选择商品</el-button>
+        </div>
+        <div class="content">
+          <el-row :gutter="20">
+            <el-col :span="8">
+              <el-form-item label="商品编号：" prop="goodsNo">
+                {{ form.goodsNo }}
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="商品名称：" prop="goodsName">
+                {{ form.goodsName }}
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="数量：" required>
+                <div style="width: 100%;display: flex;align-items: center;justify-content: space-between;">
+                  <el-form-item prop="goodsQuantity" style="flex: 1;">
+                    <el-input-number v-model="form.goodsQuantity" placeholder="总量" maxlength="20" :controls="false" style="width: 100%;" />
+                  </el-form-item>
+                  <div style="text-align: right;margin-left: 10px;">{{ form.unit || '单位' }}</div>
+                </div>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="实付金额：" required>
+                <div style="width: 100%;display: flex;align-items: center;justify-content: space-between;">
+                  <el-form-item prop="goodsPrice" style="flex: 1;">
+                    <el-input-number v-model="form.goodsPrice" placeholder="商品金额" :min="0.01" :max="999999" :precision="2" :controls="false" style="width: 100%;" />
+                  </el-form-item>
+                  <div style="text-align: center;margin: 0 10px;">+</div>
+                  <el-form-item prop="goodsPostage" style="flex: 1;">
+                    <el-input-number v-model="form.goodsPostage" placeholder="邮费" :min="0.01" :max="999999" :precision="2" :controls="false" style="width: 100%;" />
+                  </el-form-item>
+                  <div style="text-align: center;margin: 0 10px;">=</div>
+                  <el-form-item>
+                    {{ (form.goodsPrice + form.goodsPostage).toFixed(2) || 0.00 }}
+                  </el-form-item>
+                  <div style="text-align: right;margin-left: 10px;">元</div>
+                </div>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </div>
       </div>
-      <div class="richText-wrapper">
-        <Toolbar
-          :editor="richTextEditorRef"
-          :defaultConfig="richTextEditorToolbarConfig"
-          :mode="richTextEditorMode"
-        />
-        <Editor
-          style="height: 500px; overflow-y: hidden;"
-          v-model="richTextValue"
-          :defaultConfig="richTextEditorConfig"
-          :mode="richTextEditorMode"
-          @onCreated="richTextEditorHandleCreated"
-        />
-        
+      <div class="item">
+        <div class="title">收货信息</div>
+        <div class="content">
+          <el-row :gutter="20">
+            <el-col :span="8">
+              <el-form-item label="客户手机号：" prop="customerPhone">
+                <el-input v-model="form.customerPhone" placeholder="请输入" maxlength="50" clearable />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="收货人手机号：" prop="recipientPhone">
+                <el-input v-model="form.recipientPhone" placeholder="请输入" maxlength="50" clearable />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="省市区：" prop="recipientRegion">
+                <el-input v-model="form.recipientRegion" placeholder="请输入" maxlength="50" clearable />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="收货地址详情：" prop="recipientAddressDetail">
+                <el-input type="textarea" autosize v-model="form.recipientAddressDetail" maxlength="200" show-word-limit placeholder="请输入" clearable />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="客户备注：" prop="customerRemark">
+                <el-input type="textarea" autosize v-model="form.customerRemark" maxlength="200" show-word-limit placeholder="请输入" clearable />
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </div>
       </div>
+    </el-form>
+    
+    <div class="btns" v-if="$route.query.flag!=='detail'">
+      <el-button type="primary" class="submitBtn" :loading=isSubmiting @click="toSubmit">提 交</el-button>
     </div>
 
-    <div class="btns">
-      <el-button type="primary" size="large" class="submitBtn" @click="submit">提 交</el-button>
-    </div>
+    <el-dialog 
+      v-model="isShowChooseGoodsDialog" 
+      title="选择商品" 
+      width="800"
+      align-center
+      class="chooseGoods-dialog"
+    >
+      <div class="chooseGoods-search">
+        <div class="chooseGoods-search-content">
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <div class="chooseGoods-search-item">
+                <div class="chooseGoods-search-item-label">商品编号：</div>
+                <div>
+                  <el-input placeholder="请输入" clearable v-model="chooseGoodsSearchParams.goodsNo"></el-input>
+                </div>
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="chooseGoods-search-item">
+                <div class="chooseGoods-search-item-label">商品名称：</div>
+                <div class="chooseGoods-search-item-input">
+                  <el-input placeholder="请输入" clearable v-model="chooseGoodsSearchParams.goodsName"></el-input>
+                </div>
+              </div>
+            </el-col>
+          </el-row>
+        </div>
+        <div class="chooseGoods-search-btns">
+          <el-button type="primary" @click="chooseGoodsSearch">查询</el-button>
+          <el-button @click="chooseGoodsSearchReset">重置</el-button>
+        </div>
+      </div>
+      <el-table :data="chooseGoodsDialogTableData">
+        <el-table-column property="goodsNo" label="商品编号" align="center" />
+        <el-table-column property="goodsName" label="商品名称" align="center" />
+        <el-table-column fixed="right" label="操作" width="110" align="center" >
+          <template #default="scope">
+            <el-button link type="primary" @click="chooseGoodsConfirm(scope.row)">选择</el-button>
+            <el-button link type="primary" @click="chooseGoodsSeeDetail(scope.row)">详情</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
+
   </div>
 </template>
 
 <script setup>
+import { ref, reactive, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
+const $route = useRoute()
+const $router = useRouter()
+console.log($route.query.flag)
 
-import { onBeforeUnmount, ref, reactive, shallowRef, onMounted } from 'vue'
-import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
-import '@wangeditor/editor/dist/css/style.css' // 引入 css
+let formRef = ref(null)
+let isSubmiting = ref(false)
+let isDeleting = ref(false)
 
+let form = reactive({
+  orderNo: '',
+  orderType: '',
+  orderTypeText: '',
+  orderCreateTime: '',
+  orderCreateBy: '',
+  goodsNo: '',
+  goodsName: '',
+  goodsQuantity: 0,
+  goodsUnit: '',
+  goodsPrice: 0.00,
+  goodsPostage: 0.00,
+  customerPhone: '',
+  orderCreateTime: '',
+  orderStatus: '',
+  orderStatusText: '',
+  orderCancelReason: '',
+  selfRemark: '',
+})
+const formRules = reactive({
+  orderStatus: [{ required: true, message: '请选择订单状态', trigger: 'blur' },],
+  orderCancelReason: [{ required: true, message: '请输入取消原因', trigger: 'blur' },],
+  selfRemark: [{ required: false, message: '请输入己方备注', trigger: 'blur' },],
 
-// 线下地址
-let offlineAddressList = reactive([
-  {
-    address: '浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省',
-    lon: '',
-    lat: '',
-    isShowLonError: false,
-    isShowLatError: false,
-  },
-  {
-    address: '浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省',
-    lon: '',
-    lat: '',
-    isShowLonError: false,
-    isShowLatError: false,
-  },
-])
-function lonChange(e, index) {
-  if (e) {
-    const regex = /^-?(((\d|[1-9]\d|1[0-7]\d|0)\.\d{0,10})|(\d|[1-9]\d|1[0-7]\d|0{1,3})|180\.0{0,10}|180)$/i;
-    offlineAddressList[index].isShowLonError = !regex.test(e)
-  } else {
-    offlineAddressList[index].isShowLonError = false
-  }
-}
-function latChange(e, index) {
-  if (e) {
-    const regex = /^-?([0-8]?\d{1}\.\d{0,10}|90\.0{0,10}|[0-8]?\d{1}|90)$/i;
-    offlineAddressList[index].isShowLatError = !regex.test(e)
-  } else {
-    offlineAddressList[index].isShowLatError = false
-  }
-}
-function addressDelete(item) {
-  console.log(item)
-  ElMessageBox.confirm(
-    '确定删除?',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  ).then(() => {
-    
-  }).catch(() => {
-    
-  })
-}
-function addressAddNew() {
-  offlineAddressList.push({
-    address: '',
-    lon: '',
-    lat: '',
-    isShowLonError: false,
-    isShowLatError: false,
-  })
-}
+  goodsNo: [{ required: true, message: '请选择商品', trigger: 'blur' },],
+  goodsName: [{ required: true, message: '请选择商品', trigger: 'blur' },],
+  goodsQuantity: [
+    { required: true, message: '请输入商品数量', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
+  ],
+  goodsPrice: [
+    { required: true, message: '请输入商品金额', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
+  ],
+  goodsPostage: [
+    { required: true, message: '请输入邮费', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
+  ],
 
-// 联系方式
-let contactList = reactive([
-  {
-    type: '手机号',
-    value: '13999999999',
-  },
-  {
-    type: '微信号',
-    value: 'wx123456789',
-  },
-])
-function contactDelete(item) {
-  ElMessageBox.confirm(
-    '确定删除?',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  ).then(() => {
-    
-  }).catch(() => {
-    
-  })
-}
-function contactAddNew() {
-  contactList.push({
-    type: '',
-    value: ''
-  })
-}
-
-// 关于我们
-let isShowAboutUs = ref(false)
-
-// 富文本编辑器
-// 编辑器实例，必须用 shallowRef
-const richTextEditorRef = shallowRef()
-
-// 内容 HTML
-const richTextEditorMode = 'default' // default or simple
-const richTextValue = ref('<p>hello</p>')
-const richTextEditorToolbarConfig = {}
-const richTextEditorConfig = { placeholder: '请输入内容...' }
-
-const richTextEditorHandleCreated = (editor) => {
-  richTextEditorRef.value = editor // 记录 editor 实例，重要！
-}
-
-onBeforeUnmount(() => {
-  // 组件销毁时，也及时销毁编辑器
-  const editor = richTextEditorRef.value
-  if (editor == null) return;
-  editor.destroy()
+  customerPhone: [{ required: true, message: '请输入客户手机号', trigger: 'blur' },],
+  recipientPhone: [{ required: true, message: '请输入客户手机号', trigger: 'blur' },],
+  recipientRegion: [{ required: true, message: '请选择省市区', trigger: 'blur' },],
+  recipientAddressDetail: [{ required: true, message: '请输入收货地址详情', trigger: 'blur' },],
+  customerRemark: [{ required: false, message: '请输入客户备注', trigger: 'blur' },],
 })
 
+function toSubmit() {
+  formRef.value.validate((valid, fields) => {
+    if (valid) {
+      isSubmiting.value = true
+      console.log('submit!', form)
 
-// 其他
-function submit() {
-  for (const item of offlineAddressList) {
-    if (!item.address || !item.lon || !item.lat || item.isShowLonError || item.isShowLatError) {
-      ElMessage({
-        message: '请检查线下地址项',
-        type: 'warning',
-        plain: true,
+      ElMessageBox.confirm(
+        '确定提交保存?',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      ).then(() => {
+        $router.replace({
+          path: '/order'
+        })
+      }).catch(() => {
+        
       })
-      return;
     }
-  }
-
-  for (const item of offlineAddressList) {
-    if (!item.type || !item.value) {
-      ElMessage({
-        message: '请检查联系方式项',
-        type: 'warning',
-        plain: true,
-      })
-      return;
-    }
-  }
-
+  })
+}
+function toDelete() {
   ElMessageBox.confirm(
-    '确定提交保存?',
+    '确定删除?',
     {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',
     }
   ).then(() => {
-    
+    isDeleting.value = true
   }).catch(() => {
     
   })
 }
+
+// 选择商品弹框
+let isShowChooseGoodsDialog = ref(false)
+let chooseGoodsSearchParams = reactive({
+  goodsNo: '',
+  goodsName: '',
+})
+function toChooseGoods() {
+  isShowChooseGoodsDialog.value = true
+}
+let chooseGoodsDialogTableData = reactive([
+  {goodsNo: '111', goodsName: '蓝莓大大'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+])
+function chooseGoodsSearch() {
+
+}
+function chooseGoodsSearchReset() {
+  Object.assign(chooseGoodsSearchParams, { // reactive 直接替换对象的引用不会影响原始对象的代理
+    goodsNo: '',
+    goodsName: '',
+  })
+}
+function chooseGoodsConfirm(record) {
+  console.log(record)
+}
+function chooseGoodsSeeDetail(record) {
+  console.log(record)
+  const url = `${window.location.origin}${$router.resolve({
+    path: '/goodsDetail',
+    query: {
+      id: '123321',
+      flag: 'detail'
+    }
+  }).href}`
+  window.open(url, '_blank')
+}
+
+onMounted(() => {
+  Object.assign(form, { // reactive 直接替换对象的引用不会影响原始对象的代理
+    orderNo: '202407022236526936',
+    orderType: '1',
+    orderTypeText: '手动添加',
+    orderCreateTime: '2024-07-02 22:36:52',
+    orderCreateBy: 'czh',
+    goodsNo: '202407022236526936',
+    goodsName: '蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果',
+    goodsQuantity: 200,
+    goodsUnit: '斤',
+    goodsPrice: 150.00,
+    goodsPostage: 10.00,
+    customerPhone: '13989562356',
+    orderCreateTime: '2024-07-02 22:42:26',
+    orderStatus: 'yqx',
+    orderStatusText: '已取消',
+    orderCancelReason: '就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消',
+    selfRemark: '我是备注我是备注我是备注2222222222222222222222222222222我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
+  })
+})
 
 </script>
 
 <style lang="less" scoped>
-.configureSeller {
+.goodsDetail {
+  padding-bottom: 60px;
   .item {
     .title {
-      font-size: 48px;
+      font-size: 30px;
       font-weight: 700;
+      background: linear-gradient(to right, rgba(25, 137, 250, 0.1), rgba(25, 137, 250, 0));
+      padding: 10px;
+      box-sizing: border-box;
+      border-radius: 6px;
     }
     .content {
-      padding: 20px 0;
+      padding: 20px 40px;
       box-sizing: border-box;
       .content-item {
         margin-bottom: 30px;
@@ -269,100 +382,47 @@ function submit() {
       }
     }
   }
-  .address {
-    .content {
-      .content-item {
-        display: flex;
-        align-items: center;
-        .content-right {
-          margin-left: 20px;
-          width: 50%;
-          .content-right-item {
-            display: flex;
-            align-items: center;
-            .input-label {
-              word-break: keep-all;
-              text-align: right;
-              min-width: 60px;
-            }
-            .addressInput {
 
-            }
-            .input-wrapper {
-              display: flex;
-              align-items: center;
-              .input {
-                width: 300px;
-              }
-              .error {
-                color: red;
-                margin-left: 10px;
-
-              }
-            }
-          }
-        }
-        .delete-wrapper {
-          .delete-icon {
-            cursor: pointer;
-            color: red;
-            font-size: 40px;
-            margin-left: 100px;
-          }
-        }
-      }
-    }
-  }
-  .contact {
-    .content {
-      .content-item {
-        display: flex;
-        align-items: center;
-        .content-right {
-          margin-left: 20px;
-          width: 50%;
-          .content-right-item {
-            display: flex;
-            align-items: center;
-            .type-input {
-              width: 200px;
-            }
-            .value-input {
-              margin-left: 20px;
-            }
-          }
-        }
-        .delete-wrapper {
-          .delete-icon {
-            cursor: pointer;
-            color: red;
-            font-size: 40px;
-            margin-left: 100px;
-          }
-        }
-      }
-    }
-  }
-  .aboutUs {
-    box-sizing: border-box;
-    padding-bottom: 60px;
-    .isShowAboutUs-wrapper {
-      margin-top: 10px;
-      font-size: 24px;
-    }
-    .richText-wrapper {
-      margin-top: 10px;
-      border: 1px solid gray;
-    }
-  }
   .btns {
-    position: fixed;
-    bottom: 20px;
-    right: 30px;
-    
     .submitBtn {
-      font-size: 22px;
+      position: fixed;
+      bottom: 20px;
+      right: 30px;
     }
   }
+
+  .chooseGoods-dialog {
+    .chooseGoods-search {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      .chooseGoods-search-content {
+        flex: 1;
+        .chooseGoods-search-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 20px;
+          .chooseGoods-search-item-label {
+            word-break: keep-all;
+          }
+          .chooseGoods-search-item-input {
+            width: 200px;
+          }
+        }
+      }
+      .chooseGoods-search-btns {
+        width: 200px;
+        display: flex;
+        justify-content: center;
+      }
+    }
+  }
+}
+.el-input[readonly] .el-input__inner,
+.el-input[disabled] .el-input__inner,
+.el-select[disabled] .el-select__inner {
+  background-color: #f5f7fa;
+  color: #c0c4cc;
+  cursor: not-allowed;
 }
 </style>
