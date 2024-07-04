@@ -92,6 +92,17 @@
           </template>
         </el-table-column>
         <el-table-column prop="remark" label="备注" align="center" />
+        <el-table-column prop="isSelling" label="是否上架" align="center" >
+          <template #default="scope">
+            <el-switch
+              v-model="scope.row.isSelling"
+              active-text="上架"
+              inactive-text="下架"
+              inline-prompt
+              size="large"
+            />
+          </template>
+        </el-table-column>
         <el-table-column fixed="right" label="操作" width="120" align="center" >
           <template #default="scope">
             <el-button link type="primary" @click="tableDetail(scope.row)">详情</el-button>
@@ -128,7 +139,7 @@ let searchParams = reactive({
   goodsNo: '',
   goodsName: '',
   purchaseDate: [],
-  status: '',
+  status: null,
   isSelling: null,
 })
 let tableData = ref([])
@@ -151,9 +162,11 @@ function search() {
 }
 function searchReset() {
   Object.assign(searchParams, {
-    batch: '',
-    name: '',
-    date: null,
+    goodsNo: '',
+    goodsName: '',
+    purchaseDate: [],
+    status: null,
+    isSelling: null,
   })
   pagination.pageNo = 1
 }
@@ -204,13 +217,10 @@ onMounted(() => {
       statusText: '预定中',
       totalPreorderQuantity: 100,
       remainingQuantity: 80,
-
-
       price: 200.00,
       originalPrice: 150.00,
-
       remark: '我是备注我是备注我是备注2222222222222222222222222222222我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-      
+      isSelling: true,
     })
   }
   pagination.total = tableData.value.length

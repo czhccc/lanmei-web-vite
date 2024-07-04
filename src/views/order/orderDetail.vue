@@ -61,7 +61,7 @@
             </el-col>
             <el-col :span="8">
               <el-form-item label="己方备注：" prop="selfRemark">
-                <el-input type="textarea" autosize v-model="form.remark" maxlength="200" show-word-limit placeholder="请输入" clearable />
+                <el-input type="textarea" autosize v-model="form.selfRemark" maxlength="200" show-word-limit placeholder="请输入" clearable />
               </el-form-item>
             </el-col>
           </el-row>

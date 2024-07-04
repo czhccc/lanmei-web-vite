@@ -77,7 +77,6 @@
           :mode="richTextEditorMode"
           @onCreated="richTextEditorHandleCreated"
         />
-        
       </div>
     </div>
 
@@ -90,7 +89,7 @@
 <script setup>
 
 
-import { onBeforeUnmount, ref, reactive, shallowRef, onMounted } from 'vue'
+import { ref, reactive, shallowRef, onMounted, onBeforeUnmount } from 'vue'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import '@wangeditor/editor/dist/css/style.css' // 引入 css
 

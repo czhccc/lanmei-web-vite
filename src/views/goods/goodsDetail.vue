@@ -10,7 +10,7 @@
       <div class="item">
         <div class="title">
           <div style="display: flex;justify-content: space-between;">
-            订单信息
+            基础信息
             <el-button 
               type="danger" class="deleteBtn" 
               :loading="isDeleting"
@@ -22,23 +22,18 @@
         <div class="content">
           <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item label="订单号：" v-if="$route.query.flag!=='add'">
-                {{ form.orderNo }}
+              <el-form-item label="商品编号：" v-if="$route.query.flag!=='add'">
+                {{ form.no }}
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="订单类型：" v-if="$route.query.flag!=='add'">
-                {{ form.orderTypeText }}
+              <el-form-item label="商品名称：">
+                <el-input v-model="form.name" placeholder="请输入" maxlength="50" clearable />
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="创建人：" v-if="$route.query.flag!=='add'">
-                {{ form.orderCreateBy }}
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="下单时间：" v-if="$route.query.flag!=='add'">
-                {{ form.orderCreateTime }}
+              <el-form-item label="单位：">
+                <el-input v-model="form.name" placeholder="请输入" maxlength="50" clearable />
               </el-form-item>
             </el-col>
           </el-row>
@@ -55,68 +50,92 @@
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="取消原因：" prop="orderCancelReason" v-if="form.orderStatus==='yqx'">
-                <el-input type="textarea" autosize v-model="form.orderCancelReason" maxlength="200" show-word-limit placeholder="请输入" clearable />
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="己方备注：" prop="selfRemark">
+              <el-form-item label="备注：" prop="remark">
                 <el-input type="textarea" autosize v-model="form.remark" maxlength="200" show-word-limit placeholder="请输入" clearable />
               </el-form-item>
             </el-col>
           </el-row>
         </div>
       </div>
-      <div class="item">
-        <div class="title">
-          商品信息
-          <el-button type="primary" v-if="$route.query.flag!=='detail'" @click="toChooseGoods">选择商品</el-button>
-        </div>
-        <div class="content">
-          <el-row :gutter="20">
-            <el-col :span="8">
-              <el-form-item label="商品编号：" prop="goodsNo">
-                {{ form.goodsNo }}
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="商品名称：" prop="goodsName">
-                {{ form.goodsName }}
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="数量：" required>
-                <div style="width: 100%;display: flex;align-items: center;justify-content: space-between;">
-                  <el-form-item prop="goodsQuantity" style="flex: 1;">
-                    <el-input-number v-model="form.goodsQuantity" placeholder="总量" maxlength="20" :controls="false" style="width: 100%;" />
-                  </el-form-item>
-                  <div style="text-align: right;margin-left: 10px;">{{ form.unit || '单位' }}</div>
+      <div class="item introduction">
+        <div class="title">商品介绍</div>
+        <div class="content introduction-content">
+          <div class="introduction-item">
+            <div class="introduction-title">轮播图</div>
+            <div class="introduction-item-content">
+              <el-upload
+                class="uploader"
+                v-model:file-list="fileList"
+                action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
+                list-type="picture-card"
+                :on-preview="handlePictureCardPreview"
+                :on-remove="handleRemove"
+                :show-file-list="false"
+              >
+                <el-icon><i-ep-Plus /></el-icon>
+              </el-upload>
+
+              <div class="fileList-preview-wrapper">
+                <div 
+                  v-for="(file, index) in fileList" :key="index"
+                  class="fileList-preview-item">
+                  <div class="fileList-preview-image-wrapper" v-if="file.type==='image'">
+                    <el-image
+                      fit="scale-down"
+                      :src="file.url"
+                      :preview-src-list="[file.url]"
+                      hide-on-click-modal
+                      class="fileList-preview-image"
+                    />
+                    <div class="fileList-preview-btns">
+                      <span @click="handleDownload(file)" >
+                        <el-icon><i-ep-Download /></el-icon>
+                      </span>
+                      <el-input placeholder="排序"></el-input>
+                      <span @click="handleRemove(file)" >
+                        <el-icon><i-ep-Delete /></el-icon>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="fileList-preview-video" v-if="file.type==='video'">
+                    <video :src="file.url" controls width="200" height="200"></video>
+                    <div class="fileList-preview-btns">
+                      <span @click="handleDownload(file)" >
+                        <el-icon><i-ep-Download /></el-icon>
+                      </span>
+                      <el-input placeholder="排序"></el-input>
+                      <span @click="handleRemove(file)" >
+                        <el-icon><i-ep-Delete /></el-icon>
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="实付金额：" required>
-                <div style="width: 100%;display: flex;align-items: center;justify-content: space-between;">
-                  <el-form-item prop="goodsPrice" style="flex: 1;">
-                    <el-input-number v-model="form.goodsPrice" placeholder="商品金额" :min="0.01" :max="999999" :precision="2" :controls="false" style="width: 100%;" />
-                  </el-form-item>
-                  <div style="text-align: center;margin: 0 10px;">+</div>
-                  <el-form-item prop="goodsPostage" style="flex: 1;">
-                    <el-input-number v-model="form.goodsPostage" placeholder="邮费" :min="0.01" :max="999999" :precision="2" :controls="false" style="width: 100%;" />
-                  </el-form-item>
-                  <div style="text-align: center;margin: 0 10px;">=</div>
-                  <el-form-item>
-                    {{ (form.goodsPrice + form.goodsPostage).toFixed(2) || 0.00 }}
-                  </el-form-item>
-                  <div style="text-align: right;margin-left: 10px;">元</div>
-                </div>
-              </el-form-item>
-            </el-col>
-          </el-row>
+              </div>
+            </div>
+          </div>
+          <div class="introduction-item" style="margin-top: 30px;">
+            <div class="introduction-title" style="font-size: 26px;font-weight: 700;margin-bottom: 20px;">详情介绍</div>
+            <div class="introduction-item-content">
+              <div class="richText-wrapper" style="border: 1px solid gray;">
+                <Toolbar
+                  :editor="richTextEditorRef"
+                  :defaultConfig="richTextEditorToolbarConfig"
+                  :mode="richTextEditorMode"
+                />
+                <Editor
+                  style="height: 500px; overflow-y: hidden;"
+                  v-model="richTextValue"
+                  :defaultConfig="richTextEditorConfig"
+                  :mode="richTextEditorMode"
+                  @onCreated="richTextEditorHandleCreated"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="item">
-        <div class="title">收货信息</div>
+        <div class="title">不同批次</div>
         <div class="content">
           <el-row :gutter="20">
             <el-col :span="8">
@@ -198,12 +217,22 @@
       </el-table>
     </el-dialog>
 
+    <el-dialog v-model="isShowFilePreview">
+      <el-image
+        :src="filePreviewUrl"
+        :preview-src-list="[filePreviewUrl]"
+      />
+    </el-dialog>
+
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, shallowRef, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+
+import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
+import '@wangeditor/editor/dist/css/style.css' // 引入 css
 
 const $route = useRoute()
 const $router = useRouter()
@@ -258,6 +287,68 @@ const formRules = reactive({
   recipientAddressDetail: [{ required: true, message: '请输入收货地址详情', trigger: 'blur' },],
   customerRemark: [{ required: false, message: '请输入客户备注', trigger: 'blur' },],
 })
+
+const fileList = reactive([
+  {
+    name: 'food.jpeg',
+    type: 'image',
+    url: 'https://pic2.zhimg.com/v2-934ad72f31d359ee5aa4401920580ec9_r.jpg',
+  },
+  {
+    name: 'food.jpeg',
+    type: 'image',
+    url: 'https://pic.rmb.bdstatic.com/8f0bf441ad93e14407c86105e1526e5d.jpeg',
+  },
+  {
+    name: 'food.jpeg',
+    type: 'image',
+    url: 'https://dcoco.net/image/catalog/Yaerbeide/05.jpg',
+  },
+  {
+    name: 'food.jpeg',
+    type: 'image',
+    url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100',
+  },
+  {
+    name: 'food.jpeg',
+    type: 'video',
+    url: 'https://vdept3.bdstatic.com/mda-pi1c6afrc82uiiyx/cae_h264/1693708525397288864/mda-pi1c6afrc82uiiyx.mp4?v_from_s=hkapp-haokan-nanjing&auth_key=1720073874-0-0-ceddfd6f96d65ccfb6ec370b36f1568c&bcevod_channel=searchbox_feed&pd=1&cr=0&cd=0&pt=3&logid=1073948971&vid=4849312402729774176&klogid=1073948971&abtest=',
+  },
+])
+const isShowFilePreview = ref(false)
+const filePreviewUrl = ref('')
+
+function handleRemove(uploadFile, uploadFiles) {
+  console.log(uploadFile, uploadFiles)
+}
+
+function handlePictureCardPreview(uploadFile) {
+  filePreviewUrl.value = uploadFile.url
+  isShowFilePreview.value = true
+}
+
+
+// 富文本编辑器
+// 编辑器实例，必须用 shallowRef
+const richTextEditorRef = shallowRef()
+
+// 内容 HTML
+const richTextEditorMode = 'default' // default or simple
+const richTextValue = ref('<p>hello</p>')
+const richTextEditorToolbarConfig = {}
+const richTextEditorConfig = { placeholder: '请输入内容...' }
+
+const richTextEditorHandleCreated = (editor) => {
+  richTextEditorRef.value = editor // 记录 editor 实例，重要！
+}
+
+onBeforeUnmount(() => {
+  // 组件销毁时，也及时销毁编辑器
+  const editor = richTextEditorRef.value
+  if (editor == null) return;
+  editor.destroy()
+})
+
 
 function toSubmit() {
   formRef.value.validate((valid, fields) => {
@@ -378,6 +469,52 @@ onMounted(() => {
         .content-left {
           font-weight: 700;
           font-size: 30px;
+        }
+      }
+    }
+  }
+
+  .introduction {
+    .introduction-content {
+      .introduction-item {
+        .introduction-title {
+          font-size: 26px;
+          font-weight: 700;
+          margin-bottom: 20px;
+        } 
+        .introduction-item-content {
+          .uploader {
+
+          }
+          .fileList-preview-wrapper {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+            .fileList-preview-item {
+              margin-right: 20px;
+              .fileList-preview-btns {
+                display: flex;
+                justify-content: space-around;
+                span {
+                  cursor: pointer;
+                }
+              }
+            }
+            .fileList-preview-image-wrapper {
+              .fileList-preview-image {
+                width: 200px;
+                height: 200px;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+              }
+            }
+            .fileList-preview-video-wrapper {
+              .fileList-preview-video {
+                border: 1px solid #ccc;
+                border-radius: 6px;
+              }
+            }
+          }
         }
       }
     }
