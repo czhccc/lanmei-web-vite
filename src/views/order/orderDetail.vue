@@ -104,9 +104,12 @@
                   <el-form-item prop="goodsPostage" style="flex: 1;">
                     <el-input-number v-model="form.goodsPostage" placeholder="邮费" :min="0.01" :max="999999" :precision="2" :controls="false" style="width: 100%;" />
                   </el-form-item>
-                  <div style="text-align: center;margin: 0 10px;">=</div>
-                  <el-form-item>
+                  <div style="text-align: center;margin: 0 10px;">=></div>
+                  <!-- <el-form-item v-if="form.orderStatus===''">
                     {{ (form.goodsPrice + form.goodsPostage).toFixed(2) || 0.00 }}
+                  </el-form-item> -->
+                  <el-form-item style="flex: 1;">
+                    <el-input-number v-model="form.goodsTotalPrice" placeholder="邮费" :min="0.01" :max="999999" :precision="2" :controls="false" style="width: 100%;" />
                   </el-form-item>
                   <div style="text-align: right;margin-left: 10px;">元</div>
                 </div>

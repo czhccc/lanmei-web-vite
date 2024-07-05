@@ -69,13 +69,13 @@
                 action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
                 list-type="picture-card"
                 :on-preview="handlePictureCardPreview"
-                :on-remove="handleRemove"
+                :on-remove="fileRemove"
                 :show-file-list="false"
               >
                 <el-icon><i-ep-Plus /></el-icon>
               </el-upload>
 
-              <div class="fileList-preview-wrapper">
+              <div class="fileList-preview-wrapper" ref="fileSortableList">
                 <div 
                   v-for="(file, index) in fileList" :key="index"
                   class="fileList-preview-item">
@@ -87,24 +87,16 @@
                       hide-on-click-modal
                       class="fileList-preview-image"
                     />
-                    <div class="fileList-preview-btns">
-                      <span @click="handleDownload(file)" >
-                        <el-icon><i-ep-Download /></el-icon>
-                      </span>
-                      <el-input placeholder="排序"></el-input>
-                      <span @click="handleRemove(file)" >
+                    <div class="fileList-preview-options">
+                      <span @click="fileRemove(file)" >
                         <el-icon><i-ep-Delete /></el-icon>
                       </span>
                     </div>
                   </div>
                   <div class="fileList-preview-video" v-if="file.type==='video'">
                     <video :src="file.url" controls width="200" height="200"></video>
-                    <div class="fileList-preview-btns">
-                      <span @click="handleDownload(file)" >
-                        <el-icon><i-ep-Download /></el-icon>
-                      </span>
-                      <el-input placeholder="排序"></el-input>
-                      <span @click="handleRemove(file)" >
+                    <div class="fileList-preview-options">
+                      <span @click="fileRemove(file)" >
                         <el-icon><i-ep-Delete /></el-icon>
                       </span>
                     </div>
@@ -114,9 +106,9 @@
             </div>
           </div>
           <div class="introduction-item" style="margin-top: 30px;">
-            <div class="introduction-title" style="font-size: 26px;font-weight: 700;margin-bottom: 20px;">详情介绍</div>
+            <div class="introduction-title">商品详情</div>
             <div class="introduction-item-content">
-              <div class="richText-wrapper" style="border: 1px solid gray;">
+              <div class="richText-wrapper">
                 <Toolbar
                   :editor="richTextEditorRef"
                   :defaultConfig="richTextEditorToolbarConfig"
@@ -234,6 +226,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import '@wangeditor/editor/dist/css/style.css' // 引入 css
 
+import Sortable from 'sortablejs';
+const fileSortableList = ref(null);
+let fileSortableInstance = null;
+
 const $route = useRoute()
 const $router = useRouter()
 console.log($route.query.flag)
@@ -288,29 +284,29 @@ const formRules = reactive({
   customerRemark: [{ required: false, message: '请输入客户备注', trigger: 'blur' },],
 })
 
-const fileList = reactive([
+let fileList = reactive([
   {
-    name: 'food.jpeg',
+    name: '1',
     type: 'image',
     url: 'https://pic2.zhimg.com/v2-934ad72f31d359ee5aa4401920580ec9_r.jpg',
   },
   {
-    name: 'food.jpeg',
+    name: '2',
     type: 'image',
     url: 'https://pic.rmb.bdstatic.com/8f0bf441ad93e14407c86105e1526e5d.jpeg',
   },
   {
-    name: 'food.jpeg',
+    name: '3',
     type: 'image',
     url: 'https://dcoco.net/image/catalog/Yaerbeide/05.jpg',
   },
   {
-    name: 'food.jpeg',
+    name: '4',
     type: 'image',
     url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100',
   },
   {
-    name: 'food.jpeg',
+    name: '5',
     type: 'video',
     url: 'https://vdept3.bdstatic.com/mda-pi1c6afrc82uiiyx/cae_h264/1693708525397288864/mda-pi1c6afrc82uiiyx.mp4?v_from_s=hkapp-haokan-nanjing&auth_key=1720073874-0-0-ceddfd6f96d65ccfb6ec370b36f1568c&bcevod_channel=searchbox_feed&pd=1&cr=0&cd=0&pt=3&logid=1073948971&vid=4849312402729774176&klogid=1073948971&abtest=',
   },
@@ -318,7 +314,7 @@ const fileList = reactive([
 const isShowFilePreview = ref(false)
 const filePreviewUrl = ref('')
 
-function handleRemove(uploadFile, uploadFiles) {
+function fileRemove(uploadFile, uploadFiles) {
   console.log(uploadFile, uploadFiles)
 }
 
@@ -326,6 +322,19 @@ function handlePictureCardPreview(uploadFile) {
   filePreviewUrl.value = uploadFile.url
   isShowFilePreview.value = true
 }
+const fileSortableEnd = (evt) => {
+  const { oldIndex, newIndex } = evt;
+
+  if (oldIndex !== newIndex) {
+    let tempFileList = JSON.parse(JSON.stringify(fileList))
+    
+    const movedItem = tempFileList.splice(oldIndex, 1)[0];
+    tempFileList.splice(newIndex, 0, movedItem);
+    
+    fileList = []
+    Object.assign(fileList, tempFileList)
+  }
+};
 
 
 // 富文本编辑器
@@ -341,13 +350,6 @@ const richTextEditorConfig = { placeholder: '请输入内容...' }
 const richTextEditorHandleCreated = (editor) => {
   richTextEditorRef.value = editor // 记录 editor 实例，重要！
 }
-
-onBeforeUnmount(() => {
-  // 组件销毁时，也及时销毁编辑器
-  const editor = richTextEditorRef.value
-  if (editor == null) return;
-  editor.destroy()
-})
 
 
 function toSubmit() {
@@ -425,7 +427,12 @@ function chooseGoodsSeeDetail(record) {
   window.open(url, '_blank')
 }
 
+
 onMounted(() => {
+  fileSortableInstance = new Sortable(fileSortableList.value, {
+    onEnd: fileSortableEnd,
+  });
+
   Object.assign(form, { // reactive 直接替换对象的引用不会影响原始对象的代理
     orderNo: '202407022236526936',
     orderType: '1',
@@ -445,6 +452,17 @@ onMounted(() => {
     orderCancelReason: '就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消',
     selfRemark: '我是备注我是备注我是备注2222222222222222222222222222222我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
   })
+})
+
+onBeforeUnmount(() => {
+  // 组件销毁时，也及时销毁编辑器
+  const editor = richTextEditorRef.value
+  if (editor == null) return;
+  editor.destroy()
+
+  if (fileSortableInstance) {
+    fileSortableInstance.destroy();
+  }
 })
 
 </script>
@@ -492,11 +510,14 @@ onMounted(() => {
             margin-top: 20px;
             .fileList-preview-item {
               margin-right: 20px;
-              .fileList-preview-btns {
+              .fileList-preview-options {
                 display: flex;
                 justify-content: space-around;
+                align-items: center;
+                margin-top: 4px;
                 span {
                   cursor: pointer;
+                  font-size: 24px;
                 }
               }
             }
@@ -514,6 +535,9 @@ onMounted(() => {
                 border-radius: 6px;
               }
             }
+          }
+          .richText-wrapper {
+            border: 1px solid gray;
           }
         }
       }

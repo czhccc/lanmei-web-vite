@@ -93,10 +93,12 @@
             <div>{{ scope.row.goodsQuantity }} {{ scope.row.goodsUnit }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="payAmount" label="实付金额" align="center" >
+        <el-table-column prop="payAmount" label="实付总金额" align="center" >
           <template #default="scope">
-            <el-tooltip :content="'总金额：'+(scope.row.goodsPrice+scope.row.goodsPostage).toFixed(2)+' 元'">
-              <div>{{ scope.row.goodsPrice }} + {{ scope.row.goodsPostage }} 元</div>
+            <el-tooltip :content="'商品金额：'+scope.row.goodsPrice.toFixed(2)+'元' + ' ' + '邮费：'+scope.row.goodsPostage.toFixed(2)+' 元'">
+              <div style="display: flex;flex-direction: column;align-items: center  ;">
+                <div>{{ scope.row.goodsTotalPrice.toFixed(2) }} 元</div>
+              </div>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -224,6 +226,7 @@ onMounted(() => {
       goodsUnit: '斤',
       goodsPrice: 150.00,
       goodsPostage: 10.00,
+      goodsTotalPrice: 160.00,
       customerPhone: '13989562356',
       orderCreateTime: '2024-07-02 22:42:26',
       orderStatus: 'yqx',
