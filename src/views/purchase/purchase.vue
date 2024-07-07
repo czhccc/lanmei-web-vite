@@ -5,7 +5,7 @@
         <el-row :gutter="20">
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">批次：</div>
+              <div class="search-item-label">采购编号：</div>
               <div class="search-item-input">
                 <el-input placeholder="请输入" clearable v-model="searchParams.batch"></el-input>
               </div>
@@ -48,7 +48,7 @@
 
     <div class="table-wrapper">
       <el-table :height="tableHeight" :data="tableData">
-        <el-table-column prop="batch" label="批次" align="center" />
+        <el-table-column prop="batch" label="采购编号" align="center" />
         <el-table-column prop="name" label="商品名称" align="center" />
         <el-table-column prop="realQuantity" label="实际售卖量" align="center" >
           <template #default="scope">
@@ -63,10 +63,11 @@
         <el-table-column prop="date" label="进货日期" align="center" />
         <el-table-column prop="source" label="进货来源" align="center" />
         <el-table-column prop="remark" label="备注" align="center" />
-        <el-table-column fixed="right" label="操作" width="160" align="center" >
+        <el-table-column fixed="right" label="操作" width="240" align="center" >
           <template #default="scope">
             <el-button link type="primary" @click="tableDetail(scope.row)">详情</el-button>
             <el-button link type="primary" @click="tableEdit(scope.row)">编辑</el-button>
+            <el-button link type="primary" @click="tableRelateGoods(scope.row)">关联商品</el-button>
             <el-button link type="primary" @click="tableDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -96,7 +97,7 @@
     >
       <div class="form-content">
         <el-form ref="formRef" :model="form" :rules="formRules" label-width="auto" :disabled="formTitle==='详情'">
-          <el-form-item label="批次" prop="batch">
+          <el-form-item label="采购编号" prop="batch">
             <el-input v-model="form.batch" placeholder="自动生成" readonly />
           </el-form-item>
           <el-form-item label="商品名称" prop="name">
@@ -163,11 +164,62 @@
       </template>
     </el-dialog>
 
+    <!-- 关联商品 -->
+    <el-dialog 
+      v-model="isShowChooseGoodsDialog" 
+      title="选择商品" 
+      width="800"
+      align-center
+      class="chooseGoods-dialog"
+    >
+      <div class="chooseGoods-search">
+        <div class="chooseGoods-search-content">
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <div class="chooseGoods-search-item">
+                <div class="chooseGoods-search-item-label">商品编号：</div>
+                <div>
+                  <el-input placeholder="请输入" clearable v-model="chooseGoodsSearchParams.goodsNo"></el-input>
+                </div>
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="chooseGoods-search-item">
+                <div class="chooseGoods-search-item-label">商品名称：</div>
+                <div class="chooseGoods-search-item-input">
+                  <el-input placeholder="请输入" clearable v-model="chooseGoodsSearchParams.goodsName"></el-input>
+                </div>
+              </div>
+            </el-col>
+          </el-row>
+        </div>
+        <div class="chooseGoods-search-btns">
+          <el-button type="primary" @click="chooseGoodsSearch">查询</el-button>
+          <el-button @click="chooseGoodsSearchReset">重置</el-button>
+        </div>
+      </div>
+      <el-table :data="chooseGoodsDialogTableData">
+        <el-table-column property="goodsNo" label="商品编号" align="center" />
+        <el-table-column property="goodsName" label="商品名称" align="center" />
+        <el-table-column fixed="right" label="操作" width="110" align="center" >
+          <template #default="scope">
+            <el-button link type="primary" @click="chooseGoodsConfirm(scope.row)">选择</el-button>
+            <el-button link type="primary" @click="chooseGoodsSeeDetail(scope.row)">详情</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
+
   </div>
 </template>
 
 <script setup>
 import { onMounted, reactive, ref, nextTick } from 'vue';
+
+import { useRoute, useRouter } from 'vue-router'
+
+const $route = useRoute()
+const $router = useRouter()
 
 // Table
 let searchParams = reactive({
@@ -202,7 +254,7 @@ let form = reactive({
   status: '',
 })
 const formRules = reactive({
-  batch: [{ required: true, message: '请输入批次', trigger: 'blur' },],
+  batch: [{ required: true, message: '请输入采购编号', trigger: 'blur' },],
   name: [{ required: true, message: '请输入商品名称', trigger: 'blur' },],
   unit: [{ required: true, message: '请输入单位', trigger: 'blur' },],
   totalQuantity: [
@@ -323,6 +375,9 @@ function tableEdit(record) {
     })
   })
 }
+function tableRelateGoods(record) { // 关联商品
+  isShowChooseGoodsDialog.value = true
+}
 function tableDelete(record) {
   ElMessageBox.confirm(
     '确定删除?',
@@ -352,6 +407,44 @@ function formSubmit() {
   })
 }
 
+
+// 关联商品弹框
+// 选择商品弹框
+let isShowChooseGoodsDialog = ref(false)
+let chooseGoodsSearchParams = reactive({
+  goodsNo: '',
+  goodsName: '',
+})
+function toChooseGoods() {
+  isShowChooseGoodsDialog.value = true
+}
+let chooseGoodsDialogTableData = reactive([
+  {goodsNo: '111', goodsName: '蓝莓大大'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+])
+function chooseGoodsSearch() {
+
+}
+function chooseGoodsSearchReset() {
+  Object.assign(chooseGoodsSearchParams, { // reactive 直接替换对象的引用不会影响原始对象的代理
+    goodsNo: '',
+    goodsName: '',
+  })
+}
+function chooseGoodsConfirm(record) {
+  console.log(record)
+}
+function chooseGoodsSeeDetail(record) {
+  console.log(record)
+  const url = `${window.location.origin}${$router.resolve({
+    path: '/goodsDetail',
+    query: {
+      id: '123321',
+      flag: 'detail'
+    }
+  }).href}`
+  window.open(url, '_blank')
+}
 
 
 onMounted(() => {
@@ -435,6 +528,33 @@ onMounted(() => {
   .form-btns {
     display: flex;
     justify-content: flex-end;
+  }
+
+  .chooseGoods-dialog {
+    .chooseGoods-search {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      .chooseGoods-search-content {
+        flex: 1;
+        .chooseGoods-search-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 20px;
+          .chooseGoods-search-item-label {
+            word-break: keep-all;
+          }
+          .chooseGoods-search-item-input {
+            width: 200px;
+          }
+        }
+      }
+      .chooseGoods-search-btns {
+        width: 200px;
+        display: flex;
+        justify-content: center;
+      }
+    }
   }
 }
 .el-input[readonly] .el-input__inner,

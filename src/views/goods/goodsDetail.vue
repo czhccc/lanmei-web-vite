@@ -12,7 +12,8 @@
           <div style="display: flex;justify-content: space-between;">
             基础信息
             <el-button 
-              type="danger" class="deleteBtn" 
+              class="title-btn"
+              type="danger"
               :loading="isDeleting"
               @click="toDelete" 
               v-if="$route.query.flag==='edit'&&form.orderTypeText==='手动添加'"
@@ -127,35 +128,53 @@
         </div>
       </div>
       <div class="item">
-        <div class="title">不同批次</div>
+        <div class="title">
+          当前批次
+          <el-button class="title-btn" type="primary" @click="endCurrentBatch">结束当前批次</el-button>
+        </div>
         <div class="content">
-          <el-row :gutter="20">
-            <el-col :span="8">
-              <el-form-item label="客户手机号：" prop="customerPhone">
-                <el-input v-model="form.customerPhone" placeholder="请输入" maxlength="50" clearable />
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="收货人手机号：" prop="recipientPhone">
-                <el-input v-model="form.recipientPhone" placeholder="请输入" maxlength="50" clearable />
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="省市区：" prop="recipientRegion">
-                <el-input v-model="form.recipientRegion" placeholder="请输入" maxlength="50" clearable />
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="收货地址详情：" prop="recipientAddressDetail">
-                <el-input type="textarea" autosize v-model="form.recipientAddressDetail" maxlength="200" show-word-limit placeholder="请输入" clearable />
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="客户备注：" prop="customerRemark">
-                <el-input type="textarea" autosize v-model="form.customerRemark" maxlength="200" show-word-limit placeholder="请输入" clearable />
-              </el-form-item>
-            </el-col>
-          </el-row>
+          <el-table :data="currentBatchTableData">
+            <el-table-column property="batch" label="批次" align="center" />
+            <el-table-column property="startTime" label="开始时间" align="center" />
+            <el-table-column fixed="right" label="操作" width="110" align="center" >
+              <template #default="scope">
+                <el-button link type="primary" @click="seeHistoryBatchStatistic(scope.row)">查看统计</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
+      <div class="item">
+        <div class="title">
+          历史批次
+          <el-button class="title-btn" type="primary" @click="relateNewBatch">关联采购记录</el-button>
+        </div>
+        <div class="content">
+          <el-table :data="historyBatchTableData">
+            <el-table-column property="batch" label="批次" align="center" />
+            <el-table-column property="time" label="时间" align="center" >
+              <template #default="scope">
+                <div>{{ scope.row.startTime }} ~ {{ scope.row.endTime }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column fixed="right" label="操作" width="110" align="center" >
+              <template #default="scope">
+                <el-button link type="primary" @click="seeHistoryBatchStatistic(scope.row)">查看统计</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div class="pagination-wrapper">
+            <el-pagination
+              class="pagination"
+              v-model:current-page="historyBatchPagination.pageNo"
+              v-model:page-size="historyBatchPagination.pageSize"
+              :page-sizes="[10, 20, 40, 100]"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="historyBatchPagination.total"
+              @size-change="historyBatchPageSizeChange"
+              @current-change="historyBatchPageNoChange"
+            />
+          </div>
         </div>
       </div>
     </el-form>
@@ -164,49 +183,62 @@
       <el-button type="primary" class="submitBtn" :loading=isSubmiting @click="toSubmit">提 交</el-button>
     </div>
 
+
     <el-dialog 
-      v-model="isShowChooseGoodsDialog" 
-      title="选择商品" 
+      v-model="isShowChoosePurchaseDialog" 
+      title="关联采购记录" 
       width="800"
       align-center
-      class="chooseGoods-dialog"
+      class="choosePurchase-dialog"
     >
-      <div class="chooseGoods-search">
-        <div class="chooseGoods-search-content">
+      <div class="choosePurchase-search">
+        <div class="choosePurchase-search-content">
           <el-row :gutter="20">
             <el-col :span="12">
-              <div class="chooseGoods-search-item">
-                <div class="chooseGoods-search-item-label">商品编号：</div>
+              <div class="choosePurchase-search-item">
+                <div class="choosePurchase-search-item-label">商品编号：</div>
                 <div>
-                  <el-input placeholder="请输入" clearable v-model="chooseGoodsSearchParams.goodsNo"></el-input>
+                  <el-input placeholder="请输入" clearable v-model="choosePurchaseSearchParams.goodsNo"></el-input>
                 </div>
               </div>
             </el-col>
             <el-col :span="12">
-              <div class="chooseGoods-search-item">
-                <div class="chooseGoods-search-item-label">商品名称：</div>
-                <div class="chooseGoods-search-item-input">
-                  <el-input placeholder="请输入" clearable v-model="chooseGoodsSearchParams.goodsName"></el-input>
+              <div class="choosePurchase-search-item">
+                <div class="choosePurchase-search-item-label">商品名称：</div>
+                <div class="choosePurchase-search-item-input">
+                  <el-input placeholder="请输入" clearable v-model="choosePurchaseSearchParams.goodsName"></el-input>
                 </div>
               </div>
             </el-col>
           </el-row>
         </div>
-        <div class="chooseGoods-search-btns">
-          <el-button type="primary" @click="chooseGoodsSearch">查询</el-button>
-          <el-button @click="chooseGoodsSearchReset">重置</el-button>
+        <div class="choosePurchase-search-btns">
+          <el-button type="primary" @click="choosePurchaseSearch">查询</el-button>
+          <el-button @click="choosePurchaseSearchReset">重置</el-button>
         </div>
       </div>
-      <el-table :data="chooseGoodsDialogTableData">
-        <el-table-column property="goodsNo" label="商品编号" align="center" />
-        <el-table-column property="goodsName" label="商品名称" align="center" />
+      <el-table :data="choosePurchaseDialogTableData" height="60vh">
+        <el-table-column property="goodsNo" label="采购编号" align="center" />
+        <el-table-column property="goodsName" label="时间" align="center" />
         <el-table-column fixed="right" label="操作" width="110" align="center" >
           <template #default="scope">
-            <el-button link type="primary" @click="chooseGoodsConfirm(scope.row)">选择</el-button>
-            <el-button link type="primary" @click="chooseGoodsSeeDetail(scope.row)">详情</el-button>
+            <el-button link type="primary" @click="choosePurchaseConfirm(scope.row)">选择</el-button>
+            <el-button link type="primary" @click="choosePurchaseSeeDetail(scope.row)">详情</el-button>
           </template>
         </el-table-column>
       </el-table>
+      <div class="pagination-wrapper">
+        <el-pagination
+          class="pagination"
+          v-model:current-page="choosePurchasePagination.pageNo"
+          v-model:page-size="choosePurchasePagination.pageSize"
+          :page-sizes="[10, 20, 40, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="choosePurchasePagination.total"
+          @size-change="choosePurchasePageSizeChange"
+          @current-change="choosePurchasePageNoChange"
+        />
+      </div>
     </el-dialog>
 
     <el-dialog v-model="isShowFilePreview">
@@ -391,34 +423,58 @@ function toDelete() {
 }
 
 // 选择商品弹框
-let isShowChooseGoodsDialog = ref(false)
-let chooseGoodsSearchParams = reactive({
+let isShowChoosePurchaseDialog = ref(false)
+let choosePurchaseSearchParams = reactive({
   goodsNo: '',
   goodsName: '',
 })
-function toChooseGoods() {
-  isShowChooseGoodsDialog.value = true
+function tochoosePurchase() {
+  isShowChoosePurchaseDialog.value = true
 }
-let chooseGoodsDialogTableData = reactive([
+let choosePurchaseDialogTableData = reactive([
   {goodsNo: '111', goodsName: '蓝莓大大'},
   {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '222', goodsName: '蓝莓小小'},
 ])
-function chooseGoodsSearch() {
+function choosePurchaseSearch() {
 
 }
-function chooseGoodsSearchReset() {
-  Object.assign(chooseGoodsSearchParams, { // reactive 直接替换对象的引用不会影响原始对象的代理
+function choosePurchaseSearchReset() {
+  Object.assign(choosePurchaseSearchParams, { // reactive 直接替换对象的引用不会影响原始对象的代理
     goodsNo: '',
     goodsName: '',
   })
 }
-function chooseGoodsConfirm(record) {
+function choosePurchaseConfirm(record) {
   console.log(record)
 }
-function chooseGoodsSeeDetail(record) {
+function choosePurchaseSeeDetail(record) {
   console.log(record)
   const url = `${window.location.origin}${$router.resolve({
-    path: '/goodsDetail',
+    path: '/purchase',
     query: {
       id: '123321',
       flag: 'detail'
@@ -426,6 +482,61 @@ function chooseGoodsSeeDetail(record) {
   }).href}`
   window.open(url, '_blank')
 }
+let choosePurchasePagination = reactive({
+  pageNo: 1,
+  pageSize: 10,
+  total: 0,
+})
+function choosePurchasePageSizeChange(newPageSize) {
+  console.log(newPageSize)
+}
+function choosePurchasePageNoChange(newPageNo) {
+  console.log(newPageNo)
+}
+
+
+let currentBatchTableData = reactive([
+  {batch: '20240707110459', startTime: '2024-07-07 11:04:59',}
+])
+function endCurrentBatch() {
+  ElMessageBox.confirm(
+    '确定结束当前采购编号?',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    
+  }).catch(() => {
+    
+  })
+}
+
+
+let historyBatchTableData = reactive([
+  {batch: '20240707110459', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48',},
+  {batch: '20240707110459', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48',},
+  {batch: '20240707110459', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48',},
+])
+function relateNewBatch() { // 关联采购记录
+  isShowChoosePurchaseDialog.value = true
+}
+let historyBatchPagination = reactive({
+  pageNo: 1,
+  pageSize: 10,
+  total: 0,
+})
+function historyBatchPageSizeChange(newPageSize) {
+  console.log(newPageSize)
+}
+function historyBatchPageNoChange(newPageNo) {
+  console.log(newPageNo)
+}
+function seeHistoryBatchStatistic() { // 查看历史批次统计数据
+
+}
+
 
 
 onMounted(() => {
@@ -478,6 +589,11 @@ onBeforeUnmount(() => {
       padding: 10px;
       box-sizing: border-box;
       border-radius: 6px;
+      display: flex;
+      align-items: center;
+      .title-btn {
+        margin-left: 10px;
+      }
     }
     .content {
       padding: 20px 40px;
@@ -549,34 +665,40 @@ onBeforeUnmount(() => {
       position: fixed;
       bottom: 20px;
       right: 30px;
+      z-index: 999;
     }
   }
 
-  .chooseGoods-dialog {
-    .chooseGoods-search {
+  .choosePurchase-dialog {
+    .choosePurchase-search {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      .chooseGoods-search-content {
+      .choosePurchase-search-content {
         flex: 1;
-        .chooseGoods-search-item {
+        .choosePurchase-search-item {
           display: flex;
           align-items: center;
           margin-bottom: 20px;
-          .chooseGoods-search-item-label {
+          .choosePurchase-search-item-label {
             word-break: keep-all;
           }
-          .chooseGoods-search-item-input {
+          .choosePurchase-search-item-input {
             width: 200px;
           }
         }
       }
-      .chooseGoods-search-btns {
-        width: 200px;
+      .choosePurchase-search-btns {
         display: flex;
         justify-content: center;
       }
     }
+  }
+
+  .pagination-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
   }
 }
 .el-input[readonly] .el-input__inner,
@@ -586,4 +708,5 @@ onBeforeUnmount(() => {
   color: #c0c4cc;
   cursor: not-allowed;
 }
+
 </style>
