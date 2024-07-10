@@ -2,116 +2,117 @@
   <div class="home">
     <div class="tabs-wrapper">
       <el-tabs type="card" v-model="tabValue" @tab-click="tabsClick">
-        <el-tab-pane label="商品批次数据" name="batch"></el-tab-pane>
-        <el-tab-pane label="商品数据总览" name="goods"></el-tab-pane>
+        <el-tab-pane label="商品数据" name="batch" @click="seeBatchStatistics"></el-tab-pane>
+        <el-tab-pane label="数据总览" name="goods" @click="seeOverviewStatistics"></el-tab-pane>
       </el-tabs>
     </div>
 
-    <div class="cascaderWrapper">
-      <div class="cascaderSearch">
-        <el-input v-model="cascaderSearchParam" placeholder="请输入" style="width: 300px;" clearable></el-input>
-        <el-button type="primary" style="margin-left: 20px;">查询</el-button>
-      </div>
-      <div class="cascaderContent-wrapper">
-        <div class="cascaderContent-title">
-          <span>商品</span>
-          <span v-if="cascaderCurrentGoods.name">：{{ cascaderCurrentGoods.name }}</span>
+    <div class="content-wrapper">
+      <div class="goodsTable-wrapper">
+        <div class="search-wrapper">
+          <div class="search-content">
+            <el-row :gutter="20">
+              <el-col :span="6">
+                <div class="saerch-item">
+                  <div class="search-item-label">商品编号：</div>
+                  <div class="search-item-input">
+                    <el-input placeholder="请输入" clearable v-model="searchParams.goodsId"></el-input>
+                  </div>
+                </div>
+              </el-col>
+              <el-col :span="6">
+                <div class="saerch-item">
+                  <div class="search-item-label">商品名称：</div>
+                  <div class="search-item-input">
+                    <el-input placeholder="请输入" clearable v-model="searchParams.name"></el-input>
+                  </div>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
+          <div class="search-btns">
+            <el-button type="primary" @click="search">查询</el-button>
+            <el-button @click="searchReset">重置</el-button>
+          </div>
         </div>
-        <div class="cascaderContent">
-          <div class="cascaderContent-container">
-            <div class="goods" v-for="(item, index) in cascaderGoods" :key="index"
-              :style="{backgroundColor: cascaderCurrentGoods===item?'rgba(25,137,250,0.2)':'white'}"
-              @click="cascaderGoodsClick(item)"
-            >
-              {{ item }}
+
+        <div class="options">
+          <el-button type="primary">新增</el-button>
+        </div>
+
+        <div class="table-wrapper">
+          <el-table 
+            :data="tableData" 
+            highlight-current-row
+            @current-change="tableCurrentChange"
+          >
+            <el-table-column prop="no" label="商品编号" align="center" />
+            <el-table-column prop="name" label="商品名称" align="center" />
+            <el-table-column prop="remark" label="备注" align="center" />
+            <el-table-column fixed="right" label="操作" width="80" align="center" >
+              <template #default="scope">
+                <el-button link type="primary" @click="tableDetail(scope.row)">详情</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <div class="pagination-wrapper">
+            <el-pagination
+              class="pagination"
+              v-model:current-page="pagination.pageNo"
+              v-model:page-size="pagination.pageSize"
+              :page-sizes="[10, 20, 40, 100]"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="pagination.total"
+              @size-change="tablePageSizeChange"
+              @current-change="tablePageNoChange"
+            />
+          </div>
+        </div>
+      </div>
+
+    
+      <div class="cascaderWrapper">
+        <!-- <div class="cascaderSearch">
+          <el-input v-model="cascaderSearchParam" placeholder="请输入" style="width: 300px;" clearable></el-input>
+          <el-button type="primary" style="margin-left: 20px;">查询</el-button>
+        </div> -->
+        <div class="cascaderContent-wrapper">
+          <div class="cascaderContent-title">
+            <div v-if="cascaderCurrentGoods&&cascaderCurrentGoods.id">
+              <div>商品编号：<span style="font-weight: 700;">{{ cascaderCurrentGoods.id }}</span></div>
+              <div>商品名称：<span style="font-weight: 700;">{{ cascaderCurrentGoods.name }}</span></div>
             </div>
           </div>
-          <div class="cascaderContent-container">
-            <div class="batch" v-for="(item, index) in cascaderBatches" :key="index"
-              :style="{backgroundColor: cascaderCurrentBatch===item?'rgba(25,137,250,0.2)':'white'}"
-              @click="cascaderBatchClick(item)"
-            >
-              {{ item }}
+          <div class="cascaderContent">
+            <div class="cascaderContent-allBatches" 
+                :style="{backgroundColor: cascaderCurrentBatch==='allBatches'?'rgba(64,158,255)':'white', 
+                        color: cascaderCurrentBatch==='allBatches'?'white':'black'}"
+                @click="cascaderBatchClick('allBatches')">
+                所有批次总览
+            </div>
+            <div class="cascaderContent-container">
+              <div class="batch" v-for="(item, index) in cascaderBatches" :key="index"
+                :style="{backgroundColor: cascaderCurrentBatch===item?'rgba(64,158,255)':'white',
+                        color: cascaderCurrentBatch===item?'white':'black'}"
+                @click="cascaderBatchClick(item)"
+              >
+                {{ item }}
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- <el-cascader-panel 
+          :options="cascaderData" 
+          style="width: 800px;"
+        /> -->
       </div>
 
-      <!-- <el-cascader-panel 
-        :options="cascaderData" 
-        style="width: 800px;"
-      /> -->
-    </div>
 
-    <div class="search-wrapper">
-      <div class="search-content">
-        <el-row :gutter="20">
-          <el-col :span="6">
-            <div class="saerch-item">
-              <div class="search-item-label">批次编号：</div>
-              <div class="search-item-input">
-                <el-input placeholder="请输入" clearable v-model="searchParams.goodsNo"></el-input>
-              </div>
-            </div>
-          </el-col>
-          <el-col :span="6">
-            <div class="saerch-item">
-              <div class="search-item-label">商品名称：</div>
-              <div class="search-item-input">
-                <el-input placeholder="请输入" clearable v-model="searchParams.goodsName"></el-input>
-              </div>
-            </div>
-          </el-col>
-          <el-col :span="6">
-            <div class="saerch-item">
-              <div class="search-item-label">进货日期：</div>
-              <div class="search-item-input">
-                <el-date-picker 
-                  type="daterange"
-                  format="YYYY/MM/DD" value-format="YYYY-MM-DD" 
-                  start-placeholder="开始日期"
-                  end-placeholder="结束日期"
-                  clearable 
-                  v-model="searchParams.purchaseDate" 
-                  style="width: 100%;" 
-                />
-              </div>
-            </div>
-          </el-col>
-          <el-col :span="6">
-            <div class="saerch-item">
-              <div class="search-item-label">商品状态：</div>
-              <div class="search-item-input">
-                <el-select v-model="searchParams.status" placeholder="请选择" clearable>
-                  <el-option label="预订中" value="ydz" />
-                  <el-option label="采购中" value="dfk" />
-                  <el-option label="售卖中" value="yfk" />
-                  <el-option label="已下架" value="ywj" />
-                </el-select>
-              </div>
-            </div>
-          </el-col>
-          <el-col :span="6">
-            <div class="saerch-item">
-              <div class="search-item-label">是否上架：</div>
-              <div class="search-item-input">
-                <el-select v-model="searchParams.isSelling" placeholder="请选择" clearable>
-                  <el-option label="上架中" value="ydz" />
-                  <el-option label="未上架" value="dfk" />
-                </el-select>
-              </div>
-            </div>
-          </el-col>
-        </el-row>
+      <div class="charts-wrapper">
+        <div ref="chartContainer" style="width: 100%; height: 700px;"></div>
       </div>
-      <div class="search-btns">
-        <el-button type="primary" @click="search">查询</el-button>
-        <el-button @click="searchReset">重置</el-button>
-      </div>
-    </div> 
-
-    <div class="charts-wrapper">
-      <div ref="chartContainer" style="width: 100%; height: 400px;"></div>
     </div>
   </div>
 </template>
@@ -121,6 +122,10 @@ import { onMounted, reactive, ref, nextTick } from 'vue';
 
 import * as echarts from 'echarts';
 
+import { useRouter } from 'vue-router'
+
+const $router = useRouter()
+
 
 // tabs 
 let tabValue = ref('batch')
@@ -128,10 +133,63 @@ function tabsClick(tab, event) {
   console.log(tab.paneName, event)
   tabValue.value = tab.paneName
 }
+function seeBatchStatistics() {
+
+}
+function seeOverviewStatistics() {
+
+}
+
+
+// table
+let searchParams = reactive({
+  goodsId: '',
+  name: '',
+  date: null,
+})
+let tableData = ref([
+
+])
+let pagination = reactive({
+  pageNo: 1,
+  pageSize: 10,
+  total: 0,
+})
+function tableCurrentChange(record) {
+  console.log(record)
+}
+
+function search() {
+
+}
+function searchReset() {
+  Object.assign(searchParams, {
+    batch: '',
+    name: '',
+    date: null,
+  })
+  pagination.pageNo = 1
+}
+function tablePageSizeChange(newPageSize) {
+  console.log(newPageSize)
+}
+function tablePageNoChange(newPageNo) {
+  console.log(newPageNo)
+}
+function tableDetail(record) {
+  // console.log(record.date)
+  $router.push({
+    path: '/goodsDetail',
+    query: {
+      id: '123321',
+      flag: 'detail'
+    }
+  })
+}
 
 
 // cascader
-let cascaderSearchParam = ref('')
+// let cascaderSearchParam = ref('')
 let cascaderBatches = reactive([
   '20240708165426',
   '20240708165426',
@@ -164,7 +222,7 @@ let cascaderBatches = reactive([
   '20240708165426',
 ])
 let cascaderCurrentGoods = ref({
-  id: '123',
+  id: '1231233211',
   name: '蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果'
 })
 let cascaderCurrentBatch = ref('20240708165425')
@@ -174,35 +232,17 @@ function cascaderGoodsClick(item) {
 function cascaderBatchClick(item) {
   console.log(item)
   cascaderCurrentBatch.value = item
+  if (item==='allBatches') { // 所有批次总览
+
+  } else { // 某个批次
+
+  }
 }
 
-// Search
-let searchParams = reactive({
-  goodsNo: '',
-  goodsName: '',
-  purchaseDate: [],
-  status: null,
-  isSelling: null,
-})
-function search() {
-
-}
-function searchReset() {
-  Object.assign(searchParams, {
-    goodsNo: '',
-    goodsName: '',
-    purchaseDate: [],
-    status: null,
-    isSelling: null,
-  })
-  pagination.pageNo = 1
-}
 
 
 // charts
 const chartContainer = ref(null);
-
-// 模拟数据：第一天有大批量采购，接下来只会间隔很多天后再有大批量采购，其余日期偶尔有小数量采购
 const chartsData = [
   { date: '2024-07-01', purchase: 100, sold: 10, remaining: 90 },
   { date: '2024-07-02', purchase: 5, sold: 15, remaining: 80 },
@@ -224,7 +264,6 @@ const chartsData = [
   { date: '2024-07-18', purchase: 0, sold: 5, remaining: 35 },
   { date: '2024-07-19', purchase: 0, sold: 10, remaining: 25 },
   { date: '2024-07-20', purchase: 10, sold: 20, remaining: 15 }
-  // 可以继续添加数据...
 ]
 
 const dates = chartsData.map(item => item.date);
@@ -328,7 +367,26 @@ function initChart() {
 
 onMounted(() => {
   initChart();
+
+  for (let i = 0; i < 10; i++) {
+    tableData.value.push({
+      no: '202407022236526936',
+      name: '蓝莓大果',
+      totalSaleQuantity: 150,
+      unit: '斤',
+      status: '1',
+      statusText: '预定中',
+      totalPreorderQuantity: 100,
+      remainingQuantity: 80,
+      price: 200.00,
+      originalPrice: 150.00,
+      remark: '我是备注我是备注我是备注2222222222222222222222222222222我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
+      isSelling: true,
+    })
+  }
+  pagination.total = tableData.value.length
 });
+
 
 
 </script>
@@ -336,95 +394,127 @@ onMounted(() => {
 <style lang="less" scoped>
 .home {
   .tabs-wrapper {
-    margin-bottom: 20px;
-  }
-
-  .cascaderWrapper {
-    .cascaderSearch {
-      display: flex;
-      align-items: center;
-    }
-    .cascaderContent-wrapper {
-      border: 1px solid rgb(228,231,237);
-      box-sizing: border-box;
-      padding: 20px;
-      .cascaderContent-title {
-
-      }
-      .cascaderContent {
-        .cascaderContent-container {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 20px;
-          margin-top: 10px;
-        }
-        .goods {
-          border: 1px solid #ccc;
-          padding: 6px 10px;
-          box-sizing: border-box;
-          text-align: center;
-          cursor: pointer;
-        }
-        .batch {
-          border: 1px solid #ccc;
-          padding: 6px 10px;
-          box-sizing: border-box;
-          text-align: center;
-          cursor: pointer;
-        }
-      }
+    :deep(.el-tabs__header) {
+      margin-bottom: 0;
     }
   }
 
-  .search-wrapper {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+  .content-wrapper {
     padding: 20px;
-    padding-bottom: 0;
     box-sizing: border-box;
     border: 1px solid rgb(228,231,237);
-    .search-content{
-      flex: 1;
-      .saerch-item {
+    border-top: none;
+    .goodsTable-wrapper {
+      padding: 20px;
+      box-sizing: border-box;
+      border: 1px solid rgb(228,231,237);
+      .search-wrapper {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        .search-content{
+          flex: 1;
+          .saerch-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            .saerch-item-label {
+              word-break: keep-all;
+            }
+            .search-item-input {
+              flex: 1;
+            }
+          }
+        }
+        .search-btns {
+          width: 200px;
+          display: flex;
+          justify-content: center;
+        }
+      }
+      .options {
+        height: 50px;
         display: flex;
         align-items: center;
-        margin-bottom: 20px;
-        .saerch-item-label {
-          word-break: keep-all;
-        }
-        .search-item-input {
-          flex: 1;
-          :deep(div) {
-            box-sizing: border-box !important;
+      }
+      .table-wrapper {
+        .pagination-wrapper {
+          height: 50px;
+          .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
           }
         }
       }
     }
-    .search-btns {
-      width: 200px;
+
+    .cascaderWrapper {
+      margin-top: 20px;
+      // .cascaderSearch {
+      //   display: flex;
+      //   align-items: center;
+      // }
+      .cascaderContent-wrapper {
+        border: 1px solid rgb(228,231,237);
+        box-sizing: border-box;
+        padding: 20px;
+        .cascaderContent-title {
+          
+        }
+        .cascaderContent {
+          .cascaderContent-allBatches {
+            border: 1px solid #ccc;
+            padding: 10px 10px;
+            box-sizing: border-box;
+            text-align: center;
+            cursor: pointer;
+            margin-top: 20px;
+          }
+          .cascaderContent-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+          }
+          .goods {
+            border: 1px solid #ccc;
+            padding: 6px 10px;
+            box-sizing: border-box;
+            text-align: center;
+            cursor: pointer;
+          }
+          .batch {
+            border: 1px solid #ccc;
+            padding: 6px 10px;
+            box-sizing: border-box;
+            text-align: center;
+            cursor: pointer;
+          }
+        }
+      }
+    }
+
+    .charts-wrapper {
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    :deep(.el-cascader-panel__wrap) {
       display: flex;
-      justify-content: center;
+      flex-wrap: wrap;
+    }
+    :deep(.el-cascader-panel__list) {
+      width: auto;
+      flex: 1;
+      min-width: 200px; /* 控制每列的最小宽度 */
+      margin-right: 20px; /* 控制列间距 */
+    }
+    :deep(.el-cascader-panel__list:last-child) {
+      margin-right: 0;
     }
   }
 
-  .charts-wrapper {
-    padding: 20px;
-    box-sizing: border-box;
-  }
-
-  :deep(.el-cascader-panel__wrap) {
-    display: flex;
-    flex-wrap: wrap;
-  }
-  :deep(.el-cascader-panel__list) {
-    width: auto;
-    flex: 1;
-    min-width: 200px; /* 控制每列的最小宽度 */
-    margin-right: 20px; /* 控制列间距 */
-  }
-  :deep(.el-cascader-panel__list:last-child) {
-    margin-right: 0;
-  }
+  
 }
 </style>

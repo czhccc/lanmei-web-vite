@@ -127,57 +127,58 @@
           </div>
         </div>
       </div>
-      <div class="item">
-        <div class="title">
-          当前批次
-          <el-button class="title-btn" type="primary" @click="endCurrentBatch">结束当前批次</el-button>
-        </div>
-        <div class="content">
-          <el-table :data="currentBatchTableData">
-            <el-table-column property="batch" label="批次" align="center" />
-            <el-table-column property="startTime" label="开始时间" align="center" />
-            <el-table-column fixed="right" label="操作" width="110" align="center" >
-              <template #default="scope">
-                <el-button link type="primary" @click="seeHistoryBatchStatistic(scope.row)">查看统计</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
-      </div>
-      <div class="item">
-        <div class="title">
-          历史批次
-          <el-button class="title-btn" type="primary" @click="relateNewBatch">关联采购记录</el-button>
-        </div>
-        <div class="content">
-          <el-table :data="historyBatchTableData">
-            <el-table-column property="batch" label="批次" align="center" />
-            <el-table-column property="time" label="时间" align="center" >
-              <template #default="scope">
-                <div>{{ scope.row.startTime }} ~ {{ scope.row.endTime }}</div>
-              </template>
-            </el-table-column>
-            <el-table-column fixed="right" label="操作" width="110" align="center" >
-              <template #default="scope">
-                <el-button link type="primary" @click="seeHistoryBatchStatistic(scope.row)">查看统计</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-          <div class="pagination-wrapper">
-            <el-pagination
-              class="pagination"
-              v-model:current-page="historyBatchPagination.pageNo"
-              v-model:page-size="historyBatchPagination.pageSize"
-              :page-sizes="[10, 20, 40, 100]"
-              layout="total, sizes, prev, pager, next, jumper"
-              :total="historyBatchPagination.total"
-              @size-change="historyBatchPageSizeChange"
-              @current-change="historyBatchPageNoChange"
-            />
-          </div>
-        </div>
-      </div>
     </el-form>
+
+    <div class="item">
+      <div class="title">
+        当前批次
+        <el-button class="title-btn" type="primary" @click="endCurrentBatch">结束当前批次</el-button>
+      </div>
+      <div class="content">
+        <el-table :data="currentBatchTableData">
+          <el-table-column property="batch" label="批次" align="center" />
+          <el-table-column property="startTime" label="开始时间" align="center" />
+          <el-table-column fixed="right" label="操作" width="110" align="center" >
+            <template #default="scope">
+              <el-button link type="primary" @click="seeHistoryBatchStatistic(scope.row)">查看统计</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
+    <div class="item">
+      <div class="title">
+        历史批次
+        <el-button class="title-btn" type="primary" @click="relateNewBatch">关联采购记录</el-button>
+      </div>
+      <div class="content">
+        <el-table :data="historyBatchTableData">
+          <el-table-column property="batch" label="批次" align="center" />
+          <el-table-column property="time" label="时间" align="center" >
+            <template #default="scope">
+              <div>{{ scope.row.startTime }} ~ {{ scope.row.endTime }}</div>
+            </template>
+          </el-table-column>
+          <el-table-column fixed="right" label="操作" width="110" align="center" >
+            <template #default="scope">
+              <el-button link type="primary" @click="seeHistoryBatchStatistic(scope.row)">查看统计</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div class="pagination-wrapper">
+          <el-pagination
+            class="pagination"
+            v-model:current-page="historyBatchPagination.pageNo"
+            v-model:page-size="historyBatchPagination.pageSize"
+            :page-sizes="[10, 20, 40, 100]"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="historyBatchPagination.total"
+            @size-change="historyBatchPageSizeChange"
+            @current-change="historyBatchPageNoChange"
+          />
+        </div>
+      </div>
+    </div>
     
     <div class="btns" v-if="$route.query.flag!=='detail'">
       <el-button type="primary" class="submitBtn" :loading=isSubmiting @click="toSubmit">提 交</el-button>
@@ -376,8 +377,13 @@ const richTextEditorRef = shallowRef()
 // 内容 HTML
 const richTextEditorMode = 'default' // default or simple
 const richTextValue = ref('<p>hello</p>')
-const richTextEditorToolbarConfig = {}
-const richTextEditorConfig = { placeholder: '请输入内容...' }
+const richTextEditorToolbarConfig = {
+  readOnly: $route.query.flag==='detail'
+}
+const richTextEditorConfig = { 
+  placeholder: '请输入内容...',
+  readOnly: $route.query.flag==='detail'
+}
 
 const richTextEditorHandleCreated = (editor) => {
   richTextEditorRef.value = editor // 记录 editor 实例，重要！
