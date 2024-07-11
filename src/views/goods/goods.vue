@@ -21,7 +21,7 @@
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">进货日期：</div>
+              <div class="search-item-label">采购日期：</div>
               <div class="search-item-input">
                 <el-date-picker 
                   type="daterange"

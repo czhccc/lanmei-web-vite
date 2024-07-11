@@ -21,7 +21,7 @@
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">进货日期：</div>
+              <div class="search-item-label">采购日期：</div>
               <div class="search-item-input">
                 <el-date-picker 
                   type="date" 
@@ -60,8 +60,8 @@
             {{ scope.row.totalCost }} 元
           </template>
         </el-table-column>
-        <el-table-column prop="date" label="进货日期" align="center" />
-        <el-table-column prop="source" label="进货来源" align="center" />
+        <el-table-column prop="date" label="采购日期" align="center" />
+        <el-table-column prop="source" label="采购来源" align="center" />
         <el-table-column prop="remark" label="备注" align="center" />
         <el-table-column fixed="right" label="操作" width="240" align="center" >
           <template #default="scope">
@@ -138,10 +138,10 @@
               <div style="text-align: right;margin-left: 10px;">元</div>
             </div>
           </el-form-item>
-          <el-form-item label="进货日期" prop="date">
+          <el-form-item label="采购日期" prop="date">
             <el-date-picker type="date" format="YYYY/MM/DD" value-format="YYYY-MM-DD" v-model="form.date" placeholder="请选择" style="width: 100%;" />
           </el-form-item>
-          <el-form-item label="进货来源" prop="source">
+          <el-form-item label="采购来源" prop="source">
             <el-input v-model="form.source" placeholder="请输入" maxlength="50" clearable />
           </el-form-item>
           <el-form-item label="备注" prop="remark">
@@ -201,6 +201,7 @@
       <el-table :data="chooseGoodsDialogTableData">
         <el-table-column property="goodsNo" label="商品编号" align="center" />
         <el-table-column property="goodsName" label="商品名称" align="center" />
+        <el-table-column property="goodsUnit" label="商品单位" align="center" />
         <el-table-column fixed="right" label="操作" width="110" align="center" >
           <template #default="scope">
             <el-button link type="primary" @click="chooseGoodsConfirm(scope.row)">选择</el-button>
@@ -281,8 +282,8 @@ const formRules = reactive({
     { required: true, message: '请输入总成本', trigger: 'blur' },
     { type: 'number', min: 0.01, max: 99999999, message: '请输入总成本', trigger: 'blur' },
   ],
-  date: [{ required: true, message: '请选择进货日期', trigger: 'blur' },],
-  source: [{ required: false, message: '请输入进货来源', trigger: 'blur' },],
+  date: [{ required: true, message: '请选择采购日期', trigger: 'blur' },],
+  source: [{ required: false, message: '请输入采购来源', trigger: 'blur' },],
   remark: [{ required: false, message: '请输入备注', trigger: 'blur' },],
   status: [{ required: false, message: '请选择', trigger: 'blur' },],
 })
@@ -346,7 +347,7 @@ function tableDetail(record) {
       otherCost: 100,
       totalCost: 150,
       date: '2024-06-19',
-      source: '我是进货来源',
+      source: '我是采购来源',
       remark: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
       status: '状态1'
     })
@@ -369,7 +370,7 @@ function tableEdit(record) {
       otherCost: 100,
       totalCost: 150,
       date: '2024-06-19',
-      source: '我是进货来源',
+      source: '我是采购来源',
       remark: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
       status: '状态1'
     })
@@ -419,8 +420,8 @@ function toChooseGoods() {
   isShowChooseGoodsDialog.value = true
 }
 let chooseGoodsDialogTableData = reactive([
-  {goodsNo: '111', goodsName: '蓝莓大大'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
+  {goodsNo: '111', goodsName: '蓝莓大大', goodsUnit: '斤'},
+  {goodsNo: '222', goodsName: '蓝莓小小', goodsUnit: '斤'},
 ])
 function chooseGoodsSearch() {
 
@@ -460,7 +461,7 @@ onMounted(() => {
       otherCost: 100,
       totalCost: 150,
       date: '2024-06-19',
-      source: '我是进货来源',
+      source: '我是采购来源',
       remark: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
       status: '状态1'
     })

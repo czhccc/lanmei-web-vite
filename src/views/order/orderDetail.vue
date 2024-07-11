@@ -44,6 +44,14 @@
           </el-row>
           <el-row :gutter="20">
             <el-col :span="8">
+              <el-form-item label="订单渠道：" prop="orderChannel">
+                <el-select v-model="form.orderChannel" placeholder="请选择">
+                  <el-option label="线上订单" value="onlineOrder" />
+                  <el-option label="线下订单" value="offlineOrder" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
               <el-form-item label="订单状态：" prop="orderStatus">
                 <el-select v-model="form.orderStatus" placeholder="请选择">
                   <el-option label="预订中" value="ydz" />
@@ -217,6 +225,8 @@ let isSubmiting = ref(false)
 let isDeleting = ref(false)
 
 let form = reactive({
+  orderChannel: '',
+  orderChannelText: '',
   orderNo: '',
   orderType: '',
   orderTypeText: '',
@@ -236,6 +246,7 @@ let form = reactive({
   selfRemark: '',
 })
 const formRules = reactive({
+  orderChannel: [{ required: true, message: '请选择订单渠道', trigger: 'blur' },],
   orderStatus: [{ required: true, message: '请选择订单状态', trigger: 'blur' },],
   orderCancelReason: [{ required: true, message: '请输入取消原因', trigger: 'blur' },],
   selfRemark: [{ required: false, message: '请输入己方备注', trigger: 'blur' },],
@@ -339,6 +350,8 @@ function chooseGoodsSeeDetail(record) {
 
 onMounted(() => {
   Object.assign(form, { // reactive 直接替换对象的引用不会影响原始对象的代理
+    orderChannel: 'onlineOrder',
+    orderChannelText: '线上订单',
     orderNo: '202407022236526936',
     orderType: '1',
     orderTypeText: '手动添加',

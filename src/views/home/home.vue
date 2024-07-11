@@ -6,6 +6,18 @@
         <el-tab-pane label="数据总览" name="goods" @click="seeOverviewStatistics"></el-tab-pane>
       </el-tabs>
     </div>
+    
+    <div class="choosedGoods">
+      <div class="choosedGoods-goodsName">
+        <span class="choosedGoods-goodsName-value">{{ choosedGoods.id }}</span>
+        <span class="choosedGoods-goodsName-label"> ~ </span>
+        <span class="choosedGoods-goodsName-value">{{ choosedGoods.name }}</span>
+        <span class="choosedGoods-goodsName-label"> ~ </span>
+        <span class="choosedGoods-goodsName-value">{{ choosedGoods.unit }}</span>
+        <span class="choosedGoods-goodsName-label"> ~ </span>
+        <span class="choosedGoods-goodsName-value">{{ choosedBatch }}</span>
+      </div>
+    </div>
 
     <div class="content-wrapper">
       <div class="goodsTable-wrapper">
@@ -48,6 +60,7 @@
           >
             <el-table-column prop="no" label="商品编号" align="center" />
             <el-table-column prop="name" label="商品名称" align="center" />
+            <el-table-column prop="unit" label="商品单位" align="center" />
             <el-table-column prop="remark" label="备注" align="center" />
             <el-table-column fixed="right" label="操作" width="80" align="center" >
               <template #default="scope">
@@ -71,47 +84,108 @@
         </div>
       </div>
 
-    
-      <div class="cascaderWrapper">
-        <!-- <div class="cascaderSearch">
-          <el-input v-model="cascaderSearchParam" placeholder="请输入" style="width: 300px;" clearable></el-input>
-          <el-button type="primary" style="margin-left: 20px;">查询</el-button>
-        </div> -->
-        <div class="cascaderContent-wrapper">
-          <div class="cascaderContent-title">
-            <div v-if="cascaderCurrentGoods&&cascaderCurrentGoods.id">
-              <div>商品编号：<span style="font-weight: 700;">{{ cascaderCurrentGoods.id }}</span></div>
-              <div>商品名称：<span style="font-weight: 700;">{{ cascaderCurrentGoods.name }}</span></div>
+      <!-- 商品整体总览 -->
+      <div class="goodsOverview-wrapper">
+        
+      </div>
+
+      <!-- 选择批次 -->
+      <div class="batch-wrapper">
+        <div class="batchContent-wrapper">
+          <div class="batchContent">
+            <div class="batchContent-allBatches" 
+                :style="{backgroundColor: choosedBatch==='所有批次'?'rgba(64,158,255)':'white', 
+                        color: choosedBatch==='所有批次'?'white':'black'}"
+                @click="batchClick('所有批次')">
+                所有批次
             </div>
-          </div>
-          <div class="cascaderContent">
-            <div class="cascaderContent-allBatches" 
-                :style="{backgroundColor: cascaderCurrentBatch==='allBatches'?'rgba(64,158,255)':'white', 
-                        color: cascaderCurrentBatch==='allBatches'?'white':'black'}"
-                @click="cascaderBatchClick('allBatches')">
-                所有批次总览
-            </div>
-            <div class="cascaderContent-container">
-              <div class="batch" v-for="(item, index) in cascaderBatches" :key="index"
-                :style="{backgroundColor: cascaderCurrentBatch===item?'rgba(64,158,255)':'white',
-                        color: cascaderCurrentBatch===item?'white':'black'}"
-                @click="cascaderBatchClick(item)"
+            <div class="batchContent-container">
+              <div class="batch" v-for="(item, index) in batches" :key="index"
+                :style="{backgroundColor: choosedBatch===item?'rgba(64,158,255)':'white',
+                        color: choosedBatch===item?'white':'black'}"
+                @click="batchClick(item)"
               >
                 {{ item }}
               </div>
             </div>
           </div>
         </div>
-
-        <!-- <el-cascader-panel 
-          :options="cascaderData" 
-          style="width: 800px;"
-        /> -->
       </div>
 
-
-      <div class="charts-wrapper">
-        <div ref="chartContainer" style="width: 100%; height: 700px;"></div>
+      <!-- 批次信息 -->
+      <div class="batchInfo-wrapper">
+        <div class="batchInfo-title">时间</div>
+        <div class="batchInfo-content">
+          <div class="batchInfo-item">
+            <div class="batchInfo-item-label">日期范围：</div>
+            <div class="batchInfo-item-value">2024-06-02 ~ 2024-07-11</div>
+          </div>
+          <div class="batchInfo-item">
+            <div class="batchInfo-item-label">持续周数：</div>
+            <div class="batchInfo-item-value">8周</div>
+          </div>
+          <div class="batchInfo-item">
+            <div class="batchInfo-item-label">持续天数：</div>
+            <div class="batchInfo-item-value">53天</div>
+          </div>
+        </div>
+        <div class="batchInfo-title">采购</div>
+        <div class="batchInfo-content">
+          <div class="batchInfo-item">
+            <div class="batchInfo-item-label">采购总次数：</div>
+            <div class="batchInfo-item-value">28次</div>
+          </div>
+          <div class="batchInfo-item">
+            <div class="batchInfo-item-label">采购总成本：</div>
+            <div class="batchInfo-item-value">196425元</div>
+          </div>
+          <div class="batchInfo-item">
+            <div class="batchInfo-item-label">其他总成本：</div>
+            <div class="batchInfo-item-value">14623元</div>
+          </div>
+          <div class="batchInfo-item">
+            <div class="batchInfo-item-label">总成本：</div>
+            <div class="batchInfo-item-value">218469元</div>
+          </div>
+        </div>
+        <div class="batchInfo-title">订单</div>
+        <div class="batchInfo-content">
+          <div class="batchInfo-item">
+            <div class="batchInfo-item-label">线上订单数量：</div>
+            <div class="batchInfo-item-value">246</div>
+          </div>
+          <div class="batchInfo-item">
+            <div class="batchInfo-item-label">线下订单数量：</div>
+            <div class="batchInfo-item-value">246</div>
+          </div>
+          <div class="batchInfo-item">
+            <div class="batchInfo-item-label">订单总数量：</div>
+            <div class="batchInfo-item-value">246</div>
+          </div>
+        </div>
+        <div class="batchInfo-title">利润</div>
+        <div class="batchInfo-content">
+          <div class="batchInfo-item">
+            <div class="batchInfo-item-label">线上销售额：</div>
+            <div class="batchInfo-item-value">298567元</div>
+          </div>
+          <div class="batchInfo-item">
+            <div class="batchInfo-item-label">线下销售额：</div>
+            <div class="batchInfo-item-value">37586元</div>
+          </div>
+          <div class="batchInfo-item">
+            <div class="batchInfo-item-label">总销售额：</div>
+            <div class="batchInfo-item-value">359762元</div>
+          </div>
+          <div class="batchInfo-item">
+            <div class="batchInfo-item-label">总利润：</div>
+            <div class="batchInfo-item-value">245683元</div>
+          </div>
+        </div>
+      </div>
+      <!-- 批次图表 -->
+      <div class="batchChart-wrapper">
+        <div ref="batchChartContainer" style="width: 100%; height: 700px;"></div>
       </div>
     </div>
   </div>
@@ -188,51 +262,52 @@ function tableDetail(record) {
 }
 
 
-// cascader
-// let cascaderSearchParam = ref('')
-let cascaderBatches = reactive([
-  '20240708165426',
-  '20240708165426',
+// goods
+let choosedGoods = ref({
+  id: '1231233211',
+  name: '蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果',
+  unit: '斤'
+})
+
+
+// batch
+let batches = reactive([
+  '20240708165401',
+  '20240708165402',
+  '20240708165403',
+  '20240708165404',
+  '20240708165405',
+  '20240708165406',
+  '20240708165407',
+  '20240708165408',
+  '20240708165409',
+  '20240708165410',
+  '20240708165411',
+  '20240708165412',
+  '20240708165413',
+  '20240708165414',
+  '20240708165415',
+  '20240708165416',
+  '20240708165417',
+  '20240708165418',
+  '20240708165419',
+  '20240708165420',
+  '20240708165421',
+  '20240708165422',
+  '20240708165423',
+  '20240708165424',
   '20240708165425',
   '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
-  '20240708165426',
+  '20240708165427',
+  '20240708165428',
+  '20240708165429',
 ])
-let cascaderCurrentGoods = ref({
-  id: '1231233211',
-  name: '蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果'
-})
-let cascaderCurrentBatch = ref('20240708165425')
-function cascaderGoodsClick(item) {
+
+let choosedBatch = ref('20240708165425')
+function batchClick(item) {
   console.log(item)
-}
-function cascaderBatchClick(item) {
-  console.log(item)
-  cascaderCurrentBatch.value = item
-  if (item==='allBatches') { // 所有批次总览
+  choosedBatch.value = item
+  if (item==='所有批次') { // 所有批次总览
 
   } else { // 某个批次
 
@@ -241,45 +316,48 @@ function cascaderBatchClick(item) {
 
 
 
-// charts
-const chartContainer = ref(null);
+// batchChart
+const batchChartContainer = ref(null);
 const chartsData = [
-  { date: '2024-07-01', purchase: 100, sold: 10, remaining: 90 },
-  { date: '2024-07-02', purchase: 5, sold: 15, remaining: 80 },
-  { date: '2024-07-03', purchase: 0, sold: 5, remaining: 75 },
-  { date: '2024-07-04', purchase: 10, sold: 15, remaining: 70 },
-  { date: '2024-07-05', purchase: 0, sold: 10, remaining: 60 },
-  { date: '2024-07-06', purchase: 0, sold: 5, remaining: 55 },
-  { date: '2024-07-07', purchase: 5, sold: 10, remaining: 50 },
-  { date: '2024-07-08', purchase: 0, sold: 5, remaining: 45 },
-  { date: '2024-07-09', purchase: 0, sold: 5, remaining: 40 },
-  { date: '2024-07-10', purchase: 0, sold: 5, remaining: 35 },
-  { date: '2024-07-11', purchase: 0, sold: 5, remaining: 30 },
-  { date: '2024-07-12', purchase: 20, sold: 25, remaining: 25 },
-  { date: '2024-07-13', purchase: 0, sold: 5, remaining: 20 },
-  { date: '2024-07-14', purchase: 0, sold: 5, remaining: 15 },
-  { date: '2024-07-15', purchase: 0, sold: 5, remaining: 10 },
-  { date: '2024-07-16', purchase: 0, sold: 5, remaining: 5 },
-  { date: '2024-07-17', purchase: 50, sold: 15, remaining: 40 },
-  { date: '2024-07-18', purchase: 0, sold: 5, remaining: 35 },
-  { date: '2024-07-19', purchase: 0, sold: 10, remaining: 25 },
-  { date: '2024-07-20', purchase: 10, sold: 20, remaining: 15 }
+  { date: '2024-07-01', realTotalPurchase: 100, soldOnline: 7, soldOffline: 3, remaining: 90 },
+  { date: '2024-07-02', realTotalPurchase: 5, soldOnline: 10, soldOffline: 5, remaining: 80 },
+  { date: '2024-07-03', realTotalPurchase: 0, soldOnline: 3, soldOffline: 2, remaining: 75 },
+  { date: '2024-07-04', realTotalPurchase: 10, soldOnline: 7, soldOffline: 8, remaining: 70 },
+  { date: '2024-07-05', realTotalPurchase: 0, soldOnline: 7, soldOffline: 3, remaining: 60 },
+  { date: '2024-07-06', realTotalPurchase: 0, soldOnline: 2, soldOffline: 3, remaining: 55 },
+  { date: '2024-07-07', realTotalPurchase: 5, soldOnline: 7, soldOffline: 3, remaining: 50 },
+  { date: '2024-07-08', realTotalPurchase: 0, soldOnline: 2, soldOffline: 3, remaining: 45 },
+  { date: '2024-07-09', realTotalPurchase: 0, soldOnline: 3, soldOffline: 2, remaining: 40 },
+  { date: '2024-07-10', realTotalPurchase: 0, soldOnline: 4, soldOffline: 1, remaining: 35 },
+  { date: '2024-07-11', realTotalPurchase: 0, soldOnline: 4, soldOffline: 1, remaining: 30 },
+  { date: '2024-07-12', realTotalPurchase: 20, soldOnline: 20, soldOffline: 5, remaining: 25 },
+  { date: '2024-07-13', realTotalPurchase: 0, soldOnline: 3, soldOffline: 2, remaining: 20 },
+  { date: '2024-07-14', realTotalPurchase: 0, soldOnline: 3, soldOffline: 2, remaining: 15 },
+  { date: '2024-07-15', realTotalPurchase: 0, soldOnline: 4, soldOffline: 1, remaining: 10 },
+  { date: '2024-07-16', realTotalPurchase: 0, soldOnline: 4, soldOffline: 1, remaining: 5 },
+  { date: '2024-07-17', realTotalPurchase: 50, soldOnline: 9, soldOffline: 6, remaining: 40 },
+  { date: '2024-07-18', realTotalPurchase: 0, soldOnline: 1, soldOffline: 4, remaining: 35 },
+  { date: '2024-07-19', realTotalPurchase: 0, soldOnline: 7, soldOffline: 3, remaining: 25 },
+  { date: '2024-07-20', realTotalPurchase: 10, soldOnline: 10, soldOffline: 10, remaining: 15 }
 ]
 
 const dates = chartsData.map(item => item.date);
-const purchaseAmounts = chartsData.map(item => item.purchase);
-const soldAmounts = chartsData.map(item => item.sold);
+const purchaseAmounts = chartsData.map(item => item.realTotalPurchase);
+const soldOnlineAmounts = chartsData.map(item => item.soldOnline);
+const soldOfflineAmounts = chartsData.map(item => item.soldOffline);
 const remainingAmounts = chartsData.map(item => item.remaining);
 
 // 计算每日的总量
 let totalAmounts = []
 chartsData.forEach((item, index) => {
-  const total = index === 0 ? item.purchase : chartsData[index-1].remaining+item.purchase
+  const total = index === 0 ? item.realTotalPurchase : chartsData[index-1].remaining+item.realTotalPurchase
   totalAmounts.push(total);
 });
 
 function initChart() {
-  const chart = echarts.init(chartContainer.value);
+  const chart = echarts.init(batchChartContainer.value);
+
+  const unit = choosedGoods.value.unit || '' 
 
   const option = {
     grid: {
@@ -294,29 +372,33 @@ function initChart() {
       formatter: params => {
         const date = params[0].axisValue;
         const total = totalAmounts[params[0].dataIndex];
-        const purchase = purchaseAmounts[params[0].dataIndex];
-        const sold = soldAmounts[params[0].dataIndex];
+        const realTotalPurchase = purchaseAmounts[params[0].dataIndex];
+        const soldOnline = soldOnlineAmounts[params[0].dataIndex];
+        const soldOffline = soldOfflineAmounts[params[0].dataIndex];
         const remaining = remainingAmounts[params[0].dataIndex];
 
         const colorTotal = params.find(p => p.seriesName === '总量').color;
-        const colorPurchase = params.find(p => p.seriesName === '采购量').color;
-        const colorSold = params.find(p => p.seriesName === '售卖量').color;
+        const colorRealTotalPurchase = params.find(p => p.seriesName === '采购量').color;
+        const colorSoldOnline = params.find(p => p.seriesName === '线上售卖量').color;
+        const colorSoldOffline = params.find(p => p.seriesName === '线下售卖量').color;
         const colorRemaining = params.find(p => p.seriesName === '剩余量').color;
         
-
         return `
           <div>
             <div>${date}</div>
-            <div><span style="color:${colorTotal};">●</span> 总量：${total}</div>
-            <div><span style="color:${colorPurchase};">●</span> 采购量：${purchase}</div>
-            <div><span style="color:${colorSold};">●</span> 售卖量：${sold}</div>
-            <div><span style="color:${colorRemaining};">●</span> 剩余量：${remaining}</div>
+            <br />
+            <div><span style="color:${colorTotal};">●</span> 总量：${total}${unit}</div>
+            <div><span style="color:${colorRealTotalPurchase};">●</span> 采购量：${realTotalPurchase}${unit}</div>
+            <div><span style="color:${colorSoldOnline};">●</span> 线上售卖量：${soldOnline}${unit}</div>
+            <div><span style="color:${colorSoldOffline};">●</span> 线下售卖量：${soldOffline}${unit}</div>
+            <div><span style="color: #FF0000;">●</span> 总售卖量：${soldOnline+soldOffline}${unit}</div>
+            <div><span style="color:${colorRemaining};">●</span> 剩余量：${remaining}${unit}</div>
           </div>
         `;
       }
     },
     legend: {
-      data: ['总量', '采购量', '售卖量', '剩余量'],
+      data: ['总量', '采购量', '线上售卖量', '线下售卖量', '剩余量'],
     },
     xAxis: {
       type: 'category',
@@ -331,7 +413,7 @@ function initChart() {
         type: 'line',
         data: totalAmounts,
         itemStyle: {
-          color: '#5470C6'
+          color: '#5A2BE2'
         },
       },
       {
@@ -343,11 +425,21 @@ function initChart() {
         },
       },
       {
-        name: '售卖量',
+        name: '线下售卖量',
         type: 'bar',
-        data: soldAmounts,
+        data: soldOfflineAmounts,
+        stack: '售卖量', // 设置 stack 属性
         itemStyle: {
-          color: '#FF0000'
+          color: '#AEEEEE'
+        },
+      },
+      {
+        name: '线上售卖量',
+        type: 'bar',
+        data: soldOnlineAmounts,
+        stack: '售卖量', // 设置 stack 属性
+        itemStyle: {
+          color: '#EE3B3B'
         },
       },
       {
@@ -355,7 +447,7 @@ function initChart() {
         type: 'line',
         data: remainingAmounts,
         itemStyle: {
-          color: '#FFA500'
+          color: '#FF00FF'
         },
       },
     ],
@@ -396,6 +488,27 @@ onMounted(() => {
   .tabs-wrapper {
     :deep(.el-tabs__header) {
       margin-bottom: 0;
+    }
+  }
+
+  .choosedGoods {
+    position: fixed;
+    top: 0;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    color: white;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    .choosedGoods-goodsName {
+      .choosedGoods-goodsName-label {
+
+      }
+      .choosedGoods-goodsName-value {
+        font-weight: 700;
+      }
     }
   }
 
@@ -449,21 +562,24 @@ onMounted(() => {
       }
     }
 
-    .cascaderWrapper {
+    .goodsOverview-wrapper {
+      padding: 20px;
+      box-sizing: border-box;
       margin-top: 20px;
-      // .cascaderSearch {
-      //   display: flex;
-      //   align-items: center;
-      // }
-      .cascaderContent-wrapper {
+      border: 1px solid rgb(228,231,237);
+      .goodsOverview-title {
+
+      }
+    }
+
+    .batch-wrapper {
+      margin-top: 20px;
+      .batchContent-wrapper {
         border: 1px solid rgb(228,231,237);
         box-sizing: border-box;
         padding: 20px;
-        .cascaderContent-title {
-          
-        }
-        .cascaderContent {
-          .cascaderContent-allBatches {
+        .batchContent {
+          .batchContent-allBatches {
             border: 1px solid #ccc;
             padding: 10px 10px;
             box-sizing: border-box;
@@ -471,7 +587,7 @@ onMounted(() => {
             cursor: pointer;
             margin-top: 20px;
           }
-          .cascaderContent-container {
+          .batchContent-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
@@ -495,26 +611,44 @@ onMounted(() => {
       }
     }
 
-    .charts-wrapper {
+    .batchInfo-wrapper {
+      border: 1px solid rgb(228,231,237);
+      box-sizing: border-box;
+      padding: 20px;
+      margin-top: 20px;
+      .batchInfo-title {
+        font-weight: 700;
+        margin-top: 20px;
+      }
+      .batchInfo-title:first-child {
+        margin-top: 0;
+      }
+      .batchInfo-content {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        margin-top: 6px;
+        .batchInfo-item {
+          min-width: 33%;
+          display: flex;
+          align-items: flex-start;
+          margin-bottom: 10px;
+          .batchInfo-item-label {
+            word-break: break-all;
+          }
+          .batchInfo-item-value {
+            
+          }
+        }
+      }
+    }
+    .batchChart-wrapper {
       padding: 20px;
       box-sizing: border-box;
     }
 
-    :deep(.el-cascader-panel__wrap) {
-      display: flex;
-      flex-wrap: wrap;
-    }
-    :deep(.el-cascader-panel__list) {
-      width: auto;
-      flex: 1;
-      min-width: 200px; /* 控制每列的最小宽度 */
-      margin-right: 20px; /* 控制列间距 */
-    }
-    :deep(.el-cascader-panel__list:last-child) {
-      margin-right: 0;
-    }
   }
-
   
 }
 </style>

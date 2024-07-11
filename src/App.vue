@@ -40,7 +40,7 @@
 
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
 .app {
   height: 100vh;
   .app-wrapper {
@@ -65,6 +65,13 @@
         box-sizing: border-box;
         height: calc(100vh - 50px);
         overflow-y: auto;
+
+        input:disabled::placeholder,
+        textarea:disabled::placeholder,
+        select:disabled::placeholder {
+          color: transparent;
+        }
+
       }
     }
   }

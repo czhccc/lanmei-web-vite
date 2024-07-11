@@ -5,6 +5,28 @@
         <el-row :gutter="20">
           <el-col :span="6">
             <div class="saerch-item">
+              <div class="search-item-label">订单渠道：</div>
+              <div class="search-item-input">
+                <el-select v-model="searchParams.orderChannel" placeholder="请选择" clearable>
+                  <el-option label="线上订单" value="onlineOrder" />
+                  <el-option label="线下订单" value="offlineOrder" />
+                </el-select>
+              </div>
+            </div>
+          </el-col>
+          <el-col :span="6">
+            <div class="saerch-item">
+              <div class="search-item-label">生成方式：</div>
+              <div class="search-item-input">
+                <el-select v-model="searchParams.orderCreationMethod" placeholder="请选择" clearable>
+                  <el-option label="自动生成" value="automatic" />
+                  <el-option label="手动添加" value="manual" />
+                </el-select>
+              </div>
+            </div>
+          </el-col>
+          <el-col :span="6">
+            <div class="saerch-item">
               <div class="search-item-label">订单号：</div>
               <div class="search-item-input">
                 <el-input placeholder="请输入" clearable v-model="searchParams.orderNo"></el-input>
@@ -80,7 +102,11 @@
     <div class="table-wrapper">
       <el-table :height="tableHeight" :data="tableData">
         <el-table-column prop="orderNo" label="订单号" align="center" />
-        <el-table-column prop="orderTypeText" label="订单类型" align="center" />
+        <el-table-column prop="orderSource" label="订单来源" align="center">
+          <template #default="scope">
+            <div>{{ scope.row.orderChannelText }} - {{ scope.row.orderCreationMethodText }}</div>
+          </template>
+        </el-table-column>
         <el-table-column prop="goodsNo" label="商品" align="center" >
           <template #default="scope">
             <el-tooltip :content="'商品编号：'+scope.row.goodsNo">
@@ -145,6 +171,8 @@ const $router = useRouter()
 
 // Table
 let searchParams = reactive({
+  orderChannel: '',
+  orderCreationMethod: '',
   orderNo: '',
   goodsNo: '',
   goodsName: '',
@@ -172,9 +200,14 @@ function search() {
 }
 function searchReset() {
   Object.assign(searchParams, {
-    batch: '',
-    name: '',
-    date: null,
+    orderChannel: '',
+    orderCreationMethod: '',
+    orderNo: '',
+    goodsNo: '',
+    goodsName: '',
+    customerPhone: '',
+    orderStatus: '',
+    orderCreateTime: [],
   })
   pagination.pageNo = 1
 }
@@ -218,8 +251,10 @@ onMounted(() => {
   for (let i = 0; i < 100; i++) {
     tableData.value.push({
       orderNo: '202407022236526936',
-      orderType: '1',
-      orderTypeText: '手动添加',
+      orderChannel: 'onlineOrder',
+      orderChannelText: '线上订单',
+      orderCreationMethod: '1',
+      orderCreationMethodText: '手动添加',
       goodsNo: '202407022236526936',
       goodsName: '蓝莓大果',
       goodsQuantity: 200,
