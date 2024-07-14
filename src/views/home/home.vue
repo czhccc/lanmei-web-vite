@@ -2,197 +2,269 @@
   <div class="home">
     <div class="tabs-wrapper">
       <el-tabs type="card" v-model="tabValue" @tab-click="tabsClick">
-        <el-tab-pane label="商品数据" name="batch" @click="seeBatchStatistics"></el-tab-pane>
-        <el-tab-pane label="数据总览" name="goods" @click="seeOverviewStatistics"></el-tab-pane>
+        <el-tab-pane label="商品数据" name="goods"></el-tab-pane>
+        <el-tab-pane label="数据总览" name="overview"></el-tab-pane>
       </el-tabs>
     </div>
     
-    <div class="choosedGoods">
-      <div class="choosedGoods-goodsName">
-        <span class="choosedGoods-goodsName-value">{{ choosedGoods.id }}</span>
-        <span class="choosedGoods-goodsName-label"> ~ </span>
-        <span class="choosedGoods-goodsName-value">{{ choosedGoods.name }}</span>
-        <span class="choosedGoods-goodsName-label"> ~ </span>
-        <span class="choosedGoods-goodsName-value">{{ choosedGoods.unit }}</span>
-        <span class="choosedGoods-goodsName-label"> ~ </span>
-        <span class="choosedGoods-goodsName-value">{{ choosedBatch }}</span>
+    <div class="goods" v-if="tabValue==='goods'">
+      <div class="choosedGoods" v-if="choosedGoods&&choosedGoods.name">
+        <div class="choosedGoods-goodsName">
+          <span class="choosedGoods-goodsName-value">{{ choosedGoods.no }}</span>
+          <span class="choosedGoods-goodsName-label"> ~ </span>
+          <span class="choosedGoods-goodsName-value">{{ choosedGoods.name }}</span>
+          <span class="choosedGoods-goodsName-label"> ~ </span>
+          <span class="choosedGoods-goodsName-value">{{ choosedGoods.unit }}</span>
+          <span class="choosedGoods-goodsName-label" v-if="choosedBatch"> ~ </span>
+          <span class="choosedGoods-goodsName-value" v-if="choosedBatch">{{ choosedBatch }}</span>
+        </div>
       </div>
-    </div>
 
-    <div class="content-wrapper">
-      <div class="goodsTable-wrapper">
-        <div class="search-wrapper">
-          <div class="search-content">
-            <el-row :gutter="20">
-              <el-col :span="6">
-                <div class="saerch-item">
-                  <div class="search-item-label">商品编号：</div>
-                  <div class="search-item-input">
-                    <el-input placeholder="请输入" clearable v-model="searchParams.goodsId"></el-input>
+      <div class="goodsContent-wrapper">
+        <div class="goodsTable-wrapper">
+          <div class="search-wrapper">
+            <div class="search-content">
+              <el-row :gutter="20">
+                <el-col :span="6">
+                  <div class="saerch-item">
+                    <div class="search-item-label">商品编号：</div>
+                    <div class="search-item-input">
+                      <el-input placeholder="请输入" clearable v-model="searchParams.goodsId"></el-input>
+                    </div>
                   </div>
-                </div>
-              </el-col>
-              <el-col :span="6">
-                <div class="saerch-item">
-                  <div class="search-item-label">商品名称：</div>
-                  <div class="search-item-input">
-                    <el-input placeholder="请输入" clearable v-model="searchParams.name"></el-input>
+                </el-col>
+                <el-col :span="6">
+                  <div class="saerch-item">
+                    <div class="search-item-label">商品名称：</div>
+                    <div class="search-item-input">
+                      <el-input placeholder="请输入" clearable v-model="searchParams.name"></el-input>
+                    </div>
                   </div>
-                </div>
-              </el-col>
-            </el-row>
-          </div>
-          <div class="search-btns">
-            <el-button type="primary" @click="search">查询</el-button>
-            <el-button @click="searchReset">重置</el-button>
-          </div>
-        </div>
-
-        <div class="options">
-          <el-button type="primary">新增</el-button>
-        </div>
-
-        <div class="table-wrapper">
-          <el-table 
-            :data="tableData" 
-            highlight-current-row
-            @current-change="tableCurrentChange"
-          >
-            <el-table-column prop="no" label="商品编号" align="center" />
-            <el-table-column prop="name" label="商品名称" align="center" />
-            <el-table-column prop="unit" label="商品单位" align="center" />
-            <el-table-column prop="remark" label="备注" align="center" />
-            <el-table-column fixed="right" label="操作" width="80" align="center" >
-              <template #default="scope">
-                <el-button link type="primary" @click="tableDetail(scope.row)">详情</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-
-          <div class="pagination-wrapper">
-            <el-pagination
-              class="pagination"
-              v-model:current-page="pagination.pageNo"
-              v-model:page-size="pagination.pageSize"
-              :page-sizes="[10, 20, 40, 100]"
-              layout="total, sizes, prev, pager, next, jumper"
-              :total="pagination.total"
-              @size-change="tablePageSizeChange"
-              @current-change="tablePageNoChange"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- 商品整体总览 -->
-      <div class="goodsOverview-wrapper">
-        
-      </div>
-
-      <!-- 选择批次 -->
-      <div class="batch-wrapper">
-        <div class="batchContent-wrapper">
-          <div class="batchContent">
-            <div class="batchContent-allBatches" 
-                :style="{backgroundColor: choosedBatch==='所有批次'?'rgba(64,158,255)':'white', 
-                        color: choosedBatch==='所有批次'?'white':'black'}"
-                @click="batchClick('所有批次')">
-                所有批次
+                </el-col>
+              </el-row>
             </div>
-            <div class="batchContent-container">
-              <div class="batch" v-for="(item, index) in batches" :key="index"
-                :style="{backgroundColor: choosedBatch===item?'rgba(64,158,255)':'white',
-                        color: choosedBatch===item?'white':'black'}"
-                @click="batchClick(item)"
-              >
-                {{ item }}
+            <div class="search-btns">
+              <el-button type="primary" @click="search">查询</el-button>
+              <el-button @click="searchReset">重置</el-button>
+            </div>
+          </div>
+
+          <div class="options">
+            <el-button type="primary">新增</el-button>
+          </div>
+
+          <div class="table-wrapper">
+            <el-table 
+              :data="tableData" 
+              highlight-current-row
+              @current-change="tableItemClick"
+            >
+              <el-table-column prop="no" label="商品编号" align="center" />
+              <el-table-column prop="name" label="商品名称" align="center" />
+              <el-table-column prop="unit" label="商品单位" align="center" />
+              <el-table-column prop="remark" label="备注" align="center" />
+              <el-table-column fixed="right" label="操作" width="80" align="center" >
+                <template #default="scope">
+                  <el-button link type="primary" @click="tableDetail(scope.row)">详情</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+
+            <div class="pagination-wrapper">
+              <el-pagination
+                class="pagination"
+                v-model:current-page="pagination.pageNo"
+                v-model:page-size="pagination.pageSize"
+                :page-sizes="[10, 20, 40, 100]"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="pagination.total"
+                @size-change="tablePageSizeChange"
+                @current-change="tablePageNoChange"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- 商品信息 -->
+        <div class="goodsInfo-wrapper" v-if="choosedGoods">
+          <div class="goodsInfo-bigTitle">商品信息</div>
+          <div class="goodsInfo-title">成本</div>
+          <div class="goodsInfo-content">
+            <div class="goodsInfo-item">
+              <div class="goodsInfo-item-label">总采购次数：</div>
+              <div class="goodsInfo-item-value">53次</div>
+            </div>
+            <div class="goodsInfo-item">
+              <div class="goodsInfo-item-label">总采购成本：</div>
+              <div class="goodsInfo-item-value">530846元</div>
+            </div>
+          </div>
+          <div class="goodsInfo-title">订单</div>
+          <div class="goodsInfo-content">
+            <div class="goodsInfo-item">
+              <div class="goodsInfo-item-label">线上订单数：</div>
+              <div class="goodsInfo-item-value">866</div>
+            </div>
+            <div class="goodsInfo-item">
+              <div class="goodsInfo-item-label">线上售卖量：</div>
+              <div class="goodsInfo-item-value">1086斤</div>
+            </div>
+            <div class="goodsInfo-item">
+              <div class="goodsInfo-item-label">线上销售额：</div>
+              <div class="goodsInfo-item-value">475213元</div>
+            </div>
+            <div class="goodsInfo-item">
+              <div class="goodsInfo-item-label">线下订单数：</div>
+              <div class="goodsInfo-item-value">8623</div>
+            </div>
+            <div class="goodsInfo-item">
+              <div class="goodsInfo-item-label">线下售卖量：</div>
+              <div class="goodsInfo-item-value">684斤</div>
+            </div>
+            <div class="goodsInfo-item">
+              <div class="goodsInfo-item-label">线下销售额：</div>
+              <div class="goodsInfo-item-value">246834元</div>
+            </div>
+          </div>
+          <div class="goodsInfo-title">利润</div>
+          <div class="goodsInfo-content">
+            <div class="goodsInfo-item">
+              <div class="goodsInfo-item-label">总订单数：</div>
+              <div class="goodsInfo-item-value">8623</div>
+            </div>
+            <div class="goodsInfo-item">
+              <div class="goodsInfo-item-label">总销量：</div>
+              <div class="goodsInfo-item-value">1975斤</div>
+            </div>
+            <div class="goodsInfo-item">
+              <div class="goodsInfo-item-label">总销售额：</div>
+              <div class="goodsInfo-item-value">894235元</div>
+            </div>
+            <div class="goodsInfo-item">
+              <div class="goodsInfo-item-label">总利润：</div>
+              <div class="goodsInfo-item-value">674589元</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 选择批次 -->
+        <div class="batchChoose-wrapper" v-if="choosedGoods">
+          <div class="batchChoose-bigTitle">选择批次</div>
+          <div class="batchChooseContent-wrapper">
+            <div class="batchChooseContent">
+              <div class="batchChooseContent-container">
+                <div class="batchChoose-item" v-for="(item, index) in batches" :key="index"
+                  :style="{backgroundColor: choosedBatch===item?'rgba(64,158,255)':'white',
+                          color: choosedBatch===item?'white':'black'}"
+                  @click="chooseBatch(item)"
+                >
+                  {{ item }}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- 批次信息 -->
-      <div class="batchInfo-wrapper">
-        <div class="batchInfo-title">时间</div>
-        <div class="batchInfo-content">
-          <div class="batchInfo-item">
-            <div class="batchInfo-item-label">日期范围：</div>
-            <div class="batchInfo-item-value">2024-06-02 ~ 2024-07-11</div>
+        <!-- 批次信息 -->
+        <div class="batchInfo-wrapper" v-if="choosedBatch">
+          <div class="batchInfo-bigTitle">批次信息</div>
+          <div class="batchInfo-title">时间</div>
+          <div class="batchInfo-content">
+            <div class="batchInfo-item">
+              <div class="batchInfo-item-label">日期范围：</div>
+              <div class="batchInfo-item-value">2024-06-02 ~ 2024-07-11</div>
+            </div>
+            <div class="batchInfo-item">
+              <div class="batchInfo-item-label">持续周数：</div>
+              <div class="batchInfo-item-value">8周</div>
+            </div>
+            <div class="batchInfo-item">
+              <div class="batchInfo-item-label">持续天数：</div>
+              <div class="batchInfo-item-value">53天</div>
+            </div>
           </div>
-          <div class="batchInfo-item">
-            <div class="batchInfo-item-label">持续周数：</div>
-            <div class="batchInfo-item-value">8周</div>
+          <div class="batchInfo-title">采购</div>
+          <div class="batchInfo-content">
+            <div class="batchInfo-item">
+              <div class="batchInfo-item-label">采购总次数：</div>
+              <div class="batchInfo-item-value">28次</div>
+            </div>
+            <div class="batchInfo-item">
+              <div class="batchInfo-item-label">采购总成本：</div>
+              <div class="batchInfo-item-value">196425元</div>
+            </div>
+            <div class="batchInfo-item">
+              <div class="batchInfo-item-label">其他总成本：</div>
+              <div class="batchInfo-item-value">14623元</div>
+            </div>
+            <div class="batchInfo-item">
+              <div class="batchInfo-item-label">总成本：</div>
+              <div class="batchInfo-item-value">218469元</div>
+            </div>
           </div>
-          <div class="batchInfo-item">
-            <div class="batchInfo-item-label">持续天数：</div>
-            <div class="batchInfo-item-value">53天</div>
+          <div class="batchInfo-title">订单</div>
+          <div class="batchInfo-content">
+            <div class="batchInfo-item">
+              <div class="batchInfo-item-label">线上订单数量：</div>
+              <div class="batchInfo-item-value">246</div>
+            </div>
+            <div class="batchInfo-item">
+              <div class="batchInfo-item-label">线下订单数量：</div>
+              <div class="batchInfo-item-value">246</div>
+            </div>
+            <div class="batchInfo-item">
+              <div class="batchInfo-item-label">订单总数量：</div>
+              <div class="batchInfo-item-value">246</div>
+            </div>
+          </div>
+          <div class="batchInfo-title">利润</div>
+          <div class="batchInfo-content">
+            <div class="batchInfo-item">
+              <div class="batchInfo-item-label">线上销售额：</div>
+              <div class="batchInfo-item-value">298567元</div>
+            </div>
+            <div class="batchInfo-item">
+              <div class="batchInfo-item-label">线下销售额：</div>
+              <div class="batchInfo-item-value">37586元</div>
+            </div>
+            <div class="batchInfo-item">
+              <div class="batchInfo-item-label">总销售额：</div>
+              <div class="batchInfo-item-value">359762元</div>
+            </div>
+            <div class="batchInfo-item">
+              <div class="batchInfo-item-label">总利润：</div>
+              <div class="batchInfo-item-value">245683元</div>
+            </div>
+          </div>
+
+          <!-- 批次图表 -->
+          <div class="batchChart-wrapper" v-if="choosedBatch">
+            <div class="batchChartContainer" ref="batchChartContainer"></div>
           </div>
         </div>
-        <div class="batchInfo-title">采购</div>
-        <div class="batchInfo-content">
-          <div class="batchInfo-item">
-            <div class="batchInfo-item-label">采购总次数：</div>
-            <div class="batchInfo-item-value">28次</div>
-          </div>
-          <div class="batchInfo-item">
-            <div class="batchInfo-item-label">采购总成本：</div>
-            <div class="batchInfo-item-value">196425元</div>
-          </div>
-          <div class="batchInfo-item">
-            <div class="batchInfo-item-label">其他总成本：</div>
-            <div class="batchInfo-item-value">14623元</div>
-          </div>
-          <div class="batchInfo-item">
-            <div class="batchInfo-item-label">总成本：</div>
-            <div class="batchInfo-item-value">218469元</div>
-          </div>
-        </div>
-        <div class="batchInfo-title">订单</div>
-        <div class="batchInfo-content">
-          <div class="batchInfo-item">
-            <div class="batchInfo-item-label">线上订单数量：</div>
-            <div class="batchInfo-item-value">246</div>
-          </div>
-          <div class="batchInfo-item">
-            <div class="batchInfo-item-label">线下订单数量：</div>
-            <div class="batchInfo-item-value">246</div>
-          </div>
-          <div class="batchInfo-item">
-            <div class="batchInfo-item-label">订单总数量：</div>
-            <div class="batchInfo-item-value">246</div>
-          </div>
-        </div>
-        <div class="batchInfo-title">利润</div>
-        <div class="batchInfo-content">
-          <div class="batchInfo-item">
-            <div class="batchInfo-item-label">线上销售额：</div>
-            <div class="batchInfo-item-value">298567元</div>
-          </div>
-          <div class="batchInfo-item">
-            <div class="batchInfo-item-label">线下销售额：</div>
-            <div class="batchInfo-item-value">37586元</div>
-          </div>
-          <div class="batchInfo-item">
-            <div class="batchInfo-item-label">总销售额：</div>
-            <div class="batchInfo-item-value">359762元</div>
-          </div>
-          <div class="batchInfo-item">
-            <div class="batchInfo-item-label">总利润：</div>
-            <div class="batchInfo-item-value">245683元</div>
-          </div>
-        </div>
+        
       </div>
-      <!-- 批次图表 -->
-      <div class="batchChart-wrapper">
-        <div ref="batchChartContainer" style="width: 100%; height: 700px;"></div>
+    </div>
+
+    <div class="overview" v-if="tabValue==='overview'">
+      <div class="overviewContent-wrapper">
+        <div class="chooseDateSpan">
+          <el-date-picker
+            v-model="overviewDateSpan"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            size="large"
+          />
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, nextTick } from 'vue';
+import { onMounted, onUnmounted, reactive, ref, nextTick } from 'vue';
 
 import * as echarts from 'echarts';
 
@@ -202,18 +274,17 @@ const $router = useRouter()
 
 
 // tabs 
-let tabValue = ref('batch')
+let tabValue = ref('goods')
 function tabsClick(tab, event) {
   console.log(tab.paneName, event)
   tabValue.value = tab.paneName
-}
-function seeBatchStatistics() {
+  if (tab.paneName === 'goods') {
 
+  } else if (tab.paneName === 'overview') {
+    choosedGoods.value = null
+    choosedBatch.value = ''
+  }
 }
-function seeOverviewStatistics() {
-
-}
-
 
 // table
 let searchParams = reactive({
@@ -229,8 +300,9 @@ let pagination = reactive({
   pageSize: 10,
   total: 0,
 })
-function tableCurrentChange(record) {
-  console.log(record)
+function tableItemClick(item) {
+  console.log(item)
+  choosedGoods.value = item
 }
 
 function search() {
@@ -245,7 +317,7 @@ function searchReset() {
   pagination.pageNo = 1
 }
 function tablePageSizeChange(newPageSize) {
-  console.log(newPageSize)
+  console.log(newPageSize);
 }
 function tablePageNoChange(newPageNo) {
   console.log(newPageNo)
@@ -263,11 +335,7 @@ function tableDetail(record) {
 
 
 // goods
-let choosedGoods = ref({
-  id: '1231233211',
-  name: '蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果',
-  unit: '斤'
-})
+let choosedGoods = ref(null)
 
 
 // batch
@@ -303,15 +371,15 @@ let batches = reactive([
   '20240708165429',
 ])
 
-let choosedBatch = ref('20240708165425')
-function batchClick(item) {
+let choosedBatch = ref('')
+function chooseBatch(item) {
   console.log(item)
   choosedBatch.value = item
-  if (item==='所有批次') { // 所有批次总览
-
-  } else { // 某个批次
-
-  }
+  
+  nextTick(() => {
+    initBatchChart();
+  })
+  
 }
 
 
@@ -354,12 +422,21 @@ chartsData.forEach((item, index) => {
   totalAmounts.push(total);
 });
 
-function initChart() {
-  const chart = echarts.init(batchChartContainer.value);
+
+let batchChart = null
+function batchChartResize() {
+  if (batchChart) {
+    batchChart.resize()
+  }
+}
+function initBatchChart() {
+  if (!batchChart) {
+    batchChart = echarts.init(batchChartContainer.value);
+  }
 
   const unit = choosedGoods.value.unit || '' 
 
-  const option = {
+  const batchChartOption = {
     grid: {
         left: '1%',
         right: '1%',
@@ -453,13 +530,19 @@ function initChart() {
     ],
   };
 
-  chart.setOption(option);
+  batchChart.setOption(batchChartOption);
+  window.addEventListener('resize', batchChartResize);
 }
 
 
-onMounted(() => {
-  initChart();
 
+// overview
+let overviewDateSpan = ref([])
+
+
+
+onMounted(() => {
+  
   for (let i = 0; i < 10; i++) {
     tableData.value.push({
       no: '202407022236526936',
@@ -477,8 +560,16 @@ onMounted(() => {
     })
   }
   pagination.total = tableData.value.length
+
+
 });
 
+onUnmounted(() => {
+  window.removeEventListener('resize', batchChartResize);
+  if (batchChart) {
+    batchChart.dispose();
+  }
+});
 
 
 </script>
@@ -491,164 +582,199 @@ onMounted(() => {
     }
   }
 
-  .choosedGoods {
-    position: fixed;
-    top: 0;
-    height: 50px;
-    line-height: 50px;
-    text-align: center;
-    color: white;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    .choosedGoods-goodsName {
-      .choosedGoods-goodsName-label {
+  .goods {
+    .choosedGoods {
+      position: fixed;
+      top: 0;
+      height: 50px;
+      line-height: 50px;
+      text-align: center;
+      color: white;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      .choosedGoods-goodsName {
+        .choosedGoods-goodsName-label {
 
-      }
-      .choosedGoods-goodsName-value {
-        font-weight: 700;
+        }
+        .choosedGoods-goodsName-value {
+          font-weight: 700;
+        }
       }
     }
-  }
 
-  .content-wrapper {
-    padding: 20px;
-    box-sizing: border-box;
-    border: 1px solid rgb(228,231,237);
-    border-top: none;
-    .goodsTable-wrapper {
+    .goodsContent-wrapper {
       padding: 20px;
       box-sizing: border-box;
       border: 1px solid rgb(228,231,237);
-      .search-wrapper {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        .search-content{
-          flex: 1;
-          .saerch-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            .saerch-item-label {
-              word-break: keep-all;
-            }
-            .search-item-input {
-              flex: 1;
-            }
-          }
-        }
-        .search-btns {
-          width: 200px;
+      border-top: none;
+      .goodsTable-wrapper {
+        padding: 20px;
+        box-sizing: border-box;
+        border: 1px solid rgb(228,231,237);
+        .search-wrapper {
           display: flex;
-          justify-content: center;
-        }
-      }
-      .options {
-        height: 50px;
-        display: flex;
-        align-items: center;
-      }
-      .table-wrapper {
-        .pagination-wrapper {
-          height: 50px;
-          .pagination {
-            margin-top: 20px;
+          align-items: flex-start;
+          justify-content: space-between;
+          .search-content{
+            flex: 1;
+            .saerch-item {
+              display: flex;
+              align-items: center;
+              margin-bottom: 20px;
+              .saerch-item-label {
+                word-break: keep-all;
+              }
+              .search-item-input {
+                flex: 1;
+              }
+            }
+          }
+          .search-btns {
+            width: 200px;
             display: flex;
-            justify-content: flex-end;
+            justify-content: center;
+          }
+        }
+        .options {
+          height: 50px;
+          display: flex;
+          align-items: center;
+        }
+        .table-wrapper {
+          .pagination-wrapper {
+            height: 50px;
+            .pagination {
+              margin-top: 20px;
+              display: flex;
+              justify-content: flex-end;
+            }
           }
         }
       }
-    }
 
-    .goodsOverview-wrapper {
-      padding: 20px;
-      box-sizing: border-box;
-      margin-top: 20px;
-      border: 1px solid rgb(228,231,237);
-      .goodsOverview-title {
-
-      }
-    }
-
-    .batch-wrapper {
-      margin-top: 20px;
-      .batchContent-wrapper {
+      .goodsInfo-wrapper {
         border: 1px solid rgb(228,231,237);
         box-sizing: border-box;
         padding: 20px;
-        .batchContent {
-          .batchContent-allBatches {
-            border: 1px solid #ccc;
-            padding: 10px 10px;
-            box-sizing: border-box;
-            text-align: center;
-            cursor: pointer;
-            margin-top: 20px;
+        margin-top: 20px;
+        .goodsInfo-bigTitle {
+          font-size: 28px;
+          font-weight: 700;
+        }
+        .goodsInfo-title {
+          font-weight: 700;
+          margin-top: 20px;
+        }
+        .goodsInfo-title:first-child {
+          margin-top: 0;
+        }
+        .goodsInfo-content {
+          width: 100%;
+          display: flex;
+          justify-content: flex-start;
+          flex-wrap: wrap;
+          margin-top: 6px;
+          .goodsInfo-item {
+            min-width: 33%;
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            .goodsInfo-item-label {
+              word-break: break-all;
+            }
+            .goodsInfo-item-value {
+              
+            }
           }
-          .batchContent-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+        }
+      }
+
+      .batchChoose-wrapper {
+        border: 1px solid rgb(228,231,237);
+        box-sizing: border-box;
+        padding: 20px;
+        margin-top: 20px;
+        .batchChoose-bigTitle {
+          font-size: 28px;
+          font-weight: 700;
+        }
+        .batchChooseContent-wrapper {
+          .batchChooseContent {
+            .batchChooseContent-container {
+              display: grid;
+              grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+              gap: 20px;
+              margin-top: 20px;
+              .batchChoose-item {
+                border: 1px solid #ccc;
+                padding: 6px 10px;
+                box-sizing: border-box;
+                text-align: center;
+                cursor: pointer;
+              }
+            }
           }
-          .goods {
-            border: 1px solid #ccc;
-            padding: 6px 10px;
-            box-sizing: border-box;
-            text-align: center;
-            cursor: pointer;
+        }
+      }
+
+      .batchInfo-wrapper {
+        border: 1px solid rgb(228,231,237);
+        box-sizing: border-box;
+        padding: 20px;
+        margin-top: 20px;
+        .batchInfo-bigTitle {
+          font-size: 28px;
+          font-weight: 700;
+        }
+        .batchInfo-title {
+          font-weight: 700;
+          margin-top: 20px;
+        }
+        .batchInfo-title:first-child {
+          margin-top: 0;
+        }
+        .batchInfo-content {
+          width: 100%;
+          display: flex;
+          justify-content: flex-start;
+          flex-wrap: wrap;
+          margin-top: 6px;
+          .batchInfo-item {
+            min-width: 33%;
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            .batchInfo-item-label {
+              word-break: break-all;
+            }
+            .batchInfo-item-value {
+              
+            }
           }
-          .batch {
-            border: 1px solid #ccc;
-            padding: 6px 10px;
-            box-sizing: border-box;
-            text-align: center;
-            cursor: pointer;
+        }
+        .batchChart-wrapper {
+          padding: 20px;
+          box-sizing: border-box;
+          .batchChartContainer {
+            width: 100%;
+            height: 80vh;
           }
         }
       }
     }
+  }
 
-    .batchInfo-wrapper {
+  .overview {
+    .overviewContent-wrapper {
       border: 1px solid rgb(228,231,237);
       box-sizing: border-box;
       padding: 20px;
-      margin-top: 20px;
-      .batchInfo-title {
-        font-weight: 700;
-        margin-top: 20px;
-      }
-      .batchInfo-title:first-child {
-        margin-top: 0;
-      }
-      .batchInfo-content {
-        width: 100%;
-        display: flex;
-        justify-content: flex-start;
-        flex-wrap: wrap;
-        margin-top: 6px;
-        .batchInfo-item {
-          min-width: 33%;
-          display: flex;
-          align-items: flex-start;
-          margin-bottom: 10px;
-          .batchInfo-item-label {
-            word-break: break-all;
-          }
-          .batchInfo-item-value {
-            
-          }
-        }
-      }
-    }
-    .batchChart-wrapper {
-      padding: 20px;
-      box-sizing: border-box;
-    }
+      .chooseDateSpan {
 
+      }
+    }
   }
-  
 }
 </style>
