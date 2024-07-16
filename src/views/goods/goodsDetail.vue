@@ -22,8 +22,8 @@
         </div>
         <div class="content">
           <el-row :gutter="20">
-            <el-col :span="8">
-              <el-form-item label="商品编号：" v-if="$route.query.flag!=='add'">
+            <el-col :span="8" v-if="$route.query.flag!=='add'">
+              <el-form-item label="商品编号：">
                 {{ form.no }}
               </el-form-item>
             </el-col>
@@ -34,20 +34,19 @@
             </el-col>
             <el-col :span="8">
               <el-form-item label="单位：">
-                <el-input v-model="form.name" placeholder="请输入" maxlength="50" clearable />
+                <el-input v-model="form.unit" placeholder="请输入" maxlength="50" clearable />
               </el-form-item>
             </el-col>
           </el-row>
           <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item label="订单状态：" prop="orderStatus">
-                <el-select v-model="form.orderStatus" placeholder="请选择">
-                  <el-option label="预订中" value="ydz" />
-                  <el-option label="待付款" value="dfk" />
-                  <el-option label="已付款" value="yfk" />
-                  <el-option label="已完结" value="ywj" />
-                  <el-option label="已取消" value="yqx" />
-                </el-select>
+              <el-form-item label="是否上架：" prop="isSelling">
+                <el-switch
+                  v-model="form.isSelling"
+                  active-text="上架"
+                  inactive-text="下架"
+                  inline-prompt
+                />
               </el-form-item>
             </el-col>
             <el-col :span="8">
@@ -117,7 +116,7 @@
                 />
                 <Editor
                   style="height: 500px; overflow-y: hidden;"
-                  v-model="richTextValue"
+                  v-model="goodsDetailRichText"
                   :defaultConfig="richTextEditorConfig"
                   :mode="richTextEditorMode"
                   @onCreated="richTextEditorHandleCreated"
@@ -376,7 +375,7 @@ const richTextEditorRef = shallowRef()
 
 // 内容 HTML
 const richTextEditorMode = 'default' // default or simple
-const richTextValue = ref('<p>hello</p>')
+const goodsDetailRichText = ref('<p>hello</p>')
 const richTextEditorToolbarConfig = {
   readOnly: $route.query.flag==='detail'
 }
@@ -551,23 +550,11 @@ onMounted(() => {
   });
 
   Object.assign(form, { // reactive 直接替换对象的引用不会影响原始对象的代理
-    orderNo: '202407022236526936',
-    orderType: '1',
-    orderTypeText: '手动添加',
-    orderCreateTime: '2024-07-02 22:36:52',
-    orderCreateBy: 'czh',
-    goodsNo: '202407022236526936',
-    goodsName: '蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果',
-    goodsQuantity: 200,
-    goodsUnit: '斤',
-    goodsPrice: 150.00,
-    goodsPostage: 10.00,
-    customerPhone: '13989562356',
-    orderCreateTime: '2024-07-02 22:42:26',
-    orderStatus: 'yqx',
-    orderStatusText: '已取消',
-    orderCancelReason: '就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消',
-    selfRemark: '我是备注我是备注我是备注2222222222222222222222222222222我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
+    no: '202407022236526936',
+    name: '蓝莓大果',
+    unit: '斤',
+    isSelling: true,
+    remark: '我是备注我是备注我是备注2222222222222222222222222222222我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
   })
 })
 

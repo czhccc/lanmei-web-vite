@@ -21,22 +21,6 @@
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">采购日期：</div>
-              <div class="search-item-input">
-                <el-date-picker 
-                  type="daterange"
-                  format="YYYY/MM/DD" value-format="YYYY-MM-DD" 
-                  start-placeholder="开始日期"
-                  end-placeholder="结束日期"
-                  clearable 
-                  v-model="searchParams.purchaseDate" 
-                  style="width: 100%;" 
-                />
-              </div>
-            </div>
-          </el-col>
-          <el-col :span="6">
-            <div class="saerch-item">
               <div class="search-item-label">商品状态：</div>
               <div class="search-item-input">
                 <el-select v-model="searchParams.status" placeholder="请选择" clearable>
@@ -134,11 +118,13 @@ import { useRouter } from 'vue-router'
 
 const $router = useRouter()
 
+let loadingInstance = null
+
+
 // Table
 let searchParams = reactive({
   goodsNo: '',
   goodsName: '',
-  purchaseDate: [],
   status: null,
   isSelling: null,
 })
@@ -164,7 +150,6 @@ function searchReset() {
   Object.assign(searchParams, {
     goodsNo: '',
     goodsName: '',
-    purchaseDate: [],
     status: null,
     isSelling: null,
   })
@@ -226,6 +211,11 @@ onMounted(() => {
   pagination.total = tableData.value.length
 
   calculateTableHeight()
+
+  loadingInstance = ElLoading.service({text: '加载中...'})
+  setTimeout(() => {
+    loadingInstance.close()
+  }, 1500)
 })
 
 

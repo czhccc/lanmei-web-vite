@@ -23,12 +23,12 @@
                 <div class="input-wrapper">
                   <div class="input-label">经度：</div>
                   <el-input class="input" v-model="item.lon" placeholder="请输入经度" @change="e => lonChange(e, index)" />
-                  <div class="error" v-if="item.isShowLonError">经度格式错误</div>
+                  <div class="error" v-if="item.lon">经度格式错误</div>
                 </div>
                 <div class="input-wrapper" style="margin-top: 10px;">
                   <div class="input-label">纬度：</div>
                   <el-input class="input" v-model="item.lat" placeholder="请输入纬度" @change="e => latChange(e, index)" />
-                  <div class="error" v-if="item.isShowLatError">纬度格式错误</div>
+                  <div class="error" v-if="item.lat">纬度格式错误</div>
                 </div>
               </div>
             </div>
@@ -47,8 +47,8 @@
           <div class="content-left">#{{ index+1 }}</div>
           <div class="content-right">
             <div class="content-right-item">
-              <el-input class="type-input" placeholder="请输入类型" v-model="item.type" />
-              <el-input class="value-input" placeholder="请输入联系方式" v-model="item.value" />
+              <el-input class="type-input" placeholder="请输入类型" v-model="item.channel" />
+              <el-input class="value-input" placeholder="请输入联系方式" v-model="item.contact" />
             </div>
           </div>
           <div class="delete-wrapper">
@@ -72,7 +72,7 @@
         />
         <Editor
           style="height: 500px; overflow-y: hidden;"
-          v-model="richTextValue"
+          v-model="aboutUsRichText"
           :defaultConfig="richTextEditorConfig"
           :mode="richTextEditorMode"
           @onCreated="richTextEditorHandleCreated"
@@ -93,6 +93,7 @@ import { ref, reactive, shallowRef, onMounted, onBeforeUnmount } from 'vue'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import '@wangeditor/editor/dist/css/style.css' // 引入 css
 
+let loadingInstance = null
 
 // 线下地址
 let offlineAddressList = reactive([
@@ -155,12 +156,12 @@ function addressAddNew() {
 // 联系方式
 let contactList = reactive([
   {
-    type: '手机号',
-    value: '13999999999',
+    channel: '手机号',
+    contact: '13999999999',
   },
   {
-    type: '微信号',
-    value: 'wx123456789',
+    channel: '微信号',
+    contact: 'wx123456789',
   },
 ])
 function contactDelete(item) {
@@ -193,7 +194,7 @@ const richTextEditorRef = shallowRef()
 
 // 内容 HTML
 const richTextEditorMode = 'default' // default or simple
-const richTextValue = ref('<p>hello</p>')
+const aboutUsRichText = ref('<p>hello</p>')
 const richTextEditorToolbarConfig = {}
 const richTextEditorConfig = { placeholder: '请输入内容...' }
 
@@ -246,6 +247,13 @@ function submit() {
     
   })
 }
+
+onMounted(() => {
+  loadingInstance = ElLoading.service({text: '加载中...'})
+  setTimeout(() => {
+    loadingInstance.close()
+  }, 1500)
+})
 
 </script>
 

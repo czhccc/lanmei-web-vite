@@ -7,7 +7,15 @@
             <div class="saerch-item">
               <div class="search-item-label">采购编号：</div>
               <div class="search-item-input">
-                <el-input placeholder="请输入" clearable v-model="searchParams.batch"></el-input>
+                <el-input placeholder="请输入" clearable v-model="searchParams.no"></el-input>
+              </div>
+            </div>
+          </el-col>
+          <el-col :span="6">
+            <div class="saerch-item">
+              <div class="search-item-label">商品编号：</div>
+              <div class="search-item-input">
+                <el-input placeholder="请输入" clearable v-model="searchParams.goodsNo"></el-input>
               </div>
             </div>
           </el-col>
@@ -15,7 +23,7 @@
             <div class="saerch-item">
               <div class="search-item-label">商品名称：</div>
               <div class="search-item-input">
-                <el-input placeholder="请输入" clearable v-model="searchParams.name"></el-input>
+                <el-input placeholder="请输入" clearable v-model="searchParams.goodsName"></el-input>
               </div>
             </div>
           </el-col>
@@ -24,12 +32,13 @@
               <div class="search-item-label">采购日期：</div>
               <div class="search-item-input">
                 <el-date-picker 
-                  type="date" 
+                  type="daterange"
                   format="YYYY/MM/DD" value-format="YYYY-MM-DD" 
-                  placeholder="请选择" 
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
                   clearable 
                   v-model="searchParams.date" 
-                  style="width: 100%;"
+                  style="width: 100%;" 
                 />
               </div>
             </div>
@@ -48,7 +57,7 @@
 
     <div class="table-wrapper">
       <el-table :height="tableHeight" :data="tableData">
-        <el-table-column prop="batch" label="采购编号" align="center" />
+        <el-table-column prop="no" label="采购编号" align="center" />
         <el-table-column prop="name" label="商品名称" align="center" />
         <el-table-column prop="realQuantity" label="实际售卖量" align="center" >
           <template #default="scope">
@@ -61,13 +70,11 @@
           </template>
         </el-table-column>
         <el-table-column prop="date" label="采购日期" align="center" />
-        <el-table-column prop="source" label="采购来源" align="center" />
         <el-table-column prop="remark" label="备注" align="center" />
-        <el-table-column fixed="right" label="操作" width="240" align="center" >
+        <el-table-column fixed="right" label="操作" width="160" align="center" >
           <template #default="scope">
             <el-button link type="primary" @click="tableDetail(scope.row)">详情</el-button>
             <el-button link type="primary" @click="tableEdit(scope.row)">编辑</el-button>
-            <el-button link type="primary" @click="tableRelateGoods(scope.row)">关联商品</el-button>
             <el-button link type="primary" @click="tableDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -97,14 +104,20 @@
     >
       <div class="form-content">
         <el-form ref="formRef" :model="form" :rules="formRules" label-width="auto" :disabled="formTitle==='详情'">
-          <el-form-item label="采购编号" prop="batch">
-            <el-input v-model="form.batch" placeholder="自动生成" readonly />
+          <el-form-item label="采购编号" prop="no">
+            <el-input v-model="form.no" placeholder="自动生成" readonly />
           </el-form-item>
-          <el-form-item label="商品名称" prop="name">
-            <el-input v-model="form.name" placeholder="请输入" maxlength="20" clearable />
+          <el-form-item label="商品编号" prop="goodsNo">
+            <div style="width: 100%;display: flex;align-items: center;">
+              <el-input :value="form.goodsNo" placeholder="请关联商品" readonly />
+              <el-button type="primary" link style="margin-left: 20px;" @click="toRelateGoods">关联商品</el-button>
+            </div>
           </el-form-item>
-          <el-form-item label="单位" prop="unit">
-            <el-input v-model="form.unit" placeholder="请输入" maxlength="10" clearable />
+          <el-form-item label="商品名称" required>
+            <el-input :value="form.goodsName" readonly />
+          </el-form-item>
+          <el-form-item label="单位" required>
+            <el-input :value="form.goodsUnit" readonly />
           </el-form-item>
           <el-form-item label="数量" required>
             <div style="display: flex;align-items: center;justify-content: space-between;">
@@ -146,13 +159,6 @@
           </el-form-item>
           <el-form-item label="备注" prop="remark">
             <el-input type="textarea" autosize v-model="form.remark" maxlength="200" show-word-limit placeholder="请输入" clearable />
-          </el-form-item>
-          <el-form-item label="状态" prop="status">
-            <el-select v-model="form.status" placeholder="请选择" clearable>
-              <el-option label="状态1" value="状态1" />
-              <el-option label="状态2" value="状态2" />
-              <el-option label="状态3" value="状态3" />
-            </el-select>
           </el-form-item>
         </el-form>
       </div>
@@ -222,11 +228,14 @@ import { useRoute, useRouter } from 'vue-router'
 const $route = useRoute()
 const $router = useRouter()
 
+let loadingInstance = null
+
 // Table
 let searchParams = reactive({
-  batch: '',
-  name: '',
-  date: null,
+  no: '',
+  goodsNo: '',
+  goodsName: '',
+  date: [],
 })
 let tableData = ref([])
 let tableHeight = ref(0)
@@ -240,7 +249,7 @@ let isShowForm = ref(false)
 let formTitle = ref('')
 let formRef = ref(null)
 let form = reactive({
-  batch: '',
+  no: '',
   name: '',
   unit: '',
   totalQuantity: null,
@@ -252,12 +261,10 @@ let form = reactive({
   date: null,
   source: '',
   remark: '',
-  status: '',
 })
 const formRules = reactive({
-  batch: [{ required: true, message: '请输入采购编号', trigger: 'blur' },],
-  name: [{ required: true, message: '请输入商品名称', trigger: 'blur' },],
-  unit: [{ required: true, message: '请输入单位', trigger: 'blur' },],
+  no: [{ required: true, message: '请输入采购编号', trigger: 'blur' },],
+  goodsNo: [{ required: true, message: '请关联商品', trigger: 'blur' },],
   totalQuantity: [
     { required: true, message: '请输入总数量', trigger: 'blur' },
     { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
@@ -285,7 +292,6 @@ const formRules = reactive({
   date: [{ required: true, message: '请选择采购日期', trigger: 'blur' },],
   source: [{ required: false, message: '请输入采购来源', trigger: 'blur' },],
   remark: [{ required: false, message: '请输入备注', trigger: 'blur' },],
-  status: [{ required: false, message: '请选择', trigger: 'blur' },],
 })
 
 const calculateTableHeight = () => {
@@ -300,9 +306,10 @@ function search() {
 }
 function searchReset() {
   Object.assign(searchParams, {
-    batch: '',
-    name: '',
-    date: null,
+    no: '',
+    goodsNo: '',
+    goodsName: '',
+    date: [],
   })
   pagination.pageNo = 1
 }
@@ -326,7 +333,7 @@ function tableAdd(record) {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
-    form.batch = `${year}${month}${day}${hours}${minutes}${seconds}`;
+    form.no = `${year}${month}${day}${hours}${minutes}${seconds}`;
   })
   
 }
@@ -337,7 +344,7 @@ function tableDetail(record) {
   nextTick(() => {
     formRef.value.resetFields()
     Object.assign(form, { // reactive 直接替换对象的引用不会影响原始对象的代理
-      batch: '112233',
+      no: '112233',
       name: '蓝莓大果',
       unit: '斤',
       totalQuantity: 150,
@@ -349,7 +356,6 @@ function tableDetail(record) {
       date: '2024-06-19',
       source: '我是采购来源',
       remark: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-      status: '状态1'
     })
   })
 }
@@ -360,7 +366,7 @@ function tableEdit(record) {
   nextTick(() => {
     formRef.value.resetFields()
     Object.assign(form, { // reactive 直接替换对象的引用不会影响原始对象的代理
-      batch: '112233',
+      no: '112233',
       name: '蓝莓大果',
       unit: '斤',
       totalQuantity: 150,
@@ -372,11 +378,10 @@ function tableEdit(record) {
       date: '2024-06-19',
       source: '我是采购来源',
       remark: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-      status: '状态1'
     })
   })
 }
-function tableRelateGoods(record) { // 关联商品
+function toRelateGoods(record) { // 关联商品
   isShowChooseGoodsDialog.value = true
 }
 function tableDelete(record) {
@@ -451,7 +456,7 @@ function chooseGoodsSeeDetail(record) {
 onMounted(() => {
   for (let i = 0; i < 100; i++) {
     tableData.value.push({
-      batch: '112233',
+      no: '112233',
       name: '蓝莓大果',
       unit: '斤',
       totalQuantity: 150,
@@ -461,14 +466,17 @@ onMounted(() => {
       otherCost: 100,
       totalCost: 150,
       date: '2024-06-19',
-      source: '我是采购来源',
       remark: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-      status: '状态1'
     })
   }
   pagination.total = tableData.value.length
 
   calculateTableHeight()
+
+  loadingInstance = ElLoading.service({text: '加载中...'})
+  setTimeout(() => {
+    loadingInstance.close()
+  }, 1500)
 })
 
 

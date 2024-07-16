@@ -11,6 +11,14 @@
               </div>
             </div>
           </el-col>
+          <el-col :span="6">
+            <div class="saerch-item">
+              <div class="search-item-label">姓名：</div>
+              <div class="search-item-input">
+                <el-input placeholder="请输入" clearable v-model="searchParams.name"></el-input>
+              </div>
+            </div>
+          </el-col>
         </el-row>
       </div>
       <div class="search-btns">
@@ -104,9 +112,12 @@
 <script setup>
 import { onMounted, reactive, ref, nextTick } from 'vue';
 
+let loadingInstance = null
+
 // Table
 let searchParams = reactive({
   account: '',
+  name: '',
 })
 let tableData = ref([])
 let tableHeight = ref(0)
@@ -148,6 +159,7 @@ function search() {
 function searchReset() {
   Object.assign(searchParams, {
     account: '',
+    name: '',
   })
   pagination.pageNo = 1
 }
@@ -252,6 +264,11 @@ onMounted(() => {
   pagination.total = tableData.value.length
 
   calculateTableHeight()
+
+  loadingInstance = ElLoading.service({text: '加载中...'})
+  setTimeout(() => {
+    loadingInstance.close()
+  }, 1500)
 })
 
 

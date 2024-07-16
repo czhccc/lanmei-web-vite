@@ -258,6 +258,65 @@
             size="large"
           />
         </div>
+        <div class="overviewContent">
+          <div class="overview-title">成本</div>
+          <div class="overview-content">
+            <div class="overview-item">
+              <div class="overview-item-label">总采购次数：</div>
+              <div class="overview-item-value">53次</div>
+            </div>
+            <div class="overview-item">
+              <div class="overview-item-label">总采购成本：</div>
+              <div class="overview-item-value">530846元</div>
+            </div>
+          </div>
+          <div class="overview-title">订单</div>
+          <div class="overview-content">
+            <div class="overview-item">
+              <div class="overview-item-label">线上订单数：</div>
+              <div class="overview-item-value">866</div>
+            </div>
+            <div class="overview-item">
+              <div class="overview-item-label">线上售卖量：</div>
+              <div class="overview-item-value">1086斤</div>
+            </div>
+            <div class="overview-item">
+              <div class="overview-item-label">线上销售额：</div>
+              <div class="overview-item-value">475213元</div>
+            </div>
+            <div class="overview-item">
+              <div class="overview-item-label">线下订单数：</div>
+              <div class="overview-item-value">8623</div>
+            </div>
+            <div class="overview-item">
+              <div class="overview-item-label">线下售卖量：</div>
+              <div class="overview-item-value">684斤</div>
+            </div>
+            <div class="overview-item">
+              <div class="overview-item-label">线下销售额：</div>
+              <div class="overview-item-value">246834元</div>
+            </div>
+          </div>
+          <div class="overview-title">利润</div>
+          <div class="overview-content">
+            <div class="overview-item">
+              <div class="overview-item-label">总订单数：</div>
+              <div class="overview-item-value">8623</div>
+            </div>
+            <div class="overview-item">
+              <div class="overview-item-label">总销量：</div>
+              <div class="overview-item-value">1975斤</div>
+            </div>
+            <div class="overview-item">
+              <div class="overview-item-label">总销售额：</div>
+              <div class="overview-item-value">894235元</div>
+            </div>
+            <div class="overview-item">
+              <div class="overview-item-label">总利润：</div>
+              <div class="overview-item-value">674589元</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -272,6 +331,7 @@ import { useRouter } from 'vue-router'
 
 const $router = useRouter()
 
+let loadingInstance = null
 
 // tabs 
 let tabValue = ref('goods')
@@ -561,7 +621,10 @@ onMounted(() => {
   }
   pagination.total = tableData.value.length
 
-
+  loadingInstance = ElLoading.service({text: '加载中...'})
+  setTimeout(() => {
+    loadingInstance.close()
+  }, 1500)
 });
 
 onUnmounted(() => {
@@ -773,6 +836,35 @@ onUnmounted(() => {
       padding: 20px;
       .chooseDateSpan {
 
+      }
+      .overviewContent {
+        margin-top: 20px;
+        .overview-title {
+          font-weight: 700;
+          margin-top: 20px;
+        }
+        .overview-title:first-child {
+          margin-top: 0;
+        }
+        .overview-content {
+          width: 100%;
+          display: flex;
+          justify-content: flex-start;
+          flex-wrap: wrap;
+          margin-top: 6px;
+          .overview-item {
+            min-width: 33%;
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            .overview-item-label {
+              word-break: break-all;
+            }
+            .overview-item-value {
+              
+            }
+          }
+        }
       }
     }
   }

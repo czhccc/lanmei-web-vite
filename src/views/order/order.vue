@@ -5,9 +5,9 @@
         <el-row :gutter="20">
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">订单渠道：</div>
+              <div class="search-item-label">订单类型：</div>
               <div class="search-item-input">
-                <el-select v-model="searchParams.orderChannel" placeholder="请选择" clearable>
+                <el-select v-model="searchParams.orderType" placeholder="请选择" clearable>
                   <el-option label="线上订单" value="onlineOrder" />
                   <el-option label="线下订单" value="offlineOrder" />
                 </el-select>
@@ -102,11 +102,7 @@
     <div class="table-wrapper">
       <el-table :height="tableHeight" :data="tableData">
         <el-table-column prop="orderNo" label="订单号" align="center" />
-        <el-table-column prop="orderSource" label="订单来源" align="center">
-          <template #default="scope">
-            <div>{{ scope.row.orderChannelText }} - {{ scope.row.orderCreationMethodText }}</div>
-          </template>
-        </el-table-column>
+        <el-table-column prop="orderTypeText" label="订单类型" align="center" />
         <el-table-column prop="goodsNo" label="商品" align="center" >
           <template #default="scope">
             <el-tooltip :content="'商品编号：'+scope.row.goodsNo">
@@ -169,9 +165,11 @@ import { useRouter } from 'vue-router'
 
 const $router = useRouter()
 
+let loadingInstance = null
+
 // Table
 let searchParams = reactive({
-  orderChannel: '',
+  orderType: '',
   orderCreationMethod: '',
   orderNo: '',
   goodsNo: '',
@@ -200,7 +198,7 @@ function search() {
 }
 function searchReset() {
   Object.assign(searchParams, {
-    orderChannel: '',
+    orderType: '',
     orderCreationMethod: '',
     orderNo: '',
     goodsNo: '',
@@ -251,10 +249,8 @@ onMounted(() => {
   for (let i = 0; i < 100; i++) {
     tableData.value.push({
       orderNo: '202407022236526936',
-      orderChannel: 'onlineOrder',
-      orderChannelText: '线上订单',
-      orderCreationMethod: '1',
-      orderCreationMethodText: '手动添加',
+      orderType: 'onlineOrder',
+      orderTypeText: '线上订单',
       goodsNo: '202407022236526936',
       goodsName: '蓝莓大果',
       goodsQuantity: 200,
@@ -273,6 +269,11 @@ onMounted(() => {
   pagination.total = tableData.value.length
 
   calculateTableHeight()
+
+  loadingInstance = ElLoading.service({text: '加载中...'})
+  setTimeout(() => {
+    loadingInstance.close()
+  }, 1500)
 })
 
 

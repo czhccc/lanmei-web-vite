@@ -7,7 +7,7 @@
             <div class="saerch-item">
               <div class="search-item-label">是否已回复：</div>
               <div class="search-item-input">
-                <el-select v-model="searchParams.haveResponsed" placeholder="请选择" clearable>
+                <el-select v-model="searchParams.hasResponsed" placeholder="请选择" clearable>
                   <el-option label="已回复" value="状态1" />
                   <el-option label="未回复" value="状态2" />
                 </el-select>
@@ -102,9 +102,11 @@
 import { ElMessage } from 'element-plus';
 import { onMounted, reactive, ref, nextTick } from 'vue';
 
+let loadingInstance = null
+
 // Table
 let searchParams = reactive({
-  haveResponsed: '',
+  hasResponsed: '',
 })
 let tableData = ref([])
 let tableHeight = ref(0)
@@ -125,7 +127,7 @@ function search() {
 }
 function searchReset() {
   Object.assign(searchParams, {
-    haveResponsed: '',
+    hasResponsed: '',
   })
   pagination.pageNo = 1
 }
@@ -178,6 +180,11 @@ onMounted(() => {
   pagination.total = tableData.value.length
 
   calculateTableHeight()
+
+  loadingInstance = ElLoading.service({text: '加载中...'})
+  setTimeout(() => {
+    loadingInstance.close()
+  }, 1500)
 })
 
 
