@@ -1,5 +1,37 @@
 <template>
   <div class="goodsDetail">
+    <div class="item">
+      <div class="title">
+        当前批次
+        <div>
+          <el-button class="title-btn" type="success" @click="endCurrentBatch">开启新批次</el-button>
+          <el-button class="title-btn" type="warning" @click="endCurrentBatch">结束当前批次</el-button>
+          <el-button class="title-btn" type="danger" @click="endCurrentBatch">取消所有订单</el-button>
+        </div>
+      </div>
+      <div class="content">
+        <el-table :data="currentBatchTableData">
+          <el-table-column property="batch" label="批次" align="center" />
+          <el-table-column property="startTime" label="开始时间" align="center" />
+          <el-table-column property="totalDates" label="总天数" align="center" >
+            <template #default="scope">
+              <div>{{ scope.row.totalDates }} 天</div>
+            </template>
+          </el-table-column>
+          <el-table-column property="totalOrderQuantity" label="总订单数" align="center" >
+            <template #default="scope">
+              <div>{{ scope.row.totalOrderQuantity }}</div>
+            </template>
+          </el-table-column>
+          <el-table-column fixed="right" label="操作" width="110" align="center" >
+            <template #default="scope">
+              <el-button link type="primary" @click="seeHistoryBatchStatistic(scope.row)">查看统计</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
+
     <el-form 
       ref="formRef" 
       :model="form" 
@@ -128,34 +160,27 @@
       </div>
     </el-form>
 
-    <div class="item">
-      <div class="title">
-        当前批次
-        <el-button class="title-btn" type="primary" @click="endCurrentBatch">结束当前批次</el-button>
-      </div>
-      <div class="content">
-        <el-table :data="currentBatchTableData">
-          <el-table-column property="batch" label="批次" align="center" />
-          <el-table-column property="startTime" label="开始时间" align="center" />
-          <el-table-column fixed="right" label="操作" width="110" align="center" >
-            <template #default="scope">
-              <el-button link type="primary" @click="seeHistoryBatchStatistic(scope.row)">查看统计</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-    </div>
+    
     <div class="item">
       <div class="title">
         历史批次
-        <el-button class="title-btn" type="primary" @click="relateNewBatch">关联采购记录</el-button>
       </div>
       <div class="content">
         <el-table :data="historyBatchTableData">
           <el-table-column property="batch" label="批次" align="center" />
-          <el-table-column property="time" label="时间" align="center" >
+          <el-table-column property="time" label="持续时间" align="center" >
             <template #default="scope">
               <div>{{ scope.row.startTime }} ~ {{ scope.row.endTime }}</div>
+            </template>
+          </el-table-column>
+          <el-table-column property="totalDates" label="总天数" align="center" >
+            <template #default="scope">
+              <div>{{ scope.row.totalDates }} 天</div>
+            </template>
+          </el-table-column>
+          <el-table-column property="totalOrderQuantity" label="总订单数" align="center" >
+            <template #default="scope">
+              <div>{{ scope.row.totalOrderQuantity }}</div>
             </template>
           </el-table-column>
           <el-table-column fixed="right" label="操作" width="110" align="center" >
@@ -184,63 +209,7 @@
     </div>
 
 
-    <el-dialog 
-      v-model="isShowChoosePurchaseDialog" 
-      title="关联采购记录" 
-      width="800"
-      align-center
-      class="choosePurchase-dialog"
-    >
-      <div class="choosePurchase-search">
-        <div class="choosePurchase-search-content">
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <div class="choosePurchase-search-item">
-                <div class="choosePurchase-search-item-label">商品编号：</div>
-                <div>
-                  <el-input placeholder="请输入" clearable v-model="choosePurchaseSearchParams.goodsNo"></el-input>
-                </div>
-              </div>
-            </el-col>
-            <el-col :span="12">
-              <div class="choosePurchase-search-item">
-                <div class="choosePurchase-search-item-label">商品名称：</div>
-                <div class="choosePurchase-search-item-input">
-                  <el-input placeholder="请输入" clearable v-model="choosePurchaseSearchParams.goodsName"></el-input>
-                </div>
-              </div>
-            </el-col>
-          </el-row>
-        </div>
-        <div class="choosePurchase-search-btns">
-          <el-button type="primary" @click="choosePurchaseSearch">查询</el-button>
-          <el-button @click="choosePurchaseSearchReset">重置</el-button>
-        </div>
-      </div>
-      <el-table :data="choosePurchaseDialogTableData" height="60vh">
-        <el-table-column property="goodsNo" label="采购编号" align="center" />
-        <el-table-column property="goodsName" label="时间" align="center" />
-        <el-table-column fixed="right" label="操作" width="110" align="center" >
-          <template #default="scope">
-            <el-button link type="primary" @click="choosePurchaseConfirm(scope.row)">选择</el-button>
-            <el-button link type="primary" @click="choosePurchaseSeeDetail(scope.row)">详情</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <div class="pagination-wrapper">
-        <el-pagination
-          class="pagination"
-          v-model:current-page="choosePurchasePagination.pageNo"
-          v-model:page-size="choosePurchasePagination.pageSize"
-          :page-sizes="[10, 20, 40, 100]"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="choosePurchasePagination.total"
-          @size-change="choosePurchasePageSizeChange"
-          @current-change="choosePurchasePageNoChange"
-        />
-      </div>
-    </el-dialog>
-
+    <!-- 图片预览 -->
     <el-dialog v-model="isShowFilePreview">
       <el-image
         :src="filePreviewUrl"
@@ -309,8 +278,8 @@ const formRules = reactive({
     { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
   ],
 
-  customerPhone: [{ required: true, message: '请输入客户手机号', trigger: 'blur' },],
-  recipientPhone: [{ required: true, message: '请输入客户手机号', trigger: 'blur' },],
+  customerPhone: [{ required: true, message: '请输入客户联系方式', trigger: 'blur' },],
+  recipientPhone: [{ required: true, message: '请输入客户联系方式', trigger: 'blur' },],
   recipientRegion: [{ required: true, message: '请选择省市区', trigger: 'blur' },],
   recipientAddressDetail: [{ required: true, message: '请输入收货地址详情', trigger: 'blur' },],
   customerRemark: [{ required: false, message: '请输入客户备注', trigger: 'blur' },],
@@ -427,81 +396,10 @@ function toDelete() {
   })
 }
 
-// 选择商品弹框
-let isShowChoosePurchaseDialog = ref(false)
-let choosePurchaseSearchParams = reactive({
-  goodsNo: '',
-  goodsName: '',
-})
-function tochoosePurchase() {
-  isShowChoosePurchaseDialog.value = true
-}
-let choosePurchaseDialogTableData = reactive([
-  {goodsNo: '111', goodsName: '蓝莓大大'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-])
-function choosePurchaseSearch() {
-
-}
-function choosePurchaseSearchReset() {
-  Object.assign(choosePurchaseSearchParams, { // reactive 直接替换对象的引用不会影响原始对象的代理
-    goodsNo: '',
-    goodsName: '',
-  })
-}
-function choosePurchaseConfirm(record) {
-  console.log(record)
-}
-function choosePurchaseSeeDetail(record) {
-  console.log(record)
-  const url = `${window.location.origin}${$router.resolve({
-    path: '/purchase',
-    query: {
-      id: '123321',
-      flag: 'detail'
-    }
-  }).href}`
-  window.open(url, '_blank')
-}
-let choosePurchasePagination = reactive({
-  pageNo: 1,
-  pageSize: 10,
-  total: 0,
-})
-function choosePurchasePageSizeChange(newPageSize) {
-  console.log(newPageSize)
-}
-function choosePurchasePageNoChange(newPageNo) {
-  console.log(newPageNo)
-}
 
 
 let currentBatchTableData = reactive([
-  {batch: '20240707110459', startTime: '2024-07-07 11:04:59',}
+  {batch: '20240707110459', startTime: '2024-07-07 11:04:59', totalOrderQuantity: 368,}
 ])
 function endCurrentBatch() {
   ElMessageBox.confirm(
@@ -520,13 +418,10 @@ function endCurrentBatch() {
 
 
 let historyBatchTableData = reactive([
-  {batch: '20240707110459', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48',},
-  {batch: '20240707110459', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48',},
-  {batch: '20240707110459', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48',},
+  {batch: '20240707110459', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48', totalDates: 20, totalOrderQuantity: 368,},
+  {batch: '20240707110459', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48', totalDates: 20, totalOrderQuantity: 368,},
+  {batch: '20240707110459', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48', totalDates: 20, totalOrderQuantity: 368,},
 ])
-function relateNewBatch() { // 关联采购记录
-  isShowChoosePurchaseDialog.value = true
-}
 let historyBatchPagination = reactive({
   pageNo: 1,
   pageSize: 10,
@@ -547,6 +442,7 @@ function seeHistoryBatchStatistic() { // 查看历史批次统计数据
 onMounted(() => {
   fileSortableInstance = new Sortable(fileSortableList.value, {
     onEnd: fileSortableEnd,
+    disabled: $route.query.flag==='detail' ? true : false
   });
 
   Object.assign(form, { // reactive 直接替换对象的引用不会影响原始对象的代理
@@ -576,6 +472,8 @@ onBeforeUnmount(() => {
   padding-bottom: 60px;
   .item {
     .title {
+      height: 60px;
+      line-height: 60px;
       font-size: 30px;
       font-weight: 700;
       background: linear-gradient(to right, rgba(25, 137, 250, 0.1), rgba(25, 137, 250, 0));

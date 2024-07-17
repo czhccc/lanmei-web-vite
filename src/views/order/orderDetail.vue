@@ -15,7 +15,7 @@
               type="danger" class="deleteBtn" 
               :loading="isDeleting"
               @click="toDelete" 
-              v-if="$route.query.flag==='edit'&&form.orderTypeText==='手动添加'"
+              v-if="$route.query.flag==='edit'&&form.orderType==='offline'"
             >删 除</el-button>
           </div>
         </div>
@@ -44,14 +44,6 @@
           </el-row>
           <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item label="订单渠道：" prop="orderChannel">
-                <el-select v-model="form.orderChannel" placeholder="请选择">
-                  <el-option label="线上订单" value="onlineOrder" />
-                  <el-option label="线下订单" value="offlineOrder" />
-                </el-select>
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
               <el-form-item label="订单状态：" prop="orderStatus">
                 <el-select v-model="form.orderStatus" placeholder="请选择">
                   <el-option label="预订中" value="ydz" />
@@ -62,8 +54,8 @@
                 </el-select>
               </el-form-item>
             </el-col>
-            <el-col :span="8">
-              <el-form-item label="取消原因：" prop="orderCancelReason" v-if="form.orderStatus==='yqx'">
+            <el-col :span="8" v-if="form.orderStatus==='yqx'">
+              <el-form-item label="取消原因：" prop="orderCancelReason">
                 <el-input type="textarea" autosize v-model="form.orderCancelReason" maxlength="200" show-word-limit placeholder="请输入" clearable />
               </el-form-item>
             </el-col>
@@ -95,8 +87,8 @@
             <el-col :span="8">
               <el-form-item label="数量：" required>
                 <div style="width: 100%;display: flex;align-items: center;justify-content: space-between;">
-                  <el-form-item prop="goodsQuantity" style="flex: 1;">
-                    <el-input-number v-model="form.goodsQuantity" placeholder="总量" maxlength="20" :controls="false" style="width: 100%;" />
+                  <el-form-item prop="quantity" style="flex: 1;">
+                    <el-input-number v-model="form.quantity" placeholder="总量" maxlength="20" :controls="false" style="width: 100%;" />
                   </el-form-item>
                   <div style="text-align: right;margin-left: 10px;">{{ form.unit || '单位' }}</div>
                 </div>
@@ -117,7 +109,7 @@
                     {{ (form.goodsPrice + form.goodsPostage).toFixed(2) || 0.00 }}
                   </el-form-item> -->
                   <el-form-item style="flex: 1;">
-                    <el-input-number v-model="form.goodsTotalPrice" placeholder="邮费" :min="0.01" :max="999999" :precision="2" :controls="false" style="width: 100%;" />
+                    <el-input-number v-model="form.goodsTotalPrice" placeholder="总金额" :min="0.01" :max="999999" :precision="2" :controls="false" style="width: 100%;" />
                   </el-form-item>
                   <div style="text-align: right;margin-left: 10px;">元</div>
                 </div>
@@ -131,12 +123,12 @@
         <div class="content">
           <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item label="客户手机号：" prop="customerPhone">
+              <el-form-item label="客户联系方式：" prop="customerPhone">
                 <el-input v-model="form.customerPhone" placeholder="请输入" maxlength="50" clearable />
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="收货人手机号：" prop="recipientPhone">
+              <el-form-item label="收货人联系方式：" prop="recipientPhone">
                 <el-input v-model="form.recipientPhone" placeholder="请输入" maxlength="50" clearable />
               </el-form-item>
             </el-col>
@@ -225,8 +217,6 @@ let isSubmiting = ref(false)
 let isDeleting = ref(false)
 
 let form = reactive({
-  orderChannel: '',
-  orderChannelText: '',
   orderNo: '',
   orderType: '',
   orderTypeText: '',
@@ -234,7 +224,7 @@ let form = reactive({
   orderCreateBy: '',
   goodsNo: '',
   goodsName: '',
-  goodsQuantity: 0,
+  quantity: 0,
   goodsUnit: '',
   goodsPrice: 0.00,
   goodsPostage: 0.00,
@@ -246,14 +236,13 @@ let form = reactive({
   selfRemark: '',
 })
 const formRules = reactive({
-  orderChannel: [{ required: true, message: '请选择订单渠道', trigger: 'blur' },],
   orderStatus: [{ required: true, message: '请选择订单状态', trigger: 'blur' },],
   orderCancelReason: [{ required: true, message: '请输入取消原因', trigger: 'blur' },],
   selfRemark: [{ required: false, message: '请输入己方备注', trigger: 'blur' },],
 
   goodsNo: [{ required: true, message: '请选择商品', trigger: 'blur' },],
   goodsName: [{ required: true, message: '请选择商品', trigger: 'blur' },],
-  goodsQuantity: [
+  quantity: [
     { required: true, message: '请输入商品数量', trigger: 'blur' },
     { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
   ],
@@ -266,8 +255,8 @@ const formRules = reactive({
     { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
   ],
 
-  customerPhone: [{ required: true, message: '请输入客户手机号', trigger: 'blur' },],
-  recipientPhone: [{ required: true, message: '请输入客户手机号', trigger: 'blur' },],
+  customerPhone: [{ required: true, message: '请输入客户联系方式', trigger: 'blur' },],
+  recipientPhone: [{ required: true, message: '请输入客户联系方式', trigger: 'blur' },],
   recipientRegion: [{ required: true, message: '请选择省市区', trigger: 'blur' },],
   recipientAddressDetail: [{ required: true, message: '请输入收货地址详情', trigger: 'blur' },],
   customerRemark: [{ required: false, message: '请输入客户备注', trigger: 'blur' },],
@@ -350,16 +339,14 @@ function chooseGoodsSeeDetail(record) {
 
 onMounted(() => {
   Object.assign(form, { // reactive 直接替换对象的引用不会影响原始对象的代理
-    orderChannel: 'onlineOrder',
-    orderChannelText: '线上订单',
     orderNo: '202407022236526936',
-    orderType: '1',
-    orderTypeText: '手动添加',
+    orderType: 'offline',
+    orderTypeText: '线下订单',
     orderCreateTime: '2024-07-02 22:36:52',
     orderCreateBy: 'czh',
     goodsNo: '202407022236526936',
     goodsName: '蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果',
-    goodsQuantity: 200,
+    quantity: 200,
     goodsUnit: '斤',
     goodsPrice: 150.00,
     goodsPostage: 10.00,

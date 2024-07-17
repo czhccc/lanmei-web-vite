@@ -16,17 +16,6 @@
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">生成方式：</div>
-              <div class="search-item-input">
-                <el-select v-model="searchParams.orderCreationMethod" placeholder="请选择" clearable>
-                  <el-option label="自动生成" value="automatic" />
-                  <el-option label="手动添加" value="manual" />
-                </el-select>
-              </div>
-            </div>
-          </el-col>
-          <el-col :span="6">
-            <div class="saerch-item">
               <div class="search-item-label">订单号：</div>
               <div class="search-item-input">
                 <el-input placeholder="请输入" clearable v-model="searchParams.orderNo"></el-input>
@@ -51,7 +40,15 @@
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">客户手机号：</div>
+              <div class="search-item-label">批次编号：</div>
+              <div class="search-item-input">
+                <el-input placeholder="请输入" clearable v-model="searchParams.batch"></el-input>
+              </div>
+            </div>
+          </el-col>
+          <el-col :span="6">
+            <div class="saerch-item">
+              <div class="search-item-label">客户联系方式：</div>
               <div class="search-item-input">
                 <el-input placeholder="请输入" clearable v-model="searchParams.customerPhone"></el-input>
               </div>
@@ -124,7 +121,7 @@
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column prop="customerPhone" label="客户手机号" align="center" />
+        <el-table-column prop="customerPhone" label="客户联系方式" align="center" />
         <el-table-column prop="orderCreateTime" label="下单时间" width="170" align="center" />
         <el-table-column prop="orderStatus" label="订单状态" align="center">
           <template #default="scope">
@@ -170,10 +167,10 @@ let loadingInstance = null
 // Table
 let searchParams = reactive({
   orderType: '',
-  orderCreationMethod: '',
   orderNo: '',
   goodsNo: '',
   goodsName: '',
+  batch: '',
   customerPhone: '',
   orderStatus: '',
   orderCreateTime: [],
@@ -199,10 +196,10 @@ function search() {
 function searchReset() {
   Object.assign(searchParams, {
     orderType: '',
-    orderCreationMethod: '',
     orderNo: '',
     goodsNo: '',
     goodsName: '',
+    batch: '',
     customerPhone: '',
     orderStatus: '',
     orderCreateTime: [],
