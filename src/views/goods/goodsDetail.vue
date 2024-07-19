@@ -1,36 +1,5 @@
 <template>
   <div class="goodsDetail">
-    <div class="item">
-      <div class="title">
-        当前批次
-        <div>
-          <el-button class="title-btn" type="success" @click="endCurrentBatch">开启新批次</el-button>
-          <el-button class="title-btn" type="warning" @click="endCurrentBatch">结束当前批次</el-button>
-          <el-button class="title-btn" type="danger" @click="endCurrentBatch">取消所有订单</el-button>
-        </div>
-      </div>
-      <div class="content">
-        <el-table :data="currentBatchTableData">
-          <el-table-column property="batch" label="批次" align="center" />
-          <el-table-column property="startTime" label="开始时间" align="center" />
-          <el-table-column property="totalDates" label="总天数" align="center" >
-            <template #default="scope">
-              <div>{{ scope.row.totalDates }} 天</div>
-            </template>
-          </el-table-column>
-          <el-table-column property="totalOrderQuantity" label="总订单数" align="center" >
-            <template #default="scope">
-              <div>{{ scope.row.totalOrderQuantity }}</div>
-            </template>
-          </el-table-column>
-          <el-table-column fixed="right" label="操作" width="110" align="center" >
-            <template #default="scope">
-              <el-button link type="primary" @click="seeHistoryBatchStatistic(scope.row)">查看统计</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-    </div>
 
     <el-form 
       ref="formRef" 
@@ -39,6 +8,82 @@
       label-width="auto"
       :disabled="$route.query.flag==='detail'"
     >
+      <div class="item">
+        <div class="title">
+          当前批次
+          <div>
+            <el-button class="title-btn" type="success" @click="startNewBatch">开启新批次</el-button>
+            <el-button class="title-btn" type="warning" @click="endCurrentBatch">结束当前批次</el-button>
+            <el-button class="title-btn" type="danger" @click="cancelCurrentBatchAllOrder">取消所有订单</el-button>
+          </div>
+        </div>
+        <div class="content">
+          <el-table :data="currentBatchTableData">
+            <el-table-column property="batch" label="当前批次" align="center" />
+            <el-table-column property="batchType" label="批次类型" align="center">
+              <template #default="scope">
+                <div>{{ scope.row.batchType==='pre-order' ? '预订' : '售卖' }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column property="startTime" label="开始时间" align="center" />
+            <el-table-column property="totalDates" label="总天数" align="center" >
+              <template #default="scope">
+                <div>{{ scope.row.totalDates }} 天</div>
+              </template>
+            </el-table-column>
+            <el-table-column property="totalOrderQuantity" label="总订单数" align="center" >
+              <template #default="scope">
+                <div>{{ scope.row.totalOrderQuantity }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column fixed="right" label="操作" width="110" align="center" >
+              <template #default="scope">
+                <el-button link type="primary" @click="seeHistoryBatchStatistic(scope.row)">查看统计</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <div class="content">
+            <el-row :gutter="20">
+              <el-col :span="8">
+                <el-form-item label="价格区间：" required>
+                  <div style="display: flex;align-items: center;">
+                    <el-form-item prop="lowestUnitPrice" style="flex: 1;">
+                      <el-input-number v-model="form.lowestUnitPrice" :precision="2" placeholder="最低单价" maxlength="20" :controls="false" style="width: 100%;" />
+                    </el-form-item>
+                    <div style="margin-left: 10px;">元</div>
+                    <div style="margin: 0 10px;">~</div>
+                    <el-form-item prop="highestUnitPrice" style="flex: 1;">
+                      <el-input-number v-model="form.highestUnitPrice" :precision="2" placeholder="最高单价" maxlength="20" :controls="false" style="width: 100%;" />
+                    </el-form-item>
+                    <div style="margin-left: 10px;">元</div>
+                  </div>
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item label="单价：" prop="unitPrice">
+                  <el-input-number v-model="form.unitPrice" :precision="2" placeholder="请输入" maxlength="20" :controls="false" style="width: 100%;" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20" style="margin-top: 10px;">
+              <el-col :span="8">
+                <el-form-item label="优惠策略：">
+                  <div v-for="(item, index) in discounts" :key="index" style="display: flex;align-items: center;">
+                    <div style="margin-right: 10px;">满</div>
+                    <el-input-number v-model="item.quantity" :precision="1" placeholder="数量" maxlength="20" :controls="false" style="width: 100%;" />
+                    <div style="margin: 10px;">减</div>
+                    <el-input-number v-model="item.discount" :precision="2" placeholder="优惠金额" maxlength="20" :controls="false" style="width: 100%;" />
+                    <div style="margin-left: 10px;">元</div>
+                    <el-button type="danger" link style="margin-left: 10px;">删除</el-button>
+                  </div>
+                  <el-button style="width: 100%;">新增</el-button>
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </div>
+        </div>
+      </div>
       <div class="item">
         <div class="title">
           <div style="display: flex;justify-content: space-between;">
@@ -217,6 +262,25 @@
       />
     </el-dialog>
 
+    <!-- 开启新批次 -->
+    <el-dialog v-model="isShowNewBatchDialog" title="开启新批次" align-center width="400">
+      <div style="display: flex;align-items: center;">
+        <div>新批次类型：</div>
+        <el-radio-group v-model="newBatchType" :disabled="isNewBatchDialogSubmiting">
+          <el-radio value="1" size="large">预订</el-radio>
+          <el-radio value="2" size="large">现货</el-radio>
+        </el-radio-group>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="isShowNewBatchDialog = false">取消</el-button>
+          <el-button type="primary" @click="newBatchDialogConfirm" :loading="isNewBatchDialogSubmiting">
+            确定
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -259,6 +323,19 @@ let form = reactive({
   selfRemark: '',
 })
 const formRules = reactive({
+  lowestUnitPrice: [
+    { required: true, message: '请输入最低单价', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 99999999, message: '请输入最低单价', trigger: 'blur' },
+  ],
+  highestUnitPrice: [
+    { required: true, message: '请输入最高单价', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 99999999, message: '请输入最高单价', trigger: 'blur' },
+  ],
+  unitPrice: [
+    { required: true, message: '请输入单价', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 99999999, message: '请输入单价', trigger: 'blur' },
+  ],
+
   orderStatus: [{ required: true, message: '请选择订单状态', trigger: 'blur' },],
   orderCancelReason: [{ required: true, message: '请输入取消原因', trigger: 'blur' },],
   selfRemark: [{ required: false, message: '请输入己方备注', trigger: 'blur' },],
@@ -397,13 +474,44 @@ function toDelete() {
 }
 
 
-
+// 关于当前批次
+let isShowNewBatchDialog = ref(false)
+let newBatchType = ref('1')
+let isNewBatchDialogSubmiting = ref(false)
 let currentBatchTableData = reactive([
-  {batch: '20240707110459', startTime: '2024-07-07 11:04:59', totalOrderQuantity: 368,}
+  {batch: '20240707110459', batchType: 'pre-order', startTime: '2024-07-07 11:04:59', totalOrderQuantity: 368,}
 ])
+let discounts = ref([
+  {quantity: 2, discount: 10.00},
+  {quantity: 3, discount: 20.00},
+])
+function startNewBatch() {
+  isShowNewBatchDialog.value = true
+}
+function newBatchDialogConfirm() {
+  isNewBatchDialogSubmiting.value = true
+  setTimeout(() => {
+    isNewBatchDialogSubmiting.value = false
+    isShowNewBatchDialog.value = false
+  }, 1000)
+}
 function endCurrentBatch() {
   ElMessageBox.confirm(
-    '确定结束当前采购编号?',
+    '确定结束当前批次?',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    
+  }).catch(() => {
+    
+  })
+}
+function cancelCurrentBatchAllOrder() {
+  ElMessageBox.confirm(
+    '确定取消当前批次所有订单?',
     {
       confirmButtonText: '确定',
       cancelButtonText: '取消',

@@ -75,13 +75,18 @@
         <div class="content">
           <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item label="商品编号：" prop="goodsNo">
+              <el-form-item label="商品编号：">
                 {{ form.goodsNo }}
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="商品名称：" prop="goodsName">
+              <el-form-item label="商品名称：">
                 {{ form.goodsName }}
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="商品批次：">
+                {{ form.goodsBatch }}
               </el-form-item>
             </el-col>
             <el-col :span="8">
@@ -90,28 +95,52 @@
                   <el-form-item prop="quantity" style="flex: 1;">
                     <el-input-number v-model="form.quantity" placeholder="总量" maxlength="20" :controls="false" style="width: 100%;" />
                   </el-form-item>
-                  <div style="text-align: right;margin-left: 10px;">{{ form.unit || '单位' }}</div>
+                  <div style="text-align: right;margin-left: 10px;">{{ form.goodsUnit || '单位' }}</div>
                 </div>
               </el-form-item>
             </el-col>
-            <el-col :span="12">
-              <el-form-item label="实付金额：" required>
-                <div style="width: 100%;display: flex;align-items: center;justify-content: space-between;">
-                  <el-form-item prop="goodsPrice" style="flex: 1;">
-                    <el-input-number v-model="form.goodsPrice" placeholder="商品金额" :min="0.01" :max="999999" :precision="2" :controls="false" style="width: 100%;" />
+          </el-row>
+          <el-row :gutter="20" style="margin-top: 10px">
+            <el-col :span="20">
+              <el-form-item label="应付金额：">
+                <div style="display: flex;align-items: center;">
+                  <el-form-item>
+                    <div style="text-align: center;">
+                      <div>商品金额</div>
+                      <div>￥{{ form.goodsPrice.toFixed(2) }}</div>
+                    </div>
                   </el-form-item>
-                  <div style="text-align: center;margin: 0 10px;">+</div>
-                  <el-form-item prop="goodsPostage" style="flex: 1;">
-                    <el-input-number v-model="form.goodsPostage" placeholder="邮费" :min="0.01" :max="999999" :precision="2" :controls="false" style="width: 100%;" />
+                  <div style="text-align: center;margin: 0 30px;">-</div>
+                  <el-form-item>
+                    <div style="text-align: center;">
+                      <div>优惠</div>
+                      <div>￥{{ form.goodsDiscount.toFixed(2) }}</div>
+                    </div>
                   </el-form-item>
-                  <div style="text-align: center;margin: 0 10px;">=></div>
-                  <!-- <el-form-item v-if="form.orderStatus===''">
-                    {{ (form.goodsPrice + form.goodsPostage).toFixed(2) || 0.00 }}
-                  </el-form-item> -->
-                  <el-form-item style="flex: 1;">
-                    <el-input-number v-model="form.goodsTotalPrice" placeholder="总金额" :min="0.01" :max="999999" :precision="2" :controls="false" style="width: 100%;" />
+                  <div style="text-align: center;margin: 0 30px;">+</div>
+                  <el-form-item>
+                    <div style="text-align: center;">
+                      <div>邮费</div>
+                      <div>￥{{ form.goodsPostage.toFixed(2) }}</div>
+                    </div>
                   </el-form-item>
-                  <div style="text-align: right;margin-left: 10px;">元</div>
+                  <div style="text-align: center;margin: 0 30px;">=</div>
+                  <el-form-item>
+                    <div style="text-align: center;">
+                      <div>应付总金额</div>
+                      <div>￥{{ (form.goodsPrice - form.goodsDiscount + form.goodsPostage).toFixed(2) || 0.00 }}</div>
+                    </div>
+                  </el-form-item>
+                </div>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="20" style="margin-top: 10px">
+            <el-col :span="8">
+              <el-form-item label="实付金额：" prop="realPayPrice">
+                <div style="width: 100%;display: flex;justify-content: space-between;">
+                  <el-input-number v-model="form.realPayPrice" :precision="2" placeholder="请输入" maxlength="20" :controls="false" style="width: 100%;" />
+                  <span style="margin-left: 10px">元</span>
                 </div>
               </el-form-item>
             </el-col>
@@ -227,7 +256,9 @@ let form = reactive({
   quantity: 0,
   goodsUnit: '',
   goodsPrice: 0.00,
+  goodsDiscount: 30.00,
   goodsPostage: 0.00,
+  realPayPrice: 160.00,
   customerPhone: '',
   orderCreateTime: '',
   orderStatus: '',
@@ -240,8 +271,6 @@ const formRules = reactive({
   orderCancelReason: [{ required: true, message: '请输入取消原因', trigger: 'blur' },],
   selfRemark: [{ required: false, message: '请输入己方备注', trigger: 'blur' },],
 
-  goodsNo: [{ required: true, message: '请选择商品', trigger: 'blur' },],
-  goodsName: [{ required: true, message: '请选择商品', trigger: 'blur' },],
   quantity: [
     { required: true, message: '请输入商品数量', trigger: 'blur' },
     { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
@@ -250,7 +279,7 @@ const formRules = reactive({
     { required: true, message: '请输入商品金额', trigger: 'blur' },
     { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
   ],
-  goodsPostage: [
+  realPayPrice: [
     { required: true, message: '请输入邮费', trigger: 'blur' },
     { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
   ],
@@ -344,12 +373,14 @@ onMounted(() => {
     orderTypeText: '线下订单',
     orderCreateTime: '2024-07-02 22:36:52',
     orderCreateBy: 'czh',
+    goodsBatch: '202420242024',
     goodsNo: '202407022236526936',
     goodsName: '蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果',
     quantity: 200,
     goodsUnit: '斤',
     goodsPrice: 150.00,
     goodsPostage: 10.00,
+    realPayPrice: 160.00,
     customerPhone: '13989562356',
     orderCreateTime: '2024-07-02 22:42:26',
     orderStatus: 'yqx',
