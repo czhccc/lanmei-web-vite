@@ -268,7 +268,7 @@ onMounted(() => {
   loadingInstance = ElLoading.service({text: '加载中...'})
   setTimeout(() => {
     loadingInstance.close()
-  }, 1500)
+  }, 500)
 })
 
 

@@ -122,15 +122,15 @@
           <el-form-item label="数量" required>
             <div style="display: flex;align-items: center;justify-content: space-between;">
               <el-form-item prop="totalQuantity" style="flex: 1;">
-                <el-input-number v-model="form.totalQuantity" placeholder="总量" maxlength="20" :controls="false" style="width: 100%;" />
+                <el-input-number v-model="form.totalQuantity" placeholder="总量" :min="0.01" :max="999999" :controls="false" style="width: 100%;" />
               </el-form-item>
               <div style="text-align: center;margin: 0 10px;">-</div>
               <el-form-item prop="lossQuantity" style="flex: 1;">
-                <el-input-number v-model="form.lossQuantity" placeholder="损耗量" maxlength="20" :controls="false" style="width: 100%;" />
+                <el-input-number v-model="form.lossQuantity" placeholder="损耗量" :min="0.01" :max="999999" :controls="false" style="width: 100%;" />
               </el-form-item>
               <div style="text-align: center;margin: 0 10px;">=</div>
               <el-form-item prop="realQuantity" style="flex: 1;">
-                <el-input-number v-model="form.realQuantity" placeholder="实际售卖量" maxlength="20" :controls="false" style="width: 100%;" />
+                <el-input-number v-model="form.realQuantity" placeholder="实际售卖量" :min="0.01" :max="999999" :controls="false" style="width: 100%;" />
               </el-form-item>
               <div style="text-align: right;margin-left: 10px;">{{ form.unit || '单位' }}</div>
             </div>
@@ -138,15 +138,15 @@
           <el-form-item label="成本" required>
             <div style="display: flex;align-items: center;justify-content: space-between;">
               <el-form-item prop="goodsCost" style="flex: 1;">
-                <el-input-number v-model="form.goodsCost" placeholder="商品成本" maxlength="20" :controls="false" style="width: 100%;" />
+                <el-input-number v-model="form.goodsCost" placeholder="商品成本" :min="0.01" :max="999999" :controls="false" style="width: 100%;" />
               </el-form-item>
               <div style="text-align: center;margin: 0 10px;">+</div>
               <el-form-item prop="otherCost" style="flex: 1;">
-                <el-input-number v-model="form.otherCost" placeholder="其他成本" maxlength="20" :controls="false" style="width: 100%;" />
+                <el-input-number v-model="form.otherCost" placeholder="其他成本" :min="0.01" :max="999999" :controls="false" style="width: 100%;" />
               </el-form-item>
               <div style="text-align: center;margin: 0 10px;">=</div>
               <el-form-item prop="totalCost" style="flex: 1;">
-                <el-input-number v-model="form.totalCost" placeholder="总成本" maxlength="20" :controls="false" style="width: 100%;" />
+                <el-input-number v-model="form.totalCost" placeholder="总成本" :min="0.01" :max="999999" :controls="false" style="width: 100%;" />
               </el-form-item>
               <div style="text-align: right;margin-left: 10px;">元</div>
             </div>
@@ -267,27 +267,27 @@ const formRules = reactive({
   goodsNo: [{ required: true, message: '请关联商品', trigger: 'blur' },],
   totalQuantity: [
     { required: true, message: '请输入总数量', trigger: 'blur' },
-    { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
+    { type: 'number', min: 0.1, max: 999999, message: '请输入总数量', trigger: 'blur' },
   ],
   lossQuantity: [
     { required: true, message: '请输入损耗量', trigger: 'blur' },
-    { type: 'number', min: 0.01, max: 99999999, message: '请输入损耗量', trigger: 'blur' },
+    { type: 'number', min: 0.1, max: 999999, message: '请输入损耗量', trigger: 'blur' },
   ],
   realQuantity: [
     { required: true, message: '请输入实际售卖量', trigger: 'blur' },
-    { type: 'number', min: 0.01, max: 99999999, message: '请输入实际售卖量', trigger: 'blur' },
+    { type: 'number', min: 0.1, max: 999999, message: '请输入实际售卖量', trigger: 'blur' },
   ],
   goodsCost: [
     { required: true, message: '请输入商品成本', trigger: 'blur' },
-    { type: 'number', min: 0.01, max: 99999999, message: '请输入商品成本', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 999999, message: '请输入商品成本', trigger: 'blur' },
   ],
   otherCost: [
     { required: true, message: '请输入其他成本', trigger: 'blur' },
-    { type: 'number', min: 0.01, max: 99999999, message: '请输入其他成本', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 999999, message: '请输入其他成本', trigger: 'blur' },
   ],
   totalCost: [
     { required: true, message: '请输入总成本', trigger: 'blur' },
-    { type: 'number', min: 0.01, max: 99999999, message: '请输入总成本', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 999999, message: '请输入总成本', trigger: 'blur' },
   ],
   date: [{ required: true, message: '请选择采购日期', trigger: 'blur' },],
   source: [{ required: false, message: '请输入采购来源', trigger: 'blur' },],
@@ -476,7 +476,7 @@ onMounted(() => {
   loadingInstance = ElLoading.service({text: '加载中...'})
   setTimeout(() => {
     loadingInstance.close()
-  }, 1500)
+  }, 500)
 })
 
 

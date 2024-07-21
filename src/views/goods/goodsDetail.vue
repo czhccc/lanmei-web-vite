@@ -10,82 +10,6 @@
     >
       <div class="item">
         <div class="title">
-          当前批次
-          <div>
-            <el-button class="title-btn" type="success" @click="startNewBatch">开启新批次</el-button>
-            <el-button class="title-btn" type="warning" @click="endCurrentBatch">结束当前批次</el-button>
-            <el-button class="title-btn" type="danger" @click="cancelCurrentBatchAllOrder">取消所有订单</el-button>
-          </div>
-        </div>
-        <div class="content">
-          <el-table :data="currentBatchTableData">
-            <el-table-column property="batch" label="当前批次" align="center" />
-            <el-table-column property="batchType" label="批次类型" align="center">
-              <template #default="scope">
-                <div>{{ scope.row.batchType==='pre-order' ? '预订' : '售卖' }}</div>
-              </template>
-            </el-table-column>
-            <el-table-column property="startTime" label="开始时间" align="center" />
-            <el-table-column property="totalDates" label="总天数" align="center" >
-              <template #default="scope">
-                <div>{{ scope.row.totalDates }} 天</div>
-              </template>
-            </el-table-column>
-            <el-table-column property="totalOrderQuantity" label="总订单数" align="center" >
-              <template #default="scope">
-                <div>{{ scope.row.totalOrderQuantity }}</div>
-              </template>
-            </el-table-column>
-            <el-table-column fixed="right" label="操作" width="110" align="center" >
-              <template #default="scope">
-                <el-button link type="primary" @click="seeHistoryBatchStatistic(scope.row)">查看统计</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-
-          <div class="content">
-            <el-row :gutter="20">
-              <el-col :span="8">
-                <el-form-item label="价格区间：" required>
-                  <div style="display: flex;align-items: center;">
-                    <el-form-item prop="lowestUnitPrice" style="flex: 1;">
-                      <el-input-number v-model="form.lowestUnitPrice" :precision="2" placeholder="最低单价" maxlength="20" :controls="false" style="width: 100%;" />
-                    </el-form-item>
-                    <div style="margin-left: 10px;">元</div>
-                    <div style="margin: 0 10px;">~</div>
-                    <el-form-item prop="highestUnitPrice" style="flex: 1;">
-                      <el-input-number v-model="form.highestUnitPrice" :precision="2" placeholder="最高单价" maxlength="20" :controls="false" style="width: 100%;" />
-                    </el-form-item>
-                    <div style="margin-left: 10px;">元</div>
-                  </div>
-                </el-form-item>
-              </el-col>
-              <el-col :span="8">
-                <el-form-item label="单价：" prop="unitPrice">
-                  <el-input-number v-model="form.unitPrice" :precision="2" placeholder="请输入" maxlength="20" :controls="false" style="width: 100%;" />
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row :gutter="20" style="margin-top: 10px;">
-              <el-col :span="8">
-                <el-form-item label="优惠策略：">
-                  <div v-for="(item, index) in discounts" :key="index" style="display: flex;align-items: center;">
-                    <div style="margin-right: 10px;">满</div>
-                    <el-input-number v-model="item.quantity" :precision="1" placeholder="数量" maxlength="20" :controls="false" style="width: 100%;" />
-                    <div style="margin: 10px;">减</div>
-                    <el-input-number v-model="item.discount" :precision="2" placeholder="优惠金额" maxlength="20" :controls="false" style="width: 100%;" />
-                    <div style="margin-left: 10px;">元</div>
-                    <el-button type="danger" link style="margin-left: 10px;">删除</el-button>
-                  </div>
-                  <el-button style="width: 100%;">新增</el-button>
-                </el-form-item>
-              </el-col>
-            </el-row>
-          </div>
-        </div>
-      </div>
-      <div class="item">
-        <div class="title">
           <div style="display: flex;justify-content: space-between;">
             基础信息
             <el-button 
@@ -203,6 +127,84 @@
           </div>
         </div>
       </div>
+
+      <div class="item">
+        <div class="title">
+          当前批次
+          <div>
+            <el-button class="title-btn" type="success" @click="startNewBatch">开启新批次</el-button>
+            <el-button class="title-btn" type="warning" @click="endCurrentBatch">结束当前批次</el-button>
+            <el-button class="title-btn" type="danger" @click="cancelCurrentBatchAllOrder">取消所有订单</el-button>
+          </div>
+        </div>
+        <div class="content">
+          <el-table :data="currentBatchTableData">
+            <el-table-column property="batch" label="当前批次" align="center" />
+            <el-table-column property="batchType" label="批次类型" align="center">
+              <template #default="scope">
+                <div>{{ scope.row.batchType==='pre-order' ? '预订' : '售卖' }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column property="startTime" label="开始时间" align="center" />
+            <el-table-column property="totalDates" label="总天数" align="center" >
+              <template #default="scope">
+                <div>{{ scope.row.totalDates }} 天</div>
+              </template>
+            </el-table-column>
+            <el-table-column property="totalOrderQuantity" label="总订单数" align="center" >
+              <template #default="scope">
+                <div>{{ scope.row.totalOrderQuantity }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column fixed="right" label="操作" width="110" align="center" >
+              <template #default="scope">
+                <el-button link type="primary" @click="seeHistoryBatchStatistic(scope.row)">查看统计</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <div class="content">
+            <el-row :gutter="20">
+              <el-col :span="8">
+                <el-form-item label="价格区间：" required>
+                  <div style="display: flex;align-items: center;">
+                    <el-form-item prop="lowestUnitPrice" style="flex: 1;">
+                      <el-input-number v-model="form.lowestUnitPrice" :precision="2" placeholder="最低单价" :min="0.01" :max="999999" :controls="false" style="width: 100%;" />
+                    </el-form-item>
+                    <div style="margin-left: 10px;">元</div>
+                    <div style="margin: 0 10px;">~</div>
+                    <el-form-item prop="highestUnitPrice" style="flex: 1;">
+                      <el-input-number v-model="form.highestUnitPrice" :precision="2" placeholder="最高单价" :min="0.01" :max="999999" :controls="false" style="width: 100%;" />
+                    </el-form-item>
+                    <div style="margin-left: 10px;">元</div>
+                  </div>
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item label="单价：" prop="unitPrice">
+                  <el-input-number v-model="form.unitPrice" :precision="2" placeholder="请输入" :min="0.01" :max="999999" :controls="false" style="width: 100%;" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20" style="margin-top: 10px;">
+              <el-col :span="8">
+                <el-form-item label="优惠策略：">
+                  <div v-for="(item, index) in discounts" :key="index" style="display: flex;align-items: center;">
+                    <div style="margin-right: 10px;">满</div>
+                    <el-input-number v-model="item.quantity" :precision="1" placeholder="数量" :min="0.1" :max="999999" :controls="false" style="width: 100%;" />
+                    <div style="margin: 10px;">{{ form.unit }}</div>
+                    <div style="margin: 10px;">减</div>
+                    <el-input-number v-model="item.discount" :precision="2" placeholder="优惠金额" :min="0.01" :max="999999" :controls="false" style="width: 100%;" />
+                    <div style="margin-left: 10px;">元</div>
+                    <el-button type="danger" link style="margin-left: 10px;" @click="deleteDiscountItem(index)">删除</el-button>
+                  </div>
+                  <el-button style="width: 100%;" @click="addDiscountItem">新增</el-button>
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </div>
+        </div>
+      </div>
     </el-form>
 
     
@@ -211,8 +213,59 @@
         历史批次
       </div>
       <div class="content">
+        <div class="historyBatchSearch-wrapper">
+          <div class="historyBatchSearch-content">
+            <el-row :gutter="20">
+              <el-col :span="6">
+                <div class="historyBatchSearch-item">
+                  <div class="historyBatchSearch-item-label">批次：</div>
+                  <div class="historyBatchSearch-item-input">
+                    <el-input placeholder="请输入" clearable v-model="historyBatchSearchParams.batch"></el-input>
+                  </div>
+                </div>
+              </el-col>
+              <el-col :span="6">
+                <div class="historyBatchSearch-item">
+                  <div class="historyBatchSearch-item-label">下单日期：</div>
+                  <div class="historyBatchSearch-item-input">
+                    <el-date-picker 
+                      type="daterange"
+                      format="YYYY/MM/DD" value-format="YYYY-MM-DD" 
+                      start-placeholder="开始日期"
+                      end-placeholder="结束日期"
+                      clearable 
+                      v-model="historyBatchSearchParams.time" 
+                      style="width: 100%;"
+                    />
+                  </div>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
+          <div class="historyBatchSearch-btns">
+            <el-button type="primary" @click="historyBatchSearch">查询</el-button>
+            <el-button @click="historyBatchSearchReset">重置</el-button>
+          </div>
+        </div>
+
         <el-table :data="historyBatchTableData">
+          <el-table-column type="expand">
+            <template #default="props">
+              <div m="4">
+                展开内容：
+                <!-- <p m="t-0 b-2">价格区间: {{ props.row.state }}</p> -->
+                <p m="t-0 b-2">价格区间: 111</p>
+                <p m="t-0 b-2">价格: 222</p>
+                <p m="t-0 b-2">优惠策略: 333</p>
+              </div>
+            </template>
+          </el-table-column>
           <el-table-column property="batch" label="批次" align="center" />
+          <el-table-column property="batchType" label="批次类型" align="center">
+            <template #default="scope">
+              <div>{{ scope.row.batchType==='pre-order' ? '预订' : '售卖' }}</div>
+            </template>
+          </el-table-column>
           <el-table-column property="time" label="持续时间" align="center" >
             <template #default="scope">
               <div>{{ scope.row.startTime }} ~ {{ scope.row.endTime }}</div>
@@ -292,6 +345,7 @@ import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import '@wangeditor/editor/dist/css/style.css' // 引入 css
 
 import Sortable from 'sortablejs';
+import { ElMessage } from 'element-plus';
 const fileSortableList = ref(null);
 let fileSortableInstance = null;
 
@@ -325,15 +379,15 @@ let form = reactive({
 const formRules = reactive({
   lowestUnitPrice: [
     { required: true, message: '请输入最低单价', trigger: 'blur' },
-    { type: 'number', min: 0.01, max: 99999999, message: '请输入最低单价', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 999999, message: '请输入最低单价', trigger: 'blur' },
   ],
   highestUnitPrice: [
     { required: true, message: '请输入最高单价', trigger: 'blur' },
-    { type: 'number', min: 0.01, max: 99999999, message: '请输入最高单价', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 999999, message: '请输入最高单价', trigger: 'blur' },
   ],
   unitPrice: [
     { required: true, message: '请输入单价', trigger: 'blur' },
-    { type: 'number', min: 0.01, max: 99999999, message: '请输入单价', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 999999, message: '请输入单价', trigger: 'blur' },
   ],
 
   orderStatus: [{ required: true, message: '请选择订单状态', trigger: 'blur' },],
@@ -344,15 +398,15 @@ const formRules = reactive({
   goodsName: [{ required: true, message: '请选择商品', trigger: 'blur' },],
   goodsQuantity: [
     { required: true, message: '请输入商品数量', trigger: 'blur' },
-    { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
+    { type: 'number', min: 0.1, max: 999999, message: '请输入总数量', trigger: 'blur' },
   ],
   goodsPrice: [
     { required: true, message: '请输入商品金额', trigger: 'blur' },
-    { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 999999, message: '请输入总数量', trigger: 'blur' },
   ],
   goodsPostage: [
     { required: true, message: '请输入邮费', trigger: 'blur' },
-    { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 999999, message: '请输入总数量', trigger: 'blur' },
   ],
 
   customerPhone: [{ required: true, message: '请输入客户联系方式', trigger: 'blur' },],
@@ -438,8 +492,18 @@ const richTextEditorHandleCreated = (editor) => {
 function toSubmit() {
   formRef.value.validate((valid, fields) => {
     if (valid) {
-      isSubmiting.value = true
       console.log('submit!', form)
+
+      for (const item of discounts.value) { // 检查优惠策略
+        if (!item.quantity || !item.discount) {
+          ElMessage({
+            message: '请完善优惠策略',
+            type: 'warning',
+            plain: true,
+          })
+          return;
+        }
+      }
 
       ElMessageBox.confirm(
         '确定提交保存?',
@@ -449,9 +513,10 @@ function toSubmit() {
           type: 'warning',
         }
       ).then(() => {
-        $router.replace({
-          path: '/order'
-        })
+        isSubmiting.value = true
+        // $router.replace({
+        //   path: '/order'
+        // })
       }).catch(() => {
         
       })
@@ -481,10 +546,7 @@ let isNewBatchDialogSubmiting = ref(false)
 let currentBatchTableData = reactive([
   {batch: '20240707110459', batchType: 'pre-order', startTime: '2024-07-07 11:04:59', totalOrderQuantity: 368,}
 ])
-let discounts = ref([
-  {quantity: 2, discount: 10.00},
-  {quantity: 3, discount: 20.00},
-])
+
 function startNewBatch() {
   isShowNewBatchDialog.value = true
 }
@@ -524,11 +586,36 @@ function cancelCurrentBatchAllOrder() {
   })
 }
 
+let discounts = ref([
+  {quantity: 2, discount: 10.00},
+  {quantity: 3, discount: 20.00},
+])
+function deleteDiscountItem(index) {
+  discounts.value.splice(index, 1)
+}
+function addDiscountItem() {
+  discounts.value.push({quantity: null, discount: null})
+}
 
+
+let historyBatchSearchParams = ref({
+  batch: '',
+  time: [],
+})
+function historyBatchSearch() {
+
+}
+function historyBatchSearchReset() {
+  Object.assign(historyBatchSearchParams, {
+    batch: '',
+    time: [],
+  })
+  pagination.pageNo = 1
+}
 let historyBatchTableData = reactive([
-  {batch: '20240707110459', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48', totalDates: 20, totalOrderQuantity: 368,},
-  {batch: '20240707110459', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48', totalDates: 20, totalOrderQuantity: 368,},
-  {batch: '20240707110459', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48', totalDates: 20, totalOrderQuantity: 368,},
+  {batch: '20240707110459', batchType: 'pre-order', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48', totalDates: 20, totalOrderQuantity: 368,},
+  {batch: '20240707110459', batchType: 'pre-order', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48', totalDates: 20, totalOrderQuantity: 368,},
+  {batch: '20240707110459', batchType: 'pre-order', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48', totalDates: 20, totalOrderQuantity: 368,},
 ])
 let historyBatchPagination = reactive({
   pageNo: 1,
@@ -668,29 +755,31 @@ onBeforeUnmount(() => {
     }
   }
 
-  .choosePurchase-dialog {
-    .choosePurchase-search {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      .choosePurchase-search-content {
-        flex: 1;
-        .choosePurchase-search-item {
-          display: flex;
-          align-items: center;
-          margin-bottom: 20px;
-          .choosePurchase-search-item-label {
-            word-break: keep-all;
-          }
-          .choosePurchase-search-item-input {
-            width: 200px;
+  .historyBatchSearch-wrapper {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    .historyBatchSearch-content {
+      flex: 1;
+      .historyBatchSearch-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        .historyBatchSearch-item-label {
+          word-break: keep-all;
+        }
+        .historyBatchSearch-item-input {
+          flex: 1;
+          :deep(div) {
+            box-sizing: border-box !important;
           }
         }
       }
-      .choosePurchase-search-btns {
-        display: flex;
-        justify-content: center;
-      }
+    }
+    .historyBatchSearch-btns {
+      width: 200px;
+      display: flex;
+      justify-content: center;
     }
   }
 

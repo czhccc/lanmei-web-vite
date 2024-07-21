@@ -93,7 +93,7 @@
               <el-form-item label="数量：" required>
                 <div style="width: 100%;display: flex;align-items: center;justify-content: space-between;">
                   <el-form-item prop="quantity" style="flex: 1;">
-                    <el-input-number v-model="form.quantity" placeholder="总量" maxlength="20" :controls="false" style="width: 100%;" />
+                    <el-input-number v-model="form.quantity" placeholder="总量" :precision="1" :min="0.1" :max="999999" :controls="false" style="width: 100%;" />
                   </el-form-item>
                   <div style="text-align: right;margin-left: 10px;">{{ form.goodsUnit || '单位' }}</div>
                 </div>
@@ -139,7 +139,7 @@
             <el-col :span="8">
               <el-form-item label="实付金额：" prop="realPayPrice">
                 <div style="width: 100%;display: flex;justify-content: space-between;">
-                  <el-input-number v-model="form.realPayPrice" :precision="2" placeholder="请输入" maxlength="20" :controls="false" style="width: 100%;" />
+                  <el-input-number v-model="form.realPayPrice" :precision="2" placeholder="请输入" :min="0.01" :max="999999" :controls="false" style="width: 100%;" />
                   <span style="margin-left: 10px">元</span>
                 </div>
               </el-form-item>
@@ -273,15 +273,15 @@ const formRules = reactive({
 
   quantity: [
     { required: true, message: '请输入商品数量', trigger: 'blur' },
-    { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
+    { type: 'number', min: 0.1, max: 999999, message: '请输入总数量', trigger: 'blur' },
   ],
   goodsPrice: [
     { required: true, message: '请输入商品金额', trigger: 'blur' },
-    { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 999999, message: '请输入总数量', trigger: 'blur' },
   ],
   realPayPrice: [
     { required: true, message: '请输入邮费', trigger: 'blur' },
-    { type: 'number', min: 0.01, max: 99999999, message: '请输入总数量', trigger: 'blur' },
+    { type: 'number', min: 0.01, max: 999999, message: '请输入总数量', trigger: 'blur' },
   ],
 
   customerPhone: [{ required: true, message: '请输入客户联系方式', trigger: 'blur' },],
