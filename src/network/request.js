@@ -40,37 +40,33 @@ service.interceptors.response.use(
     if (loadingInstance) loadingInstance.close();
 
     const res = response.data;
-
-    // 统一处理响应结果
+    
     if (res.code === 200) {
-      // 请求成功，返回数据
       return res;
     } else {
-      // 请求失败，根据返回的 code 进行提示
       ElMessage({
         message: res.message || 'Error',
         type: 'error',
-        duration: 5000
+        plain: true
       });
-
-      // 可以根据业务逻辑处理不同的 code
-      if (res.code === 401) {
-        // 例如 token 过期，重定向到登录页面
-        router.replace('/login');
-      }
 
       return Promise.reject(new Error(res.message || 'Error'));
     }
   },
   error => {
+    console.log('响应拦截器', error);
     // 关闭 Loading
     if (loadingInstance) loadingInstance.close();
 
+    if (error.response.data.code === 401) {
+      router.replace('/login');
+    }
+
     // 错误处理
     ElMessage({
-      message: error.message || 'Request failed',
+      message: error.response.data.message || error.message || '请求出现错误',
       type: 'error',
-      duration: 5000
+      plain: true
     });
 
     return Promise.reject(error);

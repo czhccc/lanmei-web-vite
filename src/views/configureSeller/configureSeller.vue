@@ -14,7 +14,7 @@
                 class="addressInput" 
                 v-model="item.address" 
                 placeholder="请输入详细地址"
-                maxlength="200" 
+                maxlength="100" 
                 show-word-limit
               />
             </div>
@@ -23,12 +23,10 @@
                 <div class="input-wrapper">
                   <div class="input-label">经度：</div>
                   <el-input class="input" v-model="item.lon" placeholder="请输入经度" @change="e => lonChange(e, index)" />
-                  <div class="error" v-if="item.lon">经度格式错误</div>
                 </div>
                 <div class="input-wrapper" style="margin-top: 10px;">
                   <div class="input-label">纬度：</div>
                   <el-input class="input" v-model="item.lat" placeholder="请输入纬度" @change="e => latChange(e, index)" />
-                  <div class="error" v-if="item.lat">纬度格式错误</div>
                 </div>
               </div>
             </div>
@@ -47,7 +45,7 @@
           <div class="content-left">#{{ index+1 }}</div>
           <div class="content-right">
             <div class="content-right-item">
-              <el-input class="type-input" placeholder="请输入类型" v-model="item.channel" />
+              <el-input class="type-input" placeholder="请输入类型" v-model="item.type" />
               <el-input class="value-input" placeholder="请输入联系方式" v-model="item.contact" />
             </div>
           </div>
@@ -90,44 +88,29 @@
 
 
 import { ref, reactive, shallowRef, onMounted, onBeforeUnmount } from 'vue'
+import Cookies from 'js-cookie';
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import '@wangeditor/editor/dist/css/style.css' // 引入 css
+import {
+  _updateAboutUs
+} from '@/network/aboutUs'
 
 let loadingInstance = null
 
 // 线下地址
 let offlineAddressList = reactive([
   {
-    address: '浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省',
-    lon: '',
-    lat: '',
-    isShowLonError: false,
-    isShowLatError: false,
+    address: '嵊州市美汐蓝莓专业合作社',
+    lon: '120.686843',
+    lat: '29.505098',
   },
   {
-    address: '浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省浙江省',
-    lon: '',
-    lat: '',
-    isShowLonError: false,
-    isShowLatError: false,
+    address: '萧山国际机场T4航站楼',
+    lon: '120.432993',
+    lat: '30.236717',
   },
 ])
-function lonChange(e, index) {
-  if (e) {
-    const regex = /^-?(((\d|[1-9]\d|1[0-7]\d|0)\.\d{0,10})|(\d|[1-9]\d|1[0-7]\d|0{1,3})|180\.0{0,10}|180)$/i;
-    offlineAddressList[index].isShowLonError = !regex.test(e)
-  } else {
-    offlineAddressList[index].isShowLonError = false
-  }
-}
-function latChange(e, index) {
-  if (e) {
-    const regex = /^-?([0-8]?\d{1}\.\d{0,10}|90\.0{0,10}|[0-8]?\d{1}|90)$/i;
-    offlineAddressList[index].isShowLatError = !regex.test(e)
-  } else {
-    offlineAddressList[index].isShowLatError = false
-  }
-}
+
 function addressDelete(item) {
   console.log(item)
   ElMessageBox.confirm(
@@ -148,19 +131,17 @@ function addressAddNew() {
     address: '',
     lon: '',
     lat: '',
-    isShowLonError: false,
-    isShowLatError: false,
   })
 }
 
 // 联系方式
 let contactList = reactive([
   {
-    channel: '手机号',
+    type: '手机号',
     contact: '13999999999',
   },
   {
-    channel: '微信号',
+    type: '微信号',
     contact: 'wx123456789',
   },
 ])
@@ -196,7 +177,35 @@ const richTextEditorRef = shallowRef()
 const richTextEditorMode = 'default' // default or simple
 const aboutUsRichText = ref('<p>hello</p>')
 const richTextEditorToolbarConfig = {}
-const richTextEditorConfig = { placeholder: '请输入内容...' }
+const richTextEditorConfig = { 
+  placeholder: '请输入内容...',
+  MENU_CONF: {
+    uploadImage: {
+      // 配置上传图片的服务器地址
+      server: 'http://localhost:8888/api/upload',
+
+      // 上传图片时的自定义参数，例如 token
+      fieldName: 'file',
+      allowedFileTypes: ['image/jpeg', 'image/png', 'image/jpg'], // 允许上传的文件类型
+
+      // 返回的数据格式，例如：{ errno: 0, data: { url: 'xxx' } }
+      customInsert(res, insertFn) {
+        if (res.code === 200) {
+          const url = res.data.url
+          // 调用 insertFn 插入图片
+          insertFn(url)
+        } else {
+          alert('上传失败')
+        }
+      },
+
+      // 配置文件上传的额外参数
+      headers: {
+        Authorization: `Bearer ${Cookies.get('token')}`,
+      },
+    },
+  },
+}
 
 const richTextEditorHandleCreated = (editor) => {
   richTextEditorRef.value = editor // 记录 editor 实例，重要！
@@ -213,7 +222,7 @@ onBeforeUnmount(() => {
 // 其他
 function submit() {
   for (const item of offlineAddressList) {
-    if (!item.address || !item.lon || !item.lat || item.isShowLonError || item.isShowLatError) {
+    if (!item.address || !item.lon || !item.lat) {
       ElMessage({
         message: '请检查线下地址项',
         type: 'warning',
@@ -223,8 +232,8 @@ function submit() {
     }
   }
 
-  for (const item of offlineAddressList) {
-    if (!item.type || !item.value) {
+  for (const item of contactList) {
+    if (!item.type || !item.contact) {
       ElMessage({
         message: '请检查联系方式项',
         type: 'warning',
@@ -242,9 +251,20 @@ function submit() {
       type: 'warning',
     }
   ).then(() => {
+    let content = {
+      address: offlineAddressList,
+      contact: contactList,
+      aboutUs: aboutUsRichText.value,
+    }
     
-  }).catch(() => {
-    
+    content = JSON.stringify(content)
+    console.log(content);
+
+    _updateAboutUs({
+      content
+    }).then(res => {
+      console.log(res);
+    })
   })
 }
 
