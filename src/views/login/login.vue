@@ -14,7 +14,7 @@
           <h2>登录</h2>
           <form>
             <div class="inputBox">
-              <input type="text" placeholder="请输入账号" v-model="account" />
+              <input type="text" placeholder="请输入手机号" v-model="phone" />
             </div>
             <div class="inputBox">
               <input type="text" placeholder="请输入密码" v-model="password" />
@@ -31,6 +31,10 @@
 
 <script setup>
 import { onMounted, onBeforeUnmount, ref } from 'vue';
+import Cookies from 'js-cookie';
+import {
+  _login
+} from '../../network/login'
 
 const box = ref(null);
 const resizeBox = () => {
@@ -51,16 +55,16 @@ onBeforeUnmount(() => {
 });
 
 
-let account = ref('')
-let password = ref('')
+let phone = ref('13989536936')
+let password = ref('123456')
 
 import { useRouter } from 'vue-router';
-const router = useRouter();
+const $router = useRouter();
 
 function login() {
-  if (!account.value) {
+  if (!phone.value) {
     ElMessage({
-      message: '请输入账号',
+      message: '请输入手机号',
       type: 'warning',
       plain: true,
     })
@@ -74,7 +78,17 @@ function login() {
     })
     return;
   }
-  router.replace('/home')
+
+  _login({
+    phone: phone.value,
+    password: password.value,
+  }).then(res => {
+    Cookies.set('token', res.data.token)
+    $router.replace('/home')
+  })
+
+  
+  // router.replace('/home')
 }
 
 </script>

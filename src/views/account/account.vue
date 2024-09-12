@@ -5,9 +5,9 @@
         <el-row :gutter="20">
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">账号：</div>
+              <div class="search-item-label">手机号：</div>
               <div class="search-item-input">
-                <el-input placeholder="请输入" clearable v-model="searchParams.account"></el-input>
+                <el-input placeholder="请输入" clearable v-model="searchParams.phone"></el-input>
               </div>
             </div>
           </el-col>
@@ -33,16 +33,9 @@
 
     <div class="table-wrapper">
       <el-table :height="tableHeight" :data="tableData">
-        <el-table-column prop="account" label="账号" align="center" />
-        <el-table-column prop="password" label="密码" align="center" />
+        <el-table-column prop="phone" label="手机号" align="center" />
         <el-table-column prop="name" label="姓名" align="center" />
-        <el-table-column prop="role" label="角色" align="center" />
-        <el-table-column prop="remark" label="备注" align="center" />
-        <el-table-column prop="usable" label="状态" align="center" >
-          <template #default="scope">
-            <el-switch v-model="scope.row.usable" active-text="启用" inactive-text="冻结" />
-          </template>
-        </el-table-column>
+        <el-table-column prop="roleText" label="角色" align="center" />
         <el-table-column fixed="right" label="操作" width="160" align="center" >
           <template #default="scope">
             <el-button link type="primary" @click="tableEdit(scope.row)">编辑</el-button>
@@ -75,33 +68,27 @@
     >
       <div class="form-content">
         <el-form ref="formRef" :model="form" :rules="formRules" label-width="auto" :disabled="formTitle==='详情'">
-          <el-form-item label="账号" prop="account">
-            <el-input v-model="form.account" placeholder="请输入" maxlength="20" clearable />
-          </el-form-item>
-          <el-form-item label="密码" prop="password">
-            <el-input v-model="form.password" placeholder="请输入" maxlength="20" clearable />
+          <el-form-item label="手机号" prop="phone">
+            <el-input v-model="form.phone" placeholder="请输入" maxlength="20" clearable />
           </el-form-item>
           <el-form-item label="姓名" prop="name">
             <el-input v-model="form.name" placeholder="请输入" maxlength="20" clearable />
           </el-form-item>
+          <el-form-item label="密码" prop="password">
+            <el-input v-model="form.password" placeholder="请输入" maxlength="20" clearable />
+          </el-form-item>
           <el-form-item label="角色" prop="role">
             <el-select v-model="form.role" placeholder="请选择" clearable>
-              <el-option label="管理员" value="admin" />
-              <el-option label="超级管理员" value="superadmin" />
+              <el-option label="管理员" :value="1" />
+              <el-option label="超级管理员" :value="2" />
             </el-select>
-          </el-form-item>
-          <el-form-item label="备注" prop="remark">
-            <el-input type="textarea" autosize v-model="form.remark" maxlength="200" show-word-limit placeholder="请输入" clearable />
-          </el-form-item>
-          <el-form-item label="状态" prop="usable">
-            <el-switch v-model="form.usable" active-text="启用" inactive-text="冻结" />
           </el-form-item>
         </el-form>
       </div>
       <template #footer v-if="formTitle!=='详情'">
         <div class="form-btns">
           <el-button @click="formCancel">取消</el-button>
-          <el-button type="primary" @click="formSubmit">提交</el-button>
+          <el-button type="primary" :loading="isFormSubmiting" @click="formSubmit">提交</el-button>
         </div>
       </template>
     </el-dialog>
@@ -112,11 +99,15 @@
 <script setup>
 import { onMounted, reactive, ref, nextTick } from 'vue';
 
-let loadingInstance = null
+import {
+  _getAdminList,
+  _createOrUpdateAdmin,
+  _deleteAdmin
+} from '@/network/account'
 
 // Table
 let searchParams = reactive({
-  account: '',
+  phone: '',
   name: '',
 })
 let tableData = ref([])
@@ -131,19 +122,16 @@ let isShowForm = ref(false)
 let formTitle = ref('')
 let formRef = ref(null)
 let form = reactive({
-  account: '',
+  phone: '',
   password: '',
   name: '',
   role: '',
-  remark: '',
-  usable: true
 })
 const formRules = reactive({
-  account: [{ required: true, message: '请输入账号', trigger: 'blur' },],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' },],
+  phone: [{ required: true, message: '请输入手机号', trigger: 'blur' },],
+  password: [{ required: false, message: '请输入密码', trigger: 'blur' },],
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' },],
   role: [{ required: true, message: '请选择角色', trigger: 'blur' },],
-  usable: [{ required: true, message: '请选择状态', trigger: 'blur' },],
 })
 
 const calculateTableHeight = () => {
@@ -154,68 +142,45 @@ const calculateTableHeight = () => {
   tableHeight.value = viewportHeight - searchWrapperHeight - optionsWrapperHeight - paginationWrapperHeight - 120;
 };
 function search() {
-
+  getList()
 }
 function searchReset() {
   Object.assign(searchParams, {
-    account: '',
+    phone: '',
     name: '',
   })
   pagination.pageNo = 1
+  getList()
 }
 function tablePageSizeChange(newPageSize) {
-  console.log(newPageSize)
+  pagination.pageSize = newPageSize
+  getList()
 }
 function tablePageNoChange(newPageNo) {
-  console.log(newPageNo)
+  pagination.pageNo = newPageNo
+  getList()
 }
-function tableAdd(record) {
-  // console.log(record.date)
+function tableAdd() {
   formTitle.value = '新增'
   isShowForm.value = true
   nextTick(() => {
     formRef.value.resetFields()
-
-    const date = new Date()
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    form.batch = `${year}${month}${day}${hours}${minutes}${seconds}`;
+    Object.assign(form, {
+      phone: '',
+      password: '',
+      name: '',
+      role: 1,
+    })
   })
   
 }
-function tableDetail(record) {
-  // console.log(record.date)
-  formTitle.value = '详情'
-  isShowForm.value = true
-  nextTick(() => {
-    formRef.value.resetFields()
-    Object.assign(form, { // reactive 直接替换对象的引用不会影响原始对象的代理
-      account: '112233',
-      password: '123456',
-      name: '雅儿贝德',
-      role: 'superadmin',
-      remark: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-      usable: true
-    })
-  })
-}
 function tableEdit(record) {
-  // console.log(record.date)
   formTitle.value = '编辑'
   isShowForm.value = true
   nextTick(() => {
     formRef.value.resetFields()
-    Object.assign(form, { // reactive 直接替换对象的引用不会影响原始对象的代理
-      account: '112233',
-      password: '123456',
-      name: '雅儿贝德',
-      role: 'superadmin',
-      remark: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-      usable: true
+    Object.assign(form, {
+      ...record
     })
   })
 }
@@ -228,9 +193,16 @@ function tableDelete(record) {
       type: 'warning',
     }
   ).then(() => {
-    
-  }).catch(() => {
-    
+    _deleteAdmin({
+      phone: record.phone
+    }).then(res => {
+      ElMessage({
+        message: res.message,
+        type: 'success',
+        plain: true,
+      })
+      getList()
+    })
   })
 }
 
@@ -243,35 +215,46 @@ function formSubmit() {
   formRef.value.validate((valid, fields) => {
     if (valid) {
       isFormSubmiting.value = true
-      console.log('submit!', form)
+
+      _createOrUpdateAdmin(form).then(res => {
+        ElMessage({
+          message: res.message,
+          type: 'success',
+          plain: true,
+        })
+
+        isShowForm.value = false
+        getList()
+      }).finally(() => {
+        isFormSubmiting.value = false
+      })
     }
   })
 }
 
 
+const getList = () => {
+  _getAdminList({
+    ...searchParams,
+    pageNo: pagination.pageNo,
+    pageSize: pagination.pageSize,
+  }).then(res => {
+    tableData.value = res.data.records.map(item => {
+      return {
+        ...item,
+        roleText: item.role===1?'管理员':'超级管理员'
+      }
+    })
+    pagination.total = res.data.total
+  })
+}
+
 
 onMounted(() => {
-  for (let i = 0; i < 100; i++) {
-    tableData.value.push({
-      account: '112233',
-      password: '123456',
-      name: '雅儿贝德',
-      role: 'superadmin',
-      remark: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-      usable: true
-    })
-  }
-  pagination.total = tableData.value.length
-
   calculateTableHeight()
 
-  loadingInstance = ElLoading.service({text: '加载中...'})
-  setTimeout(() => {
-    loadingInstance.close()
-  }, 500)
+  getList()
 })
-
-
 
 </script>
 
