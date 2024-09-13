@@ -102,6 +102,10 @@
 import { ElMessage } from 'element-plus';
 import { onMounted, reactive, ref, nextTick } from 'vue';
 
+import {
+  _getCommentList
+} from '@/network/comment'
+
 let loadingInstance = null
 
 // Table
