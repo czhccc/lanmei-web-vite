@@ -32,7 +32,7 @@
             </div>
           </div>
           <div class="delete-wrapper">
-            <el-icon class="delete-icon"><i-ep-Delete class="loginOut" @click="addressDelete(item)" /></el-icon>
+            <el-icon class="delete-icon"><i-ep-Delete class="loginOut" @click="addressDelete(index)" /></el-icon>
           </div>
         </div>
         <el-button type="primary" @click="addressAddNew">新增</el-button>
@@ -50,7 +50,7 @@
             </div>
           </div>
           <div class="delete-wrapper">
-            <el-icon class="delete-icon"><i-ep-Delete class="loginOut" @click="contactDelete(item)" /></el-icon>
+            <el-icon class="delete-icon"><i-ep-Delete class="loginOut" @click="contactDelete(index)" /></el-icon>
           </div>
         </div>
         <el-button type="primary" @click="contactAddNew">新增</el-button>
@@ -58,10 +58,10 @@
     </div>
     <div class="item aboutUs">
       <div class="title">关于我们</div>
-      <div class="isShowAboutUs-wrapper">
+      <!-- <div class="isShowAboutUs-wrapper">
         是否展示：
         <el-switch v-model="isShowAboutUs" size="large" active-text="展示" inactive-text="隐藏" />
-      </div>
+      </div> -->
       <div class="richText-wrapper">
         <Toolbar
           :editor="richTextEditorRef"
@@ -92,39 +92,26 @@ import Cookies from 'js-cookie';
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import '@wangeditor/editor/dist/css/style.css' // 引入 css
 import {
+  _getAboutUs,
   _updateAboutUs
 } from '@/network/aboutUs'
 
-let loadingInstance = null
-
 // 线下地址
 let offlineAddressList = reactive([
-  {
-    address: '嵊州市美汐蓝莓专业合作社',
-    lon: '120.686843',
-    lat: '29.505098',
-  },
-  {
-    address: '萧山国际机场T4航站楼',
-    lon: '120.432993',
-    lat: '30.236717',
-  },
+  // {
+  //   address: '嵊州市美汐蓝莓专业合作社',
+  //   lon: '120.686843',
+  //   lat: '29.505098',
+  // },
+  // {
+  //   address: '萧山国际机场T4航站楼',
+  //   lon: '120.432993',
+  //   lat: '30.236717',
+  // },
 ])
 
-function addressDelete(item) {
-  console.log(item)
-  ElMessageBox.confirm(
-    '确定删除?',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  ).then(() => {
-    
-  }).catch(() => {
-    
-  })
+function addressDelete(index) {
+  offlineAddressList.splice(index, 1)
 }
 function addressAddNew() {
   offlineAddressList.push({
@@ -135,29 +122,9 @@ function addressAddNew() {
 }
 
 // 联系方式
-let contactList = reactive([
-  {
-    type: '手机号',
-    contact: '13999999999',
-  },
-  {
-    type: '微信号',
-    contact: 'wx123456789',
-  },
-])
-function contactDelete(item) {
-  ElMessageBox.confirm(
-    '确定删除?',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  ).then(() => {
-    
-  }).catch(() => {
-    
-  })
+let contactList = reactive([])
+function contactDelete(index) {
+  contactList.splice(index, 1)
 }
 function contactAddNew() {
   contactList.push({
@@ -167,7 +134,7 @@ function contactAddNew() {
 }
 
 // 关于我们
-let isShowAboutUs = ref(false)
+// let isShowAboutUs = ref(false)
 
 // 富文本编辑器
 // 编辑器实例，必须用 shallowRef
@@ -251,28 +218,26 @@ function submit() {
       type: 'warning',
     }
   ).then(() => {
-    let content = {
+    _updateAboutUs({
       address: offlineAddressList,
       contact: contactList,
       aboutUs: aboutUsRichText.value,
-    }
-    
-    content = JSON.stringify(content)
-    console.log(content);
-
-    _updateAboutUs({
-      content
     }).then(res => {
-      console.log(res);
+      ElMessage({
+        message: '修改成功',
+        type: 'success',
+        plain: true,
+      })
     })
   })
 }
 
 onMounted(() => {
-  loadingInstance = ElLoading.service({text: '加载中...'})
-  setTimeout(() => {
-    loadingInstance.close()
-  }, 500)
+  _getAboutUs().then(res => {
+    offlineAddressList.push(...res.data[0].address) 
+    contactList.push(...res.data[0].contact)
+    aboutUsRichText.value = res.data[0].aboutUs
+  })
 })
 
 </script>

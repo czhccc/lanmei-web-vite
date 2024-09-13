@@ -27,6 +27,7 @@ service.interceptors.request.use(
     return config;
   },
   error => {
+    console.log('请求拦截器')
     // 关闭 Loading 并抛出错误
     if (loadingInstance) loadingInstance.close();
     return Promise.reject(error);
@@ -44,6 +45,7 @@ service.interceptors.response.use(
     if (res.code === 200) {
       return res;
     } else {
+      console.log('响应拦截器', res);
       ElMessage({
         message: res.message || 'Error',
         type: 'error',
