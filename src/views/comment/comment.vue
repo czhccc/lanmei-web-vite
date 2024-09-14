@@ -8,8 +8,8 @@
               <div class="search-item-label">是否已回复：</div>
               <div class="search-item-input">
                 <el-select v-model="searchParams.hasResponsed" placeholder="请选择" clearable>
-                  <el-option label="已回复" value="状态1" />
-                  <el-option label="未回复" value="状态2" />
+                  <el-option label="未回复" :value="false" />
+                  <el-option label="已回复" :value="true" />
                 </el-select>
               </div>
             </div>
@@ -25,10 +25,10 @@
     <div class="table-wrapper">
       <el-table :height="tableHeight" :data="tableData">
         <el-table-column prop="comment" label="留言内容" align="center" />
-        <el-table-column prop="commentPerson" label="留言人" align="center" />
+        <el-table-column prop="commentAuthor" label="留言人" align="center" />
         <el-table-column prop="commentTime" label="留言时间" width="170" align="center" />
         <el-table-column prop="response" label="回复内容" align="center" />
-        <el-table-column prop="responsePerson" label="回复人" align="center" />
+        <el-table-column prop="responseAuthor" label="回复人" align="center" />
         <el-table-column prop="responseTime" label="回复时间" width="170" align="center" />
         <el-table-column fixed="right" label="操作" width="160" align="center" >
           <template #default="scope">
@@ -64,18 +64,23 @@
           <el-timeline-item timestamp="留言" placement="top">
             <el-card>
               <div class="responseDetail-title">
-                <span>留言人XXX</span>
-                <span>2024-07-01 20:23:51</span>
+                <span>{{ commentDetail.commentAuthor }}</span>
+                <span>{{ commentDetail.commentTime }}</span>
               </div>
-              <div class="responseDetail-value">11111111111111111111111111111111111我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注11111111111111111111111111111111111我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注</div>
+              <div class="responseDetail-value">{{ commentDetail.comment }}</div>
+            </el-card>
+          </el-timeline-item>
+          <el-timeline-item :timestamp="'历史回复'+(index+1)" placement="top" v-for="(response, index) in commentDetail.responses" :key="index">
+            <el-card>
+              <div class="responseDetail-title">
+                <span>{{ response.responseAuthor }}</span>
+                <span>{{ response.responseTime }}</span>
+              </div>
+              <div class="responseDetail-value">{{ response.response }}</div>
             </el-card>
           </el-timeline-item>
           <el-timeline-item timestamp="回复" placement="top">
             <el-card>
-              <div class="responseDetail-title">
-                <span>回复人XXX</span>
-                <span>2024-07-01 20:23:51</span>
-              </div>
               <el-input 
                 style="margin-top: 10px;"
                 type="textarea"
@@ -102,15 +107,17 @@
 import { ElMessage } from 'element-plus';
 import { onMounted, reactive, ref, nextTick } from 'vue';
 
-import {
-  _getCommentList
-} from '@/network/comment'
+import dayjs from 'dayjs'
 
-let loadingInstance = null
+import {
+  _getCommentList,
+  _getCommentDetailById,
+  _response
+} from '@/network/comment'
 
 // Table
 let searchParams = reactive({
-  hasResponsed: '',
+  hasResponsed: null,
 })
 let tableData = ref([])
 let tableHeight = ref(0)
@@ -127,27 +134,50 @@ const calculateTableHeight = () => {
   tableHeight.value = viewportHeight - searchWrapperHeight - paginationWrapperHeight - 120;
 };
 function search() {
-
+  getList()
 }
 function searchReset() {
   Object.assign(searchParams, {
-    hasResponsed: '',
+    hasResponsed: null,
   })
   pagination.pageNo = 1
+  getList()
 }
 function tablePageSizeChange(newPageSize) {
-  console.log(newPageSize)
+  pagination.pageSize = newPageSize
+  getList()
 }
 function tablePageNoChange(newPageNo) {
-  console.log(newPageNo)
+  pagination.pageNo = newPageNo
+  getList()
 }
 
 let isShowResponseDetail = ref(false)
+let commentDetail = reactive({})
 let responseInputValue = ref('')
+let commentId = null
 
+function getCommentDetailById() {
+  _getCommentDetailById({ commentId: commentId }).then(res => {
+    let result = res.data
+    result.commentTime = dayjs(result.commentTime).format('YYYY-MM-DD HH:mm')
+    result.responses = result.responses.map(item => {
+      return {
+        ...item,
+        responseTime: dayjs(item.responseTime).format('YYYY-MM-DD HH:mm')
+      }
+    })
+
+    commentDetail = Object.assign(commentDetail, result)
+    responseInputValue.value = ''
+
+    isShowResponseDetail.value = true
+  })
+}
 function tableDetail(record) {
-  responseInputValue.value = '11111111111111111111111111111111111我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注11111111111111111111111111111111111我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注'
-  isShowResponseDetail.value = true
+  commentId = record.commentId
+
+  getCommentDetailById()
 }
 
 
@@ -163,32 +193,46 @@ function submitResponse() {
     }
   ).then(() => {
     isFormSubmiting.value = true
-  }).catch(() => {
-    
+
+    _response({
+      commentId: commentId,
+      response: responseInputValue.value,
+    }).then(res => {
+      ElMessage({
+        message: res.message,
+        type: 'success',
+        plain: true,
+      })
+
+      getCommentDetailById()
+      getList()
+    }).finally(() => {
+      isFormSubmiting.value = false
+    })
   })
 }
 
-
+function getList() {
+  _getCommentList({
+    ...searchParams,
+    pageNo: pagination.pageNo,
+    pageSize: pagination.pageSize,
+  }).then(res => {
+    tableData.value = res.data.records.map(item => {
+      return {
+        ...item,
+        commentTime: item.commentTime&&dayjs(item.commentTime).format('YYYY-MM-DD HH:mm') || null,
+        responseTime: item.responseTime&&dayjs(item.responseTime).format('YYYY-MM-DD HH:mm') || null,
+      }
+    })
+    pagination.total = res.data.total
+  })
+}
 
 onMounted(() => {
-  for (let i = 0; i < 100; i++) {
-    tableData.value.push({
-      comment: '11111111111111111111111111111111111我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注11111111111111111111111111111111111我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-      commentPerson: '123456',
-      commentTime: '2024-07-01 20:23:51',
-      response: '我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注11111111111111111111111111111111111我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-      responsePerson: 'czhhhh',
-      responseTime: '2024-07-01 20:23:51',
-    })
-  }
-  pagination.total = tableData.value.length
-
   calculateTableHeight()
 
-  loadingInstance = ElLoading.service({text: '加载中...'})
-  setTimeout(() => {
-    loadingInstance.close()
-  }, 500)
+  getList()
 })
 
 

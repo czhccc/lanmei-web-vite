@@ -3,17 +3,27 @@ import request from './request'
 // 获取评论列表
 export function _getCommentList(data) {
   return request({
-    url: '/getCommentList',
+    url: '/comment/getCommentList',
     method: 'get',
-    data
+    params: data
   });
 }
 
-// 更新
-// export function _updateAboutUs(data) {
-//   return request({
-//     url: '/aboutUs',
-//     method: 'post',
-//     data
-//   });
-// }
+// 获取评论详情
+export function _getCommentDetailById(data) {
+  return request({
+    url: '/comment/getCommentDetailById',
+    method: 'get',
+    params: data
+  });
+}
+
+
+// 评论
+export function _response(data) {
+  return request({
+    url: '/comment/response',
+    method: 'post',
+    data
+  });
+}
