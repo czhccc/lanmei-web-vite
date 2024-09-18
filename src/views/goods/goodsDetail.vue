@@ -29,21 +29,21 @@
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="商品名称：">
-                <el-input v-model="form.name" placeholder="请输入" maxlength="50" clearable />
+              <el-form-item label="商品名称：" prop="goodsName">
+                <el-input v-model="form.goodsName" placeholder="请输入" maxlength="50" clearable />
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="单位：">
-                <el-input v-model="form.unit" placeholder="请输入" maxlength="50" clearable />
+              <el-form-item label="商品单位：" prop="goodsUnit">
+                <el-input v-model="form.goodsUnit" placeholder="请输入" maxlength="50" clearable />
               </el-form-item>
             </el-col>
           </el-row>
           <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item label="是否上架：" prop="isSelling">
+              <el-form-item label="是否上架：" prop="goodsIsSelling">
                 <el-switch
-                  v-model="form.isSelling"
+                  v-model="form.goodsIsSelling"
                   active-text="上架"
                   inactive-text="下架"
                   inline-prompt
@@ -51,8 +51,8 @@
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="备注：" prop="remark">
-                <el-input type="textarea" autosize v-model="form.remark" maxlength="200" show-word-limit placeholder="请输入" clearable />
+              <el-form-item label="备注：" prop="goodsRemark">
+                <el-input type="textarea" autosize v-model="form.goodsRemark" maxlength="200" show-word-limit placeholder="请输入" clearable />
               </el-form-item>
             </el-col>
           </el-row>
@@ -128,7 +128,7 @@
         </div>
       </div>
 
-      <div class="item">
+      <div class="item" v-if="$route.query.flag==='edit'">
         <div class="title">
           当前批次
           <div>
@@ -208,7 +208,7 @@
     </el-form>
 
     
-    <div class="item">
+    <div class="item" v-if="$route.query.flag==='edit'">
       <div class="title">
         历史批次
       </div>
@@ -303,7 +303,7 @@
     </div>
     
     <div class="btns" v-if="$route.query.flag!=='detail'">
-      <el-button type="primary" class="submitBtn" :loading=isSubmiting @click="toSubmit">提 交</el-button>
+      <el-button type="primary" class="submitBtn" :loading=isFormSubmiting @click="toSubmit">提 交</el-button>
     </div>
 
 
@@ -346,6 +346,11 @@ import '@wangeditor/editor/dist/css/style.css' // 引入 css
 
 import Sortable from 'sortablejs';
 import { ElMessage } from 'element-plus';
+
+import {
+  _createOrUpdateGoods,
+} from '@/network/goods'
+
 const fileSortableList = ref(null);
 let fileSortableInstance = null;
 
@@ -354,10 +359,15 @@ const $router = useRouter()
 console.log($route.query.flag)
 
 let formRef = ref(null)
-let isSubmiting = ref(false)
+let isFormSubmiting = ref(false)
 let isDeleting = ref(false)
 
 let form = reactive({
+  goodsName: '',
+  goodsUnit: '',
+  goodsIsSelling: false,
+  goodsRemark: '',
+
   orderNo: '',
   orderType: '',
   orderTypeText: '',
@@ -377,6 +387,12 @@ let form = reactive({
   selfRemark: '',
 })
 const formRules = reactive({
+  goodsName: [{ required: true, message: '请输入商品名称', trigger: 'blur' },],
+  goodsUnit: [{ required: true, message: '请输入商品单位', trigger: 'blur' },],
+  goodsIsSelling: [{ required: true, message: '请选择是否上架', trigger: 'blur' },],
+  goodsRemark: [{ required: false, message: '请输入商品备注', trigger: 'blur' },],
+  
+
   lowestUnitPrice: [
     { required: true, message: '请输入最低单价', trigger: 'blur' },
     { type: 'number', min: 0.01, max: 999999, message: '请输入最低单价', trigger: 'blur' },
@@ -494,16 +510,16 @@ function toSubmit() {
     if (valid) {
       console.log('submit!', form)
 
-      for (const item of discounts.value) { // 检查优惠策略
-        if (!item.quantity || !item.discount) {
-          ElMessage({
-            message: '请完善优惠策略',
-            type: 'warning',
-            plain: true,
-          })
-          return;
-        }
-      }
+      // for (const item of discounts.value) { // 检查优惠策略
+      //   if (!item.quantity || !item.discount) {
+      //     ElMessage({
+      //       message: '请完善优惠策略',
+      //       type: 'warning',
+      //       plain: true,
+      //     })
+      //     return;
+      //   }
+      // }
 
       ElMessageBox.confirm(
         '确定提交保存?',
@@ -513,12 +529,24 @@ function toSubmit() {
           type: 'warning',
         }
       ).then(() => {
-        isSubmiting.value = true
-        // $router.replace({
-        //   path: '/order'
-        // })
-      }).catch(() => {
-        
+        isFormSubmiting.value = true
+
+        _createOrUpdateGoods({
+          goodsName: form.goodsName,
+          goodsUnit: form.goodsUnit,
+          goodsIsSelling: form.goodsIsSelling ? 1 : 0,
+          goodsRemark: form.goodsRemark,
+        }).then(res => {
+          ElMessage({
+            message: res.message,
+            type: 'success',
+            plain: true,
+          })
+
+          $router.back()
+        }).finally(() => {
+          isFormSubmiting.value = false
+        })
       })
     }
   })
@@ -640,13 +668,7 @@ onMounted(() => {
     disabled: $route.query.flag==='detail' ? true : false
   });
 
-  Object.assign(form, { // reactive 直接替换对象的引用不会影响原始对象的代理
-    no: '202407022236526936',
-    name: '蓝莓大果',
-    unit: '斤',
-    isSelling: true,
-    remark: '我是备注我是备注我是备注2222222222222222222222222222222我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-  })
+
 })
 
 onBeforeUnmount(() => {
