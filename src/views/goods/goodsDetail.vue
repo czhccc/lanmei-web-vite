@@ -66,7 +66,7 @@
               <!-- <el-upload
                 class="uploader"
                 :http-request="customSwiperUpload"
-                v-model:file-list="fileList"
+                v-model:file-list="swiperList"
                 list-type="picture-card"
                 :on-preview="handlePictureCardPreview"
                 :show-file-list="false"
@@ -84,27 +84,27 @@
                 style="display: none"
               />
 
-              <div class="fileList-preview-wrapper" ref="fileSortableList">
+              <div class="swiperList-preview-wrapper" ref="fileSortableList">
                 <div 
-                  v-for="(file, index) in fileList" :key="index"
-                  class="fileList-preview-item">
-                  <div class="fileList-preview-image-wrapper" v-if="file.type==='image'">
+                  v-for="(file, index) in swiperList" :key="index"
+                  class="swiperList-preview-item">
+                  <div class="swiperList-preview-image-wrapper" v-if="file.type==='image'">
                     <el-image
                       fit="scale-down"
                       :src="file.url"
                       :preview-src-list="[file.url]"
                       hide-on-click-modal
-                      class="fileList-preview-image"
+                      class="swiperList-preview-image"
                     />
-                    <div class="fileList-preview-options">
+                    <div class="swiperList-preview-options">
                       <span @click="fileRemove(index)" >
                         <el-icon><i-ep-Delete /></el-icon>
                       </span>
                     </div>
                   </div>
-                  <div class="fileList-preview-video" v-if="file.type==='video'">
+                  <div class="swiperList-preview-video" v-if="file.type==='video'">
                     <video :src="file.url" controls width="200" height="200"></video>
-                    <div class="fileList-preview-options">
+                    <div class="swiperList-preview-options">
                       <span @click="fileRemove(index)" >
                         <el-icon><i-ep-Delete /></el-icon>
                       </span>
@@ -446,45 +446,29 @@ const formRules = reactive({
   customerRemark: [{ required: false, message: '请输入客户备注', trigger: 'blur' },],
 })
 
-let fileList = reactive([
-  {
-    name: '1',
-    type: 'image',
-    url: 'https://pic2.zhimg.com/v2-934ad72f31d359ee5aa4401920580ec9_r.jpg',
-  },
-  {
-    name: '2',
-    type: 'image',
-    url: 'https://pic.rmb.bdstatic.com/8f0bf441ad93e14407c86105e1526e5d.jpeg',
-  },
-  {
-    name: '3',
-    type: 'image',
-    url: 'https://dcoco.net/image/catalog/Yaerbeide/05.jpg',
-  },
-  {
-    name: '4',
-    type: 'image',
-    url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100',
-  },
-  {
-    name: '5',
-    type: 'video',
-    url: 'https://vdept3.bdstatic.com/mda-pi1c6afrc82uiiyx/cae_h264/1693708525397288864/mda-pi1c6afrc82uiiyx.mp4?v_from_s=hkapp-haokan-nanjing&auth_key=1720073874-0-0-ceddfd6f96d65ccfb6ec370b36f1568c&bcevod_channel=searchbox_feed&pd=1&cr=0&cd=0&pt=3&logid=1073948971&vid=4849312402729774176&klogid=1073948971&abtest=',
-  },
-])
+let swiperList = reactive([])
 const isShowFilePreview = ref(false)
 const filePreviewUrl = ref('')
 
 const fileInput = ref(null);  // 引用文件输入框
-// 手动触发文件输入框的点击事件
-function triggerFileInput() {
+
+function triggerFileInput() { // 手动触发文件输入框的点击事件
   fileInput.value.click();
 };
-// 当用户选择文件时调用此方法
 function handleFileChange(event) {
-  const file = event.target.files[0];  // 获取选中的文件
+  const file = event.target.files[0];
+  
   if (file) {
+    let fileType = ''
+    if (file.type.includes('image')) {
+      fileType = 'image'
+    } else if (file.type.includes('video')) {
+      fileType = 'video'
+    } else {
+      alert('未知文件类型')
+      return;
+    }
+
     // 检查文件大小是否超过限制，例如限制为 10MB
     // const maxSize = 10 * 1024 * 1024;  // 10MB
     // if (file.size > maxSize) {
@@ -496,13 +480,16 @@ function handleFileChange(event) {
     formData.append('file', file);
 
     _uploadFile(formData).then(res => {
-      console.log(res);
+      swiperList.push({
+        type: fileType,
+        url: res.data.url
+      })
     })
   }
 }
 
-function fileRemove(uploadFile, uploadFiles) {
-  console.log(uploadFile, uploadFiles)
+function fileRemove(index) {
+  swiperList.splice(index, 1)
 }
 
 function handlePictureCardPreview(uploadFile) {
@@ -513,13 +500,13 @@ const fileSortableEnd = (evt) => {
   const { oldIndex, newIndex } = evt;
 
   if (oldIndex !== newIndex) {
-    let tempFileList = JSON.parse(JSON.stringify(fileList))
+    let tempFileList = JSON.parse(JSON.stringify(swiperList))
     
     const movedItem = tempFileList.splice(oldIndex, 1)[0];
     tempFileList.splice(newIndex, 0, movedItem);
     
-    fileList = []
-    Object.assign(fileList, tempFileList)
+    swiperList = []
+    Object.assign(swiperList, tempFileList)
   }
 };
 
@@ -530,7 +517,7 @@ const richTextEditorRef = shallowRef()
 
 // 内容 HTML
 const richTextEditorMode = 'default' // default or simple
-const goodsRichText = ref('')
+const goodsRichText = ref('<p>暂无更多介绍</p>')
 const richTextEditorToolbarConfig = {}
 const richTextEditorConfig = { 
   placeholder: '请输入内容...',
@@ -592,6 +579,9 @@ function toSubmit() {
           goodsUnit: form.goodsUnit,
           goodsIsSelling: form.goodsIsSelling ? 1 : 0,
           goodsRemark: form.goodsRemark,
+
+          // 轮播图
+          swiperList: swiperList,
 
           // 商品富文本
           goodsRichText: goodsRichText.value
@@ -722,16 +712,16 @@ function seeHistoryBatchStatistic() { // 查看历史批次统计数据
 
 
 function getGoodsDetailById() { // 获取详情
-  _getGoodsDetailById({ id: 2 }).then(res => {
-    console.log('id', res)
+  _getGoodsDetailById({ id: $route.query.id }).then(res => {
     Object.assign(form, {
-      goodsNo: res.data.id,
-      goodsName: res.data.goods_name,
-      goodsUnit: res.data.goods_unit,
-      goodsIsSelling: res.data.goods_isSelling===1 ? true : false,
-      goodsRemark: res.data.goods_remark,
+      goodsNo: res.data.goodsId,
+      goodsName: res.data.goodsName,
+      goodsUnit: res.data.goodsUnit,
+      goodsIsSelling: res.data.goodsIsSelling===1 ? true : false,
+      goodsRemark: res.data.goodsRemark,
     })
-    goodsRichText.value = res.data.goods_richText
+    goodsRichText.value = res.data.goodsRichText
+    swiperList = res.data.swiperList
   })
 }
 
@@ -802,13 +792,13 @@ onBeforeUnmount(() => {
           .uploader {
 
           }
-          .fileList-preview-wrapper {
+          .swiperList-preview-wrapper {
             display: flex;
             align-items: center;
             margin-top: 20px;
-            .fileList-preview-item {
+            .swiperList-preview-item {
               margin-right: 20px;
-              .fileList-preview-options {
+              .swiperList-preview-options {
                 display: flex;
                 justify-content: space-around;
                 align-items: center;
@@ -819,16 +809,16 @@ onBeforeUnmount(() => {
                 }
               }
             }
-            .fileList-preview-image-wrapper {
-              .fileList-preview-image {
+            .swiperList-preview-image-wrapper {
+              .swiperList-preview-image {
                 width: 200px;
                 height: 200px;
                 border: 1px solid #ccc;
                 border-radius: 6px;
               }
             }
-            .fileList-preview-video-wrapper {
-              .fileList-preview-video {
+            .swiperList-preview-video-wrapper {
+              .swiperList-preview-video {
                 border: 1px solid #ccc;
                 border-radius: 6px;
               }

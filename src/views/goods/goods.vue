@@ -174,8 +174,8 @@ function tableEdit(record) {
   $router.push({
     path: '/goodsDetail',
     query: {
-      id: record.id,
-      flag: 'edit'
+      flag: 'edit',
+      id: record.goodsNo,
     }
   })
 }
