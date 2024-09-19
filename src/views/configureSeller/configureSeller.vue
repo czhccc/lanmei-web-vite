@@ -95,6 +95,9 @@ import {
   _getAboutUs,
   _updateAboutUs
 } from '@/network/aboutUs'
+import {
+  _uploadFile
+} from '@/network/upload'
 
 // 线下地址
 let offlineAddressList = reactive([
@@ -142,7 +145,7 @@ const richTextEditorRef = shallowRef()
 
 // 内容 HTML
 const richTextEditorMode = 'default' // default or simple
-const aboutUsRichText = ref('<p>hello</p>')
+const aboutUsRichText = ref('')
 const richTextEditorToolbarConfig = {}
 const richTextEditorConfig = { 
   placeholder: '请输入内容...',
@@ -155,20 +158,13 @@ const richTextEditorConfig = {
       fieldName: 'file',
       allowedFileTypes: ['image/jpeg', 'image/png', 'image/jpg'], // 允许上传的文件类型
 
-      // 返回的数据格式，例如：{ errno: 0, data: { url: 'xxx' } }
-      customInsert(res, insertFn) {
-        if (res.code === 200) {
-          const url = res.data.url
-          // 调用 insertFn 插入图片
-          insertFn(url)
-        } else {
-          alert('上传失败')
-        }
-      },
-
-      // 配置文件上传的额外参数
-      headers: {
-        Authorization: `Bearer ${Cookies.get('token')}`,
+      async customUpload(file, insertFn) {
+        const formData = new FormData()
+        formData.append('file', file)
+        _uploadFile(formData).then(res => {
+          // 最后插入图片
+          insertFn(res.data.url)
+        })
       },
     },
   },

@@ -6,7 +6,6 @@
       :model="form" 
       :rules="formRules" 
       label-width="auto"
-      :disabled="$route.query.flag==='detail'"
     >
       <div class="item">
         <div class="title">
@@ -25,7 +24,7 @@
           <el-row :gutter="20">
             <el-col :span="8" v-if="$route.query.flag!=='add'">
               <el-form-item label="商品编号：">
-                {{ form.no }}
+                {{ form.goodsNo }}
               </el-form-item>
             </el-col>
             <el-col :span="8">
@@ -64,17 +63,26 @@
           <div class="introduction-item">
             <div class="introduction-title">轮播图</div>
             <div class="introduction-item-content">
-              <el-upload
+              <!-- <el-upload
                 class="uploader"
+                :http-request="customSwiperUpload"
                 v-model:file-list="fileList"
-                action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
                 list-type="picture-card"
                 :on-preview="handlePictureCardPreview"
-                :on-remove="fileRemove"
                 :show-file-list="false"
+                accept="image/*, video/*"
               >
                 <el-icon><i-ep-Plus /></el-icon>
-              </el-upload>
+              </el-upload> -->
+
+              <el-button type="primary" @click="triggerFileInput" class="custom-button">选择文件</el-button>
+              <input 
+                type="file" 
+                ref="fileInput" 
+                @change="handleFileChange"
+                accept="image/*,video/*" 
+                style="display: none"
+              />
 
               <div class="fileList-preview-wrapper" ref="fileSortableList">
                 <div 
@@ -89,7 +97,7 @@
                       class="fileList-preview-image"
                     />
                     <div class="fileList-preview-options">
-                      <span @click="fileRemove(file)" >
+                      <span @click="fileRemove(index)" >
                         <el-icon><i-ep-Delete /></el-icon>
                       </span>
                     </div>
@@ -97,7 +105,7 @@
                   <div class="fileList-preview-video" v-if="file.type==='video'">
                     <video :src="file.url" controls width="200" height="200"></video>
                     <div class="fileList-preview-options">
-                      <span @click="fileRemove(file)" >
+                      <span @click="fileRemove(index)" >
                         <el-icon><i-ep-Delete /></el-icon>
                       </span>
                     </div>
@@ -117,7 +125,7 @@
                 />
                 <Editor
                   style="height: 500px; overflow-y: hidden;"
-                  v-model="goodsDetailRichText"
+                  v-model="goodsRichText"
                   :defaultConfig="richTextEditorConfig"
                   :mode="richTextEditorMode"
                   @onCreated="richTextEditorHandleCreated"
@@ -302,7 +310,7 @@
       </div>
     </div>
     
-    <div class="btns" v-if="$route.query.flag!=='detail'">
+    <div class="btns">
       <el-button type="primary" class="submitBtn" :loading=isFormSubmiting @click="toSubmit">提 交</el-button>
     </div>
 
@@ -345,28 +353,34 @@ import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import '@wangeditor/editor/dist/css/style.css' // 引入 css
 
 import Sortable from 'sortablejs';
+import Cookies from 'js-cookie';
 import { ElMessage } from 'element-plus';
+
 
 import {
   _createOrUpdateGoods,
+  _getGoodsDetailById
 } from '@/network/goods'
+import {
+  _uploadFile
+} from '@/network/upload'
 
 const fileSortableList = ref(null);
 let fileSortableInstance = null;
 
 const $route = useRoute()
 const $router = useRouter()
-console.log($route.query.flag)
 
 let formRef = ref(null)
 let isFormSubmiting = ref(false)
 let isDeleting = ref(false)
 
 let form = reactive({
-  goodsName: '',
-  goodsUnit: '',
+  goodsNo: null,
+  goodsName: null,
+  goodsUnit: null,
   goodsIsSelling: false,
-  goodsRemark: '',
+  goodsRemark: null,
 
   orderNo: '',
   orderType: '',
@@ -462,6 +476,31 @@ let fileList = reactive([
 const isShowFilePreview = ref(false)
 const filePreviewUrl = ref('')
 
+const fileInput = ref(null);  // 引用文件输入框
+// 手动触发文件输入框的点击事件
+function triggerFileInput() {
+  fileInput.value.click();
+};
+// 当用户选择文件时调用此方法
+function handleFileChange(event) {
+  const file = event.target.files[0];  // 获取选中的文件
+  if (file) {
+    // 检查文件大小是否超过限制，例如限制为 10MB
+    // const maxSize = 10 * 1024 * 1024;  // 10MB
+    // if (file.size > maxSize) {
+    //   alert('File size exceeds 10MB limit');
+    //   return;
+    // }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    _uploadFile(formData).then(res => {
+      console.log(res);
+    })
+  }
+}
+
 function fileRemove(uploadFile, uploadFiles) {
   console.log(uploadFile, uploadFiles)
 }
@@ -491,13 +530,29 @@ const richTextEditorRef = shallowRef()
 
 // 内容 HTML
 const richTextEditorMode = 'default' // default or simple
-const goodsDetailRichText = ref('<p>hello</p>')
-const richTextEditorToolbarConfig = {
-  readOnly: $route.query.flag==='detail'
-}
+const goodsRichText = ref('')
+const richTextEditorToolbarConfig = {}
 const richTextEditorConfig = { 
   placeholder: '请输入内容...',
-  readOnly: $route.query.flag==='detail'
+  MENU_CONF: {
+    uploadImage: {
+      // 配置上传图片的服务器地址
+      server: 'http://localhost:8888/api/upload',
+
+      // 上传图片时的自定义参数，例如 token
+      fieldName: 'file',
+      allowedFileTypes: ['image/jpeg', 'image/png', 'image/jpg'], // 允许上传的文件类型
+
+      async customUpload(file, insertFn) {
+        const formData = new FormData()
+        formData.append('file', file)
+        _uploadFile(formData).then(res => {
+          // 最后插入图片
+          insertFn(res.data.url)
+        })
+      },
+    },
+  },
 }
 
 const richTextEditorHandleCreated = (editor) => {
@@ -532,10 +587,14 @@ function toSubmit() {
         isFormSubmiting.value = true
 
         _createOrUpdateGoods({
+          // 商品基础信息
           goodsName: form.goodsName,
           goodsUnit: form.goodsUnit,
           goodsIsSelling: form.goodsIsSelling ? 1 : 0,
           goodsRemark: form.goodsRemark,
+
+          // 商品富文本
+          goodsRichText: goodsRichText.value
         }).then(res => {
           ElMessage({
             message: res.message,
@@ -662,13 +721,28 @@ function seeHistoryBatchStatistic() { // 查看历史批次统计数据
 
 
 
+function getGoodsDetailById() { // 获取详情
+  _getGoodsDetailById({ id: 2 }).then(res => {
+    console.log('id', res)
+    Object.assign(form, {
+      goodsNo: res.data.id,
+      goodsName: res.data.goods_name,
+      goodsUnit: res.data.goods_unit,
+      goodsIsSelling: res.data.goods_isSelling===1 ? true : false,
+      goodsRemark: res.data.goods_remark,
+    })
+    goodsRichText.value = res.data.goods_richText
+  })
+}
+
 onMounted(() => {
   fileSortableInstance = new Sortable(fileSortableList.value, {
     onEnd: fileSortableEnd,
-    disabled: $route.query.flag==='detail' ? true : false
   });
 
-
+  if ($route.query.flag !== 'add') {
+    getGoodsDetailById()
+  }  
 })
 
 onBeforeUnmount(() => {

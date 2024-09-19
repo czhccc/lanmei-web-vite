@@ -23,7 +23,7 @@
             <div class="saerch-item">
               <div class="search-item-label">商品状态：</div>
               <div class="search-item-input">
-                <el-select v-model="searchParams.status" placeholder="请选择" clearable>
+                <el-select v-model="searchParams.goodsStatus" placeholder="请选择" clearable>
                   <el-option label="预订中" value="ydz" />
                   <el-option label="采购中" value="dfk" />
                   <el-option label="售卖中" value="yfk" />
@@ -36,7 +36,7 @@
             <div class="saerch-item">
               <div class="search-item-label">是否上架：</div>
               <div class="search-item-input">
-                <el-select v-model="searchParams.isSelling" placeholder="请选择" clearable>
+                <el-select v-model="searchParams.goodsIsSelling" placeholder="请选择" clearable>
                   <el-option label="上架中" value="ydz" />
                   <el-option label="未上架" value="dfk" />
                 </el-select>
@@ -57,9 +57,10 @@
 
     <div class="table-wrapper">
       <el-table :height="tableHeight" :data="tableData">
-        <el-table-column prop="no" label="商品编号" align="center" />
-        <el-table-column prop="name" label="商品名称" align="center" />
-        <el-table-column prop="statusText" label="当前状态" align="center" />
+        <el-table-column prop="goodsNo" label="商品编号" align="center" />
+        <el-table-column prop="goodsName" label="商品名称" align="center" />
+        <el-table-column prop="goodsUnit" label="商品单位" align="center" />
+        <el-table-column prop="goodsStatusText" label="当前状态" align="center" />
         <el-table-column prop="totalpreOrderQuantity" label="总预订量" align="center" >
           <template #default="scope">
             <div>{{ scope.row.totalPreorderQuantity }} {{ scope.row.unit }}</div>
@@ -75,11 +76,11 @@
             <div>{{ scope.row.remainingQuantity }} {{ scope.row.unit }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="remark" label="备注" align="center" />
-        <el-table-column prop="isSelling" label="是否上架" align="center" >
+        <el-table-column prop="goodsRemark" label="备注" align="center" />
+        <el-table-column prop="goodsIsSelling" label="是否上架" align="center" >
           <template #default="scope">
             <el-switch
-              v-model="scope.row.isSelling"
+              v-model="scope.row.goodsIsSelling"
               active-text="上架"
               inactive-text="下架"
               inline-prompt
@@ -89,8 +90,7 @@
         </el-table-column>
         <el-table-column fixed="right" label="操作" width="120" align="center" >
           <template #default="scope">
-            <el-button link type="primary" @click="tableDetail(scope.row)">详情</el-button>
-            <el-button link type="primary" @click="tableEdit(scope.row)">编辑</el-button>
+            <el-button link type="primary" @click="tableEdit(scope.row)">查看</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -116,17 +116,18 @@
 import { onMounted, reactive, ref, nextTick } from 'vue';
 import { useRouter } from 'vue-router'
 
+import {
+  _getGoodsList
+} from '@/network/goods'
+
 const $router = useRouter()
-
-let loadingInstance = null
-
 
 // Table
 let searchParams = reactive({
   goodsNo: '',
   goodsName: '',
-  status: null,
-  isSelling: null,
+  goodsStatus: null,
+  goodsIsSelling: null,
 })
 let tableData = ref([])
 let tableHeight = ref(0)
@@ -150,8 +151,8 @@ function searchReset() {
   Object.assign(searchParams, {
     goodsNo: '',
     goodsName: '',
-    status: null,
-    isSelling: null,
+    goodsStatus: null,
+    goodsIsSelling: null,
   })
   pagination.pageNo = 1
 }
@@ -162,7 +163,6 @@ function tablePageNoChange(newPageNo) {
   console.log(newPageNo)
 }
 function tableAdd(record) {
-  // console.log(record.date)
   $router.push({
     path: '/goodsDetail',
     query: {
@@ -170,52 +170,40 @@ function tableAdd(record) {
     }
   })
 }
-function tableDetail(record) {
-  // console.log(record.date)
-  $router.push({
-    path: '/goodsDetail',
-    query: {
-      id: '123321',
-      flag: 'detail'
-    }
-  })
-}
 function tableEdit(record) {
-  // console.log(record.date)
   $router.push({
     path: '/goodsDetail',
     query: {
-      id: '123321',
+      id: record.id,
       flag: 'edit'
     }
   })
 }
 
-onMounted(() => {
-  for (let i = 0; i < 100; i++) {
-    tableData.value.push({
-      no: '202407022236526936',
-      name: '蓝莓大果',
-      totalSaleQuantity: 150,
-      unit: '斤',
-      status: '1',
-      statusText: '预定中',
-      totalPreorderQuantity: 100,
-      remainingQuantity: 80,
-      price: 200.00,
-      originalPrice: 150.00,
-      remark: '我是备注我是备注我是备注2222222222222222222222222222222我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-      isSelling: true,
-    })
-  }
-  pagination.total = tableData.value.length
 
+function getList() {
+  _getGoodsList({
+    pageNo: pagination.pageNo,
+    pageSize: pagination.pageSize,
+  }).then(res => {
+    pagination.total = res.data.total
+
+    tableData = res.data.records.map(item => {
+      return {
+        goodsNo: item.id,
+        goodsName: item.goods_name,
+        goodsUnit: item.goods_unit,
+        goodsRemark: item.goods_remark,
+        goodsIsSelling: item.goods_isSelling===1 ? true : false
+      }
+    })
+  })
+}
+
+onMounted(() => {
   calculateTableHeight()
 
-  loadingInstance = ElLoading.service({text: '加载中...'})
-  setTimeout(() => {
-    loadingInstance.close()
-  }, 500)
+  getList()
 })
 
 
