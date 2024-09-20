@@ -60,7 +60,7 @@
         <el-table-column prop="goodsNo" label="商品编号" align="center" />
         <el-table-column prop="goodsName" label="商品名称" align="center" />
         <el-table-column prop="goodsUnit" label="商品单位" align="center" />
-        <el-table-column prop="goodsStatusText" label="当前状态" align="center" />
+        <el-table-column prop="hasCurrentBatch" label="是否有当前批次" align="center" />
         <el-table-column prop="totalpreOrderQuantity" label="总预订量" align="center" >
           <template #default="scope">
             <div>{{ scope.row.totalPreorderQuantity }} {{ scope.row.unit }}</div>
@@ -194,7 +194,8 @@ function getList() {
         goodsName: item.goods_name,
         goodsUnit: item.goods_unit,
         goodsRemark: item.goods_remark,
-        goodsIsSelling: item.goods_isSelling===1 ? true : false
+        goodsIsSelling: item.goods_isSelling===1 ? true : false,
+        hasCurrentBatch: item.hasCurrentBatch===1 ? '有' : '无'
       }
     })
   })
