@@ -119,13 +119,14 @@
         <div class="title">
           当前批次
           <div>
-            <el-button class="title-btn" type="success" @click="startNewBatch">{{ isStartingNewCurrentBatch ? '取消新批次' : '开启新批次' }}</el-button>
+            <el-button class="title-btn" type="success" @click="startNewBatch" v-if="!form.batchId">{{ isStartingNewCurrentBatch ? '取消新批次' : '开启新批次' }}</el-button>
             <el-button class="title-btn" type="warning" @click="endCurrentBatch" v-if="form.batchNo">结束当前批次</el-button>
             <el-button class="title-btn" type="danger" @click="cancelCurrentBatchAllOrder" v-if="form.batchNo&&form.batchType===0">取消所有订单</el-button>
+            <el-button class="title-btn" type="danger" @click="deleteCurrentBatch">删除当前批次(考虑限制条件及相关的联动)</el-button>
             还需新增判断订单为0的时候可以修改
           </div>
         </div>
-        <div class="content" v-if="isStartingNewCurrentBatch">
+        <div class="content" v-if="form.batchNo || isStartingNewCurrentBatch">
           <el-row :gutter="20">
             <el-col :span="8">
               <el-form-item label="批次编号：">{{ form.batchNo || '自动生成' }}</el-form-item>
@@ -323,7 +324,8 @@ import { ElMessage } from 'element-plus';
 
 import {
   _createOrUpdateGoods,
-  _getGoodsDetailById
+  _getGoodsDetailById,
+  _endCurrentBatch
 } from '@/network/goods'
 import {
   _uploadFile
@@ -343,6 +345,7 @@ let form = reactive({
   goodsIsSelling: false,
   goodsRemark: null,
 
+  batchId: null,
   batchNo: '',
   batchType: null,
   batchMinQuantity: 1.0,
@@ -487,9 +490,15 @@ function endCurrentBatch() {
       type: 'warning',
     }
   ).then(() => {
-    
-  }).catch(() => {
-    
+    _endCurrentBatch({ id: form.batchId }).then(res => {
+      ElMessage({
+        message: res.message,
+        type: 'success',
+        plain: true,
+      })
+
+      getGoodsDetailById()
+    })
   })
 }
 function cancelCurrentBatchAllOrder() {
@@ -505,6 +514,12 @@ function cancelCurrentBatchAllOrder() {
   }).catch(() => {
     
   })
+}
+function deleteCurrentBatch() { // 删除当前批次
+  Object.assign(form, {
+    batchNo: '1111'
+  })
+  console.log(form);
 }
 
 let batchDiscounts = reactive([])
@@ -632,11 +647,32 @@ function toSubmit() {
 }
 
 
+function resetForm() {
+  Object.assign(form, {
+    goodsId: null,
+    goodsName: null,
+    goodsUnit: null,
+    goodsIsSelling: false,
+    goodsRemark: null,
+
+    batchId: null,
+    batchNo: '',
+    batchType: null,
+    batchMinQuantity: 1.0,
+    batchMinPrice: 0.01,
+    batchMaxPrice: 0.01,
+    batchUnitPrice: 0.01,
+    batchRemark: '',
+  })
+}
 function getGoodsDetailById() { // 获取详情
   _getGoodsDetailById({ id: $route.query.id }).then(res => {
+    resetForm()
+
     let currentBatch = {}
     if (res.data.currentBatch) {
       currentBatch = {
+        batchId: res.data.currentBatch.id,
         batchNo: res.data.currentBatch.batch_no,
         batchType: res.data.currentBatch.batch_type,
         batchRemark: res.data.currentBatch.batch_remark,
@@ -650,8 +686,6 @@ function getGoodsDetailById() { // 获取详情
 
       batchDiscounts.push(...JSON.parse(JSON.parse(res.data.currentBatch.batch_discounts)))
 
-      isStartingNewCurrentBatch.value = true
-
       // 其他的禁止编辑
       setTimeout(() => {
         richTextEditorRef.value.disable() // 禁用富文本编辑器
@@ -660,6 +694,7 @@ function getGoodsDetailById() { // 获取详情
       }, 500)
     }
 
+    Object.assign(form, {}) // 结束当前批次时清空
     Object.assign(form, {
       goodsId: res.data.goodsId,
       goodsName: res.data.goodsName,

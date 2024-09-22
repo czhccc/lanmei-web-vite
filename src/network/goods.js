@@ -6,7 +6,7 @@ export function _createOrUpdateGoods(data) {
     url: '/goods',
     method: 'post',
     data
-  });
+  })
 }
 
 // 获取商品详情
@@ -15,7 +15,7 @@ export function _getGoodsDetailById(data) {
     url: '/goods/getGoodsDetailById',
     method: 'get',
     params: data
-  });
+  })
 }
 
 // 获取商品列表
@@ -24,5 +24,14 @@ export function _getGoodsList(data) {
     url: '/goods/getGoodsList',
     method: 'get',
     params: data
+  })
+}
+
+// 结束当前批次
+export function _endCurrentBatch(data) {
+  return request({
+    url: '/goods/endCurrentBatch',
+    method: 'post',
+    data
   });
 }
