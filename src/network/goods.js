@@ -35,3 +35,12 @@ export function _endCurrentBatch(data) {
     data
   });
 }
+// 结束当前批次
+export function _getHistoryBatchesList(data) {
+  return request({
+    url: '/goods/getHistoryBatchesList',
+    method: 'get',
+    params: data
+  });
+}
+

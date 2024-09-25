@@ -161,6 +161,7 @@ const richTextEditorConfig = {
       async customUpload(file, insertFn) {
         const formData = new FormData()
         formData.append('file', file)
+        formData.append('flag', `aboutUs`);
         _uploadFile(formData).then(res => {
           // 最后插入图片
           insertFn(res.data.url)

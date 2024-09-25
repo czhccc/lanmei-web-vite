@@ -157,10 +157,12 @@ function searchReset() {
   pagination.pageNo = 1
 }
 function tablePageSizeChange(newPageSize) {
-  console.log(newPageSize)
+  pagination.pageSize = newPageSize
+  getList()
 }
 function tablePageNoChange(newPageNo) {
-  console.log(newPageNo)
+  pagination.pageNo = newPageNo
+  getList()
 }
 function tableAdd(record) {
   $router.push({
@@ -188,7 +190,7 @@ function getList() {
   }).then(res => {
     pagination.total = res.data.total
 
-    tableData = res.data.records.map(item => {
+    tableData.value = res.data.records.map(item => {
       return {
         goodsNo: item.id,
         goodsName: item.goods_name,

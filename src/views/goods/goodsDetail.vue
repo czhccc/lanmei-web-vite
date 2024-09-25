@@ -48,7 +48,7 @@
           </el-row>
         </div>
       </div>
-      <div class="item introduction">
+      <div class="item introduction" v-if="$route.query.flag!=='add'">
         <div class="title">商品介绍</div>
         <div class="content introduction-content">
           <div class="introduction-item">
@@ -64,8 +64,7 @@
               />
 
               <div class="swiperList-preview-wrapper" ref="fileSortableList">
-                <div 
-                  v-for="(file, index) in swiperList" :key="index" class="swiperList-preview-item">
+                <div v-for="(file, index) in swiperList" :key="index" class="swiperList-preview-item">
                   <div class="swiperList-preview-image-wrapper" v-if="file.type==='image'">
                     <el-image
                       fit="scale-down"
@@ -251,30 +250,33 @@
 
         <el-table :data="historyBatchTableData">
           <el-table-column type="expand">
-            <template #default="props">
-              <div m="4">
-                展开内容：
-                <!-- <p m="t-0 b-2">价格区间: {{ props.row.state }}</p> -->
-                <p m="t-0 b-2">价格区间: 111</p>
-                <p m="t-0 b-2">价格: 222</p>
-                <p m="t-0 b-2">优惠策略: 333</p>
+            <template #default="scope">
+              <div m="4" style="font-size: 16px;">
+                <div m="t-0 b-2" style="margin-bottom: 10px;">最小购买量：{{ scope.row.batchMinQuantity }} {{ scope.row.batchUnit }}</div>
+                <div m="t-0 b-2" style="margin-bottom: 10px;" v-if="scope.row.batchType===0">价格：{{ scope.row.batchMinPrice }}元 ~ {{ scope.row.batchMaxPrice }} 元</div>
+                <div m="t-0 b-2" style="margin-bottom: 10px;" v-if="scope.row.batchType===1">价格:：{{ scope.row.batchUnitPrice }} 元</div>
+                <div m="t-0 b-2" style="margin-bottom: 10px; display: flex;">
+                  <div>优惠策略：</div>
+                  <div>
+                    <div v-for="(item, index) in scope.row.batchDiscounts" :key="index">
+                      满 {{ item.quantity }} {{ scope.row.batchUnit }} 减 {{ item.discount }} 元
+                    </div>
+                  </div>
+                </div>
+                <div m="t-0 b-2" style="margin-bottom: 10px;">批次备注：{{ scope.row.batchRemark }}</div>
               </div>
             </template>
           </el-table-column>
-          <el-table-column property="batch" label="批次" align="center" />
-          <el-table-column property="batchType" label="批次类型" align="center">
-            <template #default="scope">
-              <div>{{ scope.row.batchType==='pre-order' ? '预订' : '售卖' }}</div>
-            </template>
-          </el-table-column>
+          <el-table-column property="batchNo" label="批次" align="center" />
+          <el-table-column property="batchTypeText" label="批次类型" align="center" />
           <el-table-column property="time" label="持续时间" align="center" >
             <template #default="scope">
-              <div>{{ scope.row.startTime }} ~ {{ scope.row.endTime }}</div>
+              <div>{{ scope.row.batchStartTime }} ~ {{ scope.row.batchEndTime }}</div>
             </template>
           </el-table-column>
-          <el-table-column property="totalDates" label="总天数" align="center" >
+          <el-table-column property="totalDates" label="持续时间" align="center" >
             <template #default="scope">
-              <div>{{ scope.row.totalDates }} 天</div>
+              <div>{{ scope.row.batchTotalDates }}</div>
             </template>
           </el-table-column>
           <el-table-column property="totalOrderQuantity" label="总订单数" align="center" >
@@ -282,11 +284,11 @@
               <div>{{ scope.row.totalOrderQuantity }}</div>
             </template>
           </el-table-column>
-          <el-table-column fixed="right" label="操作" width="110" align="center" >
+          <!-- <el-table-column fixed="right" label="操作" width="110" align="center" >
             <template #default="scope">
               <el-button link type="primary" @click="seeHistoryBatchStatistic(scope.row)">查看统计</el-button>
             </template>
-          </el-table-column>
+          </el-table-column> -->
         </el-table>
         <div class="pagination-wrapper">
           <el-pagination
@@ -311,7 +313,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, shallowRef, onBeforeUnmount } from 'vue'
+import { ref, reactive, onMounted, shallowRef, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
@@ -321,11 +323,15 @@ import Sortable from 'sortablejs';
 import Cookies from 'js-cookie';
 import { ElMessage } from 'element-plus';
 
+import dayjs from 'dayjs'
+import calculateDateDurationByMinutes from '@/utils/calculateDateDurationByMinutes'
+
 
 import {
   _createOrUpdateGoods,
   _getGoodsDetailById,
-  _endCurrentBatch
+  _endCurrentBatch,
+  _getHistoryBatchesList
 } from '@/network/goods'
 import {
   _uploadFile
@@ -377,7 +383,7 @@ const formRules = reactive({
   batchRemark: [{ required: false, message: '请输入批次备注', trigger: 'blur' },],
 })
 
-let swiperList = reactive([])
+let swiperList = ref([])
 
 const fileInput = ref(null);  // 引用文件输入框
 
@@ -404,12 +410,12 @@ function handleFileChange(event) {
     //   alert('File size exceeds 10MB limit');
     //   return;
     // }
-
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('flag', `goods-${$route.query.id}`);
 
     _uploadFile(formData).then(res => {
-      swiperList.push({
+      swiperList.value.push({
         type: fileType,
         url: res.data.url
       })
@@ -418,20 +424,20 @@ function handleFileChange(event) {
 }
 
 function fileRemove(index) {
-  swiperList.splice(index, 1)
+  swiperList.value.splice(index, 1)
 }
 
 const fileSortableEnd = (evt) => {
   const { oldIndex, newIndex } = evt;
 
   if (oldIndex !== newIndex) {
-    let tempFileList = JSON.parse(JSON.stringify(swiperList))
+    let tempFileList = JSON.parse(JSON.stringify(swiperList.value))
     
     const movedItem = tempFileList.splice(oldIndex, 1)[0];
     tempFileList.splice(newIndex, 0, movedItem);
     
-    swiperList = []
-    Object.assign(swiperList, tempFileList)
+    swiperList.value = []
+    Object.assign(swiperList.value, tempFileList)
   }
 };
 
@@ -460,6 +466,7 @@ const richTextEditorConfig = {
       async customUpload(file, insertFn) {
         const formData = new FormData()
         formData.append('file', file)
+        formData.append('flag', `goods-${$route.query.id}`);
         _uploadFile(formData).then(res => {
           // 最后插入图片
           insertFn(res.data.url)
@@ -516,9 +523,7 @@ function cancelCurrentBatchAllOrder() {
   })
 }
 function deleteCurrentBatch() { // 删除当前批次
-  Object.assign(form, {
-    batchNo: '1111'
-  })
+  batchDiscounts.length = 0
   console.log(form);
 }
 
@@ -530,39 +535,68 @@ function addDiscountItem() {
   batchDiscounts.push({quantity: null, discount: null})
 }
 
-
-let historyBatchSearchParams = ref({
+// 历史批次
+let historyBatchSearchParams = reactive({
   batchNo: '',
   time: [],
 })
+let historyBatchPagination = reactive({
+  pageNo: 1,
+  pageSize: 10,
+  total: 0,
+})
 function historyBatchSearch() {
-
+  getHistoryBatchesList()
 }
 function historyBatchSearchReset() {
   Object.assign(historyBatchSearchParams, {
     batchNo: '',
     time: [],
   })
-  pagination.pageNo = 1
+  historyBatchPagination.pageNo = 1
+  getHistoryBatchesList()
 }
-let historyBatchTableData = reactive([
-  {batch: '20240707110459', batchType: 'pre-order', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48', totalDates: 20, totalOrderQuantity: 368,},
-  {batch: '20240707110459', batchType: 'pre-order', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48', totalDates: 20, totalOrderQuantity: 368,},
-  {batch: '20240707110459', batchType: 'pre-order', startTime: '2024-07-07 11:04:59', endTime: '2024-07-08 12:05:48', totalDates: 20, totalOrderQuantity: 368,},
-])
-let historyBatchPagination = reactive({
-  pageNo: 1,
-  pageSize: 10,
-  total: 0,
-})
+let historyBatchTableData = ref([])
+
 function historyBatchPageSizeChange(newPageSize) {
-  console.log(newPageSize)
+  historyBatchPagination.pageSize = newPageSize
+  getHistoryBatchesList()
 }
 function historyBatchPageNoChange(newPageNo) {
-  console.log(newPageNo)
+  historyBatchPagination.pageNo = newPageNo
+  getHistoryBatchesList()
 }
-function seeHistoryBatchStatistic() { // 查看历史批次统计数据
+// function seeHistoryBatchStatistic() { // 查看历史批次统计数据
+// }
+function getHistoryBatchesList() {
+  _getHistoryBatchesList({
+    id: $route.query.id,
+    pageNo: historyBatchPagination.pageNo,
+    pageSize: historyBatchPagination.pageSize,
+    batchNo: historyBatchSearchParams.batchNo,
+    startTime: historyBatchSearchParams.time[0],
+    endTime: historyBatchSearchParams.time[1],
+  }).then(res => {
+    historyBatchPagination.total = res.data.total
 
+    historyBatchTableData.value = res.data.records.map(item => {
+      return {
+        batchNo: item.batch_no,
+        batchType: item.batch_type,
+        batchTypeText: item.batch_type===0?'预订':'现卖',
+        batchStartTime: dayjs(item.batch_startTime).format('YYYY-MM-DD HH:mm'),
+        batchEndTime: dayjs(item.batch_endTime).format('YYYY-MM-DD HH:mm'),
+        batchTotalDates: calculateDateDurationByMinutes(item.batch_startTime, item.batch_endTime),
+        batchUnitPrice: item.batch_unitPrice,
+        batchMinPrice: item.batch_minPrice,
+        batchMaxPrice: item.batch_maxPrice,
+        batchMinQuantity: item.batch_minQuantity,
+        batchDiscounts: JSON.parse(JSON.parse(item.batch_discounts)),
+        batchRemark: item.batch_remark,
+        batchUnit: item.snapshot_goodsUnit,
+      }
+    })
+  })
 }
 
 let isFormSubmiting = ref(false)
@@ -592,52 +626,61 @@ function toSubmit() {
       ).then(() => {
         isFormSubmiting.value = true
 
-        let batchParams = {
-          goodsId: Number($route.query.id),
-          batchType: form.batchType,
-          batchStatus: 1,
-          batchMinQuantity: form.batchMinQuantity,
-          batchRemark: form.batchRemark,
-          batchDiscounts: JSON.stringify(batchDiscounts),
-
-          snapshot_goodsName: form.goodsName,
-          snapshot_goodsUnit: form.goodsUnit,
-          snapshot_goodsRemark: form.goodsRemark,
-          snapshot_goodsName: form.goodsName,
-          snapshot_goodsRichText: goodsRichText.value
-
-        }
-        if (form.batchType === 0) { // 预订
-          batchParams.batchMinPrice = form.batchMinPrice
-          batchParams.batchMaxPrice = form.batchMaxPrice
-        } else if (form.batchType === 1) { // 现卖
-          batchParams.batchUnitPrice = form.batchUnitPrice
-        }
-
-        _createOrUpdateGoods({
+        let params = {
           // 商品基础信息
           goodsName: form.goodsName,
           goodsUnit: form.goodsUnit,
           goodsIsSelling: form.goodsIsSelling ? 1 : 0,
           goodsRemark: form.goodsRemark,
 
-          // 轮播图
-          swiperList: swiperList,
-
-          // 商品富文本
+          // 富文本
           goodsRichText: goodsRichText.value,
+        }
 
-          // 当前批次
-          ...batchParams
+        if (swiperList.value.length > 0) {
+          params.swiperList = swiperList.value
+        }
 
-        }).then(res => {
+        if ($route.query.flag==='edit' && (form.batchId || isStartingNewCurrentBatch)) {
+          let batchParams = {
+            goodsId: Number($route.query.id),
+            batchType: form.batchType,
+            batchStatus: 1,
+            batchMinQuantity: form.batchMinQuantity,
+            batchRemark: form.batchRemark,
+            batchDiscounts: JSON.stringify(batchDiscounts),
+
+            snapshot_goodsName: form.goodsName,
+            snapshot_goodsUnit: form.goodsUnit,
+            snapshot_goodsRemark: form.goodsRemark,
+            snapshot_goodsName: form.goodsName,
+            snapshot_goodsRichText: goodsRichText.value
+          }
+          if (form.batchType === 0) { // 预订
+            batchParams.batchMinPrice = form.batchMinPrice
+            batchParams.batchMaxPrice = form.batchMaxPrice
+          } else if (form.batchType === 1) { // 现卖
+            batchParams.batchUnitPrice = form.batchUnitPrice
+          }
+
+          params = {
+            ...params,
+            ...batchParams
+          }
+        }
+
+        _createOrUpdateGoods(params).then(res => {
           ElMessage({
             message: res.message,
             type: 'success',
             plain: true,
           })
 
-          $router.back()
+          if (!$route.query.id) { // 新增
+            window.location.href = `${window.location.href.split('?')[0]}?flag=edit&id=${res.data.goodsId}`;
+          } else { // 编辑
+
+          }
         }).finally(() => {
           isFormSubmiting.value = false
         })
@@ -648,6 +691,8 @@ function toSubmit() {
 
 
 function resetForm() {
+  batchDiscounts.length = 0
+  
   Object.assign(form, {
     goodsId: null,
     goodsName: null,
@@ -704,18 +749,21 @@ function getGoodsDetailById() { // 获取详情
       ...currentBatch,
     })
     goodsRichText.value = res.data.goodsRichText
-    swiperList = res.data.swiperList
+    swiperList.value = res.data.swiperList
   })
 }
 
-onMounted(() => {
-  fileSortableInstance = new Sortable(fileSortableList.value, {
-    onEnd: fileSortableEnd,
-  });
 
-  if ($route.query.flag !== 'add') {
-    getGoodsDetailById()
-  }  
+onMounted(() => {
+  if ($route.query.flag==='edit') {
+    fileSortableInstance = new Sortable(fileSortableList.value, {
+      onEnd: fileSortableEnd,
+    });
+
+    getGoodsDetailById() // 获取详情信息
+    getHistoryBatchesList() // 获取历史批次列表
+  }
+
 })
 
 onBeforeUnmount(() => {
