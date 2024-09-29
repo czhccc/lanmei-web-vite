@@ -35,7 +35,8 @@ export function _endCurrentBatch(data) {
     data
   });
 }
-// 结束当前批次
+
+// 获取历史批次列表
 export function _getHistoryBatchesList(data) {
   return request({
     url: '/goods/getHistoryBatchesList',

@@ -76,6 +76,20 @@
             <div>{{ translateCategoryId(scope.row.goodsCategoryId) }}</div>
           </template>
         </el-table-column>
+        <el-table-column prop="goodsCategoryId" label="封面图" align="center" >
+          <template #default="scope">
+            <el-image
+              v-if="scope.row.goodsCoverImg"
+              fit="scale-down"
+              :src="scope.row.goodsCoverImg"
+              :preview-src-list="[scope.row.goodsCoverImg]"
+              hide-on-click-modal
+              class="listCoverImg"
+              preview-teleported
+            />
+            <div v-else></div>
+          </template>
+        </el-table-column>
         <el-table-column prop="currentBatchTypeText" label="当前状态" align="center" />
         <el-table-column prop="totalpreOrderQuantity" label="总预订量" align="center" >
           <template #default="scope">
@@ -221,6 +235,7 @@ function getList() {
         goodsName: item.goods_name,
         goodsUnit: item.goods_unit,
         goodsCategoryId: item.goods_categoryId,
+        goodsCoverImg: item.goodsCoverImg,
         goodsRemark: item.goods_remark,
         goodsIsSelling: item.goods_isSelling===1 ? true : false,
         currentBatchType: item.currentBatchType,
@@ -294,6 +309,9 @@ onMounted(() => {
         display: flex;
         justify-content: flex-end;
       }
+    }
+    .listCoverImg {
+      z-index: 999;
     }
   }
 }

@@ -27,7 +27,7 @@
           <el-row :gutter="20">
             <el-col :span="8">
               <el-form-item label="商品分类：" prop="goodsCategoryId">
-                <el-select v-model="form.goodsCategoryId" style="width: 100%;" placeholder="请选择">
+                <el-select v-model="form.goodsCategoryId" style="width: 100%;" placeholder="请选择" :disabled="Boolean(form.batchNo)">
                   <el-option-group v-for="parent in categoryList" :key="parent.id" :label="parent.name" >
                     <el-option v-for="category in parent.children" :key="category.id" :label="category.name" :value="category.id" />
                   </el-option-group>
@@ -37,10 +37,12 @@
             <el-col :span="8">
               <el-form-item label="是否上架：" prop="goodsIsSelling">
                 <el-switch
+                  :disabled="!Boolean(form.batchNo)"
                   v-model="form.goodsIsSelling"
                   active-text="上架"
                   inactive-text="下架"
                   inline-prompt
+                  @click="changeGoodsIsSelling"
                 />
               </el-form-item>
             </el-col>
@@ -122,7 +124,7 @@
         <div class="title">
           当前批次
           <div>
-            <el-button class="title-btn" type="success" @click="startNewBatch" v-if="!form.batchId">{{ isStartingNewCurrentBatch ? '取消新批次' : '开启新批次' }}</el-button>
+            <el-button class="title-btn" :type="isStartingNewCurrentBatch?'warning':'success'" @click="startNewBatch" v-if="!form.batchId">{{ isStartingNewCurrentBatch ? '取消新批次' : '开启新批次' }}</el-button>
             <el-button class="title-btn" type="warning" @click="endCurrentBatch" v-if="form.batchNo">结束当前批次</el-button>
             <el-button class="title-btn" type="danger" @click="cancelCurrentBatchAllOrder" v-if="form.batchNo&&form.batchType===0">取消所有订单</el-button>
             <el-button class="title-btn" type="danger" @click="deleteCurrentBatch">删除当前批次(考虑限制条件及相关的联动)</el-button>
@@ -196,6 +198,7 @@
                   <div style="margin-left: 10px;">元</div>
                   <el-button type="danger" size="small" style="margin-left: 10px;" @click="deleteDiscountItem(index)" v-if="!Boolean(form.batchNo)">删除</el-button>
                 </div>
+                <div v-if="batchDiscounts.length === 0">无</div>
                 <el-button style="width: 100%;" @click="addDiscountItem" v-if="!Boolean(form.batchNo)">新增</el-button>
               </el-form-item>
             </el-col>
@@ -506,7 +509,10 @@ function endCurrentBatch() {
       type: 'warning',
     }
   ).then(() => {
-    _endCurrentBatch({ id: form.batchId }).then(res => {
+    _endCurrentBatch({ 
+      batchId: form.batchId,
+      goodsId: form.goodsId
+    }).then(res => {
       ElMessage({
         message: res.message,
         type: 'success',
@@ -610,21 +616,29 @@ function getHistoryBatchesList() {
 
 let isFormSubmiting = ref(false)
 function toSubmit() {
+  // const haveImg = swiperList.value.some(item => item.type === 'image');
+  // if (!haveImg) {
+  //   ElMessage({
+  //     message: '请上传一张图片作为封面图',
+  //     type: 'warning',
+  //     plain: true,
+  //   });
+  //   return;
+  // }
+
+  for (const item of batchDiscounts) { // 检查优惠策略
+    if (!item.quantity || !item.discount) {
+      ElMessage({
+        message: '优惠策略未填写完整',
+        type: 'warning',
+        plain: true,
+      })
+      return;
+    }
+  }
+
   formRef.value.validate((valid, fields) => {
     if (valid) {
-      console.log('submit!', form)
-
-      for (const item of batchDiscounts) { // 检查优惠策略
-        if (!item.quantity || !item.discount) {
-          ElMessage({
-            message: '优惠策略未填写完整',
-            type: 'warning',
-            plain: true,
-          })
-          return;
-        }
-      }
-
       ElMessageBox.confirm(
         '确定提交保存?',
         {
@@ -689,7 +703,7 @@ function toSubmit() {
           if (!$route.query.id) { // 新增
             window.location.href = `${window.location.href.split('?')[0]}?flag=edit&id=${res.data.goodsId}`;
           } else { // 编辑
-
+            getGoodsDetailById()
           }
         }).finally(() => {
           isFormSubmiting.value = false
@@ -796,6 +810,18 @@ onBeforeUnmount(() => {
     fileSortableInstance.destroy();
   }
 })
+
+function changeGoodsIsSelling() {
+  if (!form.goodsIsSelling && !form.batchId) {
+    if (!form.batchId) {
+      ElMessage({
+        message: '无当前批次',
+        type: 'warning',
+        plain: true,
+      })
+    }
+  }
+}
 
 </script>
 
