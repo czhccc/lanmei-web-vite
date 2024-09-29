@@ -1,6 +1,5 @@
 <template>
   <div class="goodsDetail">
-
     <el-form 
       ref="formRef" 
       :model="form" 
@@ -8,15 +7,11 @@
       label-width="auto"
     >
       <div class="item">
-        <div class="title">
-          <div>基础信息</div>
-        </div>
+        <div class="title">基础信息</div>
         <div class="content">
           <el-row :gutter="20">
             <el-col :span="8" v-if="$route.query.flag!=='add'">
-              <el-form-item label="商品编号：">
-                {{ form.goodsId }}
-              </el-form-item>
+              <el-form-item label="商品编号："> {{ form.goodsId }} </el-form-item>
             </el-col>
             <el-col :span="8">
               <el-form-item label="商品名称：" prop="goodsName">
@@ -30,6 +25,15 @@
             </el-col>
           </el-row>
           <el-row :gutter="20">
+            <el-col :span="8">
+              <el-form-item label="商品分类：" prop="goodsCategoryId">
+                <el-select v-model="form.goodsCategoryId" style="width: 100%;" placeholder="请选择">
+                  <el-option-group v-for="parent in categoryList" :key="parent.id" :label="parent.name" >
+                    <el-option v-for="category in parent.children" :key="category.id" :label="category.name" :value="category.id" />
+                  </el-option-group>
+                </el-select>
+              </el-form-item>
+            </el-col>
             <el-col :span="8">
               <el-form-item label="是否上架：" prop="goodsIsSelling">
                 <el-switch
@@ -334,6 +338,9 @@ import {
   _getHistoryBatchesList
 } from '@/network/goods'
 import {
+  _getCategory
+} from '@/network/category'
+import {
   _uploadFile
 } from '@/network/upload'
 
@@ -348,6 +355,7 @@ let form = reactive({
   goodsId: null,
   goodsName: null,
   goodsUnit: null,
+  goodsCategoryId: null,
   goodsIsSelling: false,
   goodsRemark: null,
 
@@ -363,6 +371,7 @@ let form = reactive({
 const formRules = reactive({
   goodsName: [{ required: true, message: '请输入商品名称', trigger: 'blur' },],
   goodsUnit: [{ required: true, message: '请输入商品单位', trigger: 'blur' },],
+  goodsCategoryId: [{ required: true, message: '请选择商品分类', trigger: 'blur' },],
   goodsIsSelling: [{ required: true, message: '请选择是否上架', trigger: 'blur' },],
   goodsRemark: [{ required: false, message: '请输入商品备注', trigger: 'blur' },],
 
@@ -630,6 +639,7 @@ function toSubmit() {
           // 商品基础信息
           goodsName: form.goodsName,
           goodsUnit: form.goodsUnit,
+          goodsCategoryId: form.goodsCategoryId,
           goodsIsSelling: form.goodsIsSelling ? 1 : 0,
           goodsRemark: form.goodsRemark,
 
@@ -697,6 +707,7 @@ function resetForm() {
     goodsId: null,
     goodsName: null,
     goodsUnit: null,
+    goodsCategoryId: null,
     goodsIsSelling: false,
     goodsRemark: null,
 
@@ -744,6 +755,7 @@ function getGoodsDetailById() { // 获取详情
       goodsId: res.data.goodsId,
       goodsName: res.data.goodsName,
       goodsUnit: res.data.goodsUnit,
+      goodsCategoryId: res.data.goodsCategoryId,
       goodsIsSelling: res.data.goodsIsSelling===1 ? true : false,
       goodsRemark: res.data.goodsRemark,
       ...currentBatch,
@@ -753,8 +765,16 @@ function getGoodsDetailById() { // 获取详情
   })
 }
 
+let categoryList = ref([])
+function getCategoryList() {
+  _getCategory().then(res => {
+    categoryList.value = res.data
+  })
+}
 
 onMounted(() => {
+  getCategoryList()
+
   if ($route.query.flag==='edit') {
     fileSortableInstance = new Sortable(fileSortableList.value, {
       onEnd: fileSortableEnd,

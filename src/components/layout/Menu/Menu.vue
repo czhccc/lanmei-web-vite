@@ -10,19 +10,22 @@
       <el-menu-item index="2" @click="changeRoute('/purchase')">
         <span>采购管理</span>
       </el-menu-item>
-      <el-menu-item index="3" @click="changeRoute('/goods')">
+      <el-menu-item index="3" @click="changeRoute('/category')">
+        <span>分类管理</span>
+      </el-menu-item>
+      <el-menu-item index="4" @click="changeRoute('/goods')">
         <span>商品管理</span>
       </el-menu-item>
-      <el-menu-item index="4" @click="changeRoute('/order')">
+      <el-menu-item index="5" @click="changeRoute('/order')">
         <span>订单管理</span>
       </el-menu-item>
-      <el-menu-item index="5" @click="changeRoute('/comment')">
+      <el-menu-item index="6" @click="changeRoute('/comment')">
         <span>处理留言</span>
       </el-menu-item>
-      <el-menu-item index="6" @click="changeRoute('/configureSeller')">
+      <el-menu-item index="7" @click="changeRoute('/configureSeller')">
         <span>卖家信息</span>
       </el-menu-item>
-      <el-menu-item index="7" @click="changeRoute('/account')">
+      <el-menu-item index="8" @click="changeRoute('/account')">
         <span>账号管理</span>
       </el-menu-item>
     </el-menu>

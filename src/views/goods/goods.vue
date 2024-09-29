@@ -21,13 +21,24 @@
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">商品状态：</div>
+              <div class="search-item-label">商品分类：</div>
               <div class="search-item-input">
-                <el-select v-model="searchParams.goodsStatus" placeholder="请选择" clearable>
-                  <el-option label="预订中" value="ydz" />
-                  <el-option label="采购中" value="dfk" />
-                  <el-option label="售卖中" value="yfk" />
-                  <el-option label="已下架" value="ywj" />
+                <el-select v-model="searchParams.goodsCategoryId" style="width: 100%;" placeholder="请选择">
+                  <el-option-group v-for="parent in categoryList" :key="parent.id" :label="parent.name" >
+                    <el-option v-for="category in parent.children" :key="category.id" :label="category.name" :value="category.id" />
+                  </el-option-group>
+                </el-select>
+              </div>
+            </div>
+          </el-col>
+          <el-col :span="6">
+            <div class="saerch-item">
+              <div class="search-item-label">当前状态：</div>
+              <div class="search-item-input">
+                <el-select v-model="searchParams.currentBatch" placeholder="请选择" clearable>
+                  <el-option label="预订" :value="0" />
+                  <el-option label="现卖" :value="1" />
+                  <el-option label="无当前批次" :value="-1" />
                 </el-select>
               </div>
             </div>
@@ -37,8 +48,8 @@
               <div class="search-item-label">是否上架：</div>
               <div class="search-item-input">
                 <el-select v-model="searchParams.goodsIsSelling" placeholder="请选择" clearable>
-                  <el-option label="上架中" value="ydz" />
-                  <el-option label="未上架" value="dfk" />
+                  <el-option label="上架" :value="1" />
+                  <el-option label="下架" :value="0" />
                 </el-select>
               </div>
             </div>
@@ -60,7 +71,12 @@
         <el-table-column prop="goodsNo" label="商品编号" align="center" />
         <el-table-column prop="goodsName" label="商品名称" align="center" />
         <el-table-column prop="goodsUnit" label="商品单位" align="center" />
-        <el-table-column prop="hasCurrentBatch" label="是否有当前批次" align="center" />
+        <el-table-column prop="goodsCategoryId" label="商品分类" align="center" >
+          <template #default="scope">
+            <div>{{ translateCategoryId(scope.row.goodsCategoryId) }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="currentBatchTypeText" label="当前状态" align="center" />
         <el-table-column prop="totalpreOrderQuantity" label="总预订量" align="center" >
           <template #default="scope">
             <div>{{ scope.row.totalPreorderQuantity }} {{ scope.row.unit }}</div>
@@ -80,6 +96,7 @@
         <el-table-column prop="goodsIsSelling" label="是否上架" align="center" >
           <template #default="scope">
             <el-switch
+              disabled
               v-model="scope.row.goodsIsSelling"
               active-text="上架"
               inactive-text="下架"
@@ -119,14 +136,18 @@ import { useRouter } from 'vue-router'
 import {
   _getGoodsList
 } from '@/network/goods'
+import {
+  _getCategory
+} from '@/network/category'
 
 const $router = useRouter()
 
 // Table
 let searchParams = reactive({
-  goodsNo: '',
-  goodsName: '',
-  goodsStatus: null,
+  goodsNo: null,
+  goodsName: null,
+  goodsCategoryId: null,
+  currentBatch: null,
   goodsIsSelling: null,
 })
 let tableData = ref([])
@@ -145,16 +166,19 @@ const calculateTableHeight = () => {
   tableHeight.value = viewportHeight - searchWrapperHeight - optionsWrapperHeight - paginationWrapperHeight - 120;
 };
 function search() {
-
+  getList()
 }
 function searchReset() {
   Object.assign(searchParams, {
-    goodsNo: '',
-    goodsName: '',
-    goodsStatus: null,
+    goodsNo: null,
+    goodsName: null,
+    goodsCategoryId: null,
+    currentBatch: null,
     goodsIsSelling: null,
   })
   pagination.pageNo = 1
+
+  getList()
 }
 function tablePageSizeChange(newPageSize) {
   pagination.pageSize = newPageSize
@@ -187,6 +211,7 @@ function getList() {
   _getGoodsList({
     pageNo: pagination.pageNo,
     pageSize: pagination.pageSize,
+    ...searchParams
   }).then(res => {
     pagination.total = res.data.total
 
@@ -195,17 +220,31 @@ function getList() {
         goodsNo: item.id,
         goodsName: item.goods_name,
         goodsUnit: item.goods_unit,
+        goodsCategoryId: item.goods_categoryId,
         goodsRemark: item.goods_remark,
         goodsIsSelling: item.goods_isSelling===1 ? true : false,
-        hasCurrentBatch: item.hasCurrentBatch===1 ? '有' : '无'
+        currentBatchType: item.currentBatchType,
+        currentBatchTypeText: item.currentBatchType!==null ? (item.currentBatchType===1?'现卖':'预订') : '无当前批次'
       }
     })
   })
 }
 
+let categoryList = ref([])
+function getCategoryList() {
+  _getCategory().then(res => {
+    categoryList.value = res.data
+  })
+}
+function translateCategoryId(id) {
+  const category = categoryList.value.flatMap(item => item.children).find(iten => iten.id === id);
+  return category ? category.name : null; // 返回找到的名称或 null
+}
+
 onMounted(() => {
   calculateTableHeight()
 
+  getCategoryList()
   getList()
 })
 
