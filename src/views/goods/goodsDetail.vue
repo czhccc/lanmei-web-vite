@@ -128,6 +128,7 @@
             <el-button class="title-btn" type="warning" @click="endCurrentBatch" v-if="form.batchNo">结束当前批次</el-button>
             <el-button class="title-btn" type="danger" @click="cancelCurrentBatchAllOrder" v-if="form.batchNo&&form.batchType===0">取消所有订单</el-button>
             <el-button class="title-btn" type="danger" @click="deleteCurrentBatch">删除当前批次(考虑限制条件及相关的联动)</el-button>
+
             还需新增判断订单为0的时候可以修改
           </div>
         </div>
@@ -138,7 +139,7 @@
             </el-col>
             <el-col :span="8">
               <el-form-item label="批次类型：" prop="batchType">
-                <el-radio-group v-model="form.batchType" :disabled="Boolean(form.batchNo)">
+                <el-radio-group v-model="form.batchType">
                   <el-radio :value="0">预订</el-radio>
                   <el-radio :value="1">现卖</el-radio>
                 </el-radio-group>
@@ -151,7 +152,7 @@
                 <div style="display: flex;align-items: center;width: 100%;">
                   <el-input-number v-model="form.batchMinQuantity" 
                     :precision="1" placeholder="请输入" :min="0.01" :max="999999" :controls="false" 
-                    style="flex: 1;" :disabled="Boolean(form.batchNo)" 
+                    style="flex: 1;"
                   />
                   <div style="word-break: keep-all;margin-left: 10px;">{{ form.goodsUnit }}</div>
                 </div>
@@ -162,13 +163,13 @@
                 <div style="display: flex;align-items: center;">
                   <el-form-item prop="batchMinPrice" style="flex: 1;">
                     <el-input-number v-model="form.batchMinPrice" :precision="2" placeholder="最低单价" 
-                    :min="0.01" :max="999999" :controls="false" style="flex: 1;" :disabled="Boolean(form.batchNo)" />
+                    :min="0.01" :max="999999" :controls="false" style="flex: 1;" />
                   </el-form-item>
                   <div style="margin-left: 10px;">元</div>
                   <div style="margin: 0 10px;">~</div>
                   <el-form-item prop="batchMaxPrice" style="flex: 1;">
                     <el-input-number v-model="form.batchMaxPrice" :precision="2" placeholder="最高单价" 
-                     :min="0.01" :max="999999" :controls="false" style="flex: 1;" :disabled="Boolean(form.batchNo)" />
+                     :min="0.01" :max="999999" :controls="false" style="flex: 1;" />
                   </el-form-item>
                   <div style="margin-left: 10px;">元</div>
                 </div>
@@ -178,7 +179,7 @@
               <el-form-item label="单价：" prop="batchUnitPrice">
                 <div style="display: flex;align-items: center;width: 100%;">
                   <el-input-number v-model="form.batchUnitPrice" :precision="2" placeholder="请输入" 
-                  :min="0.01" :max="999999" :controls="false" style="flex: 1;" :disabled="Boolean(form.batchNo)" />
+                  :min="0.01" :max="999999" :controls="false" style="flex: 1;" />
                   <div style="word-break: keep-all;margin-left: 10px;"> 元 / {{ form.goodsUnit }}</div>
                 </div>
               </el-form-item>
@@ -190,23 +191,23 @@
                 <div v-for="(item, index) in batchDiscounts" :key="index" style="display: flex;align-items: center;">
                   <div style="margin-right: 10px;">满</div>
                   <el-input-number v-model="item.quantity" :precision="1" placeholder="数量" 
-                  :min="0.1" :max="999999" :controls="false" style="width: 100%;" :disabled="Boolean(form.batchNo)" />
+                  :min="0.1" :max="999999" :controls="false" style="width: 100%;" />
                   <div style="word-break: keep-all;margin-left: 10px;">{{ form.goodsUnit }}</div>
                   <div style="margin: 10px;">减</div>
                   <el-input-number v-model="item.discount" :precision="2" placeholder="优惠金额"
-                   :min="0.01" :max="999999" :controls="false" style="width: 100%;" :disabled="Boolean(form.batchNo)" />
+                   :min="0.01" :max="999999" :controls="false" style="width: 100%;" />
                   <div style="margin-left: 10px;">元</div>
                   <el-button type="danger" size="small" style="margin-left: 10px;" @click="deleteDiscountItem(index)" v-if="!Boolean(form.batchNo)">删除</el-button>
                 </div>
                 <div v-if="batchDiscounts.length === 0">无</div>
-                <el-button style="width: 100%;" @click="addDiscountItem" v-if="!Boolean(form.batchNo)">新增</el-button>
+                <el-button style="width: 100%;" @click="addDiscountItem">新增</el-button>
               </el-form-item>
             </el-col>
           </el-row>
           <el-row :gutter="20" style="margin-top: 10px;">
             <el-col :span="8">
               <el-form-item label="批次备注：" prop="batchRemark">
-                <el-input type="textarea" autosize v-model="form.batchRemark" maxlength="200" show-word-limit placeholder="请输入" clearable :disabled="Boolean(form.batchNo)" />
+                <el-input type="textarea" autosize v-model="form.batchRemark" maxlength="200" show-word-limit placeholder="请输入" clearable />
               </el-form-item>
             </el-col>
           </el-row>
@@ -538,16 +539,16 @@ function cancelCurrentBatchAllOrder() {
   })
 }
 function deleteCurrentBatch() { // 删除当前批次
-  batchDiscounts.length = 0
+  batchDiscounts.value.length = 0
   console.log(form);
 }
 
-let batchDiscounts = reactive([])
+let batchDiscounts = ref([])
 function deleteDiscountItem(index) {
-  batchDiscounts.splice(index, 1)
+  batchDiscounts.value.splice(index, 1)
 }
 function addDiscountItem() {
-  batchDiscounts.push({quantity: null, discount: null})
+  batchDiscounts.value.push({quantity: null, discount: null})
 }
 
 // 历史批次
@@ -606,7 +607,7 @@ function getHistoryBatchesList() {
         batchMinPrice: item.batch_minPrice,
         batchMaxPrice: item.batch_maxPrice,
         batchMinQuantity: item.batch_minQuantity,
-        batchDiscounts: JSON.parse(JSON.parse(item.batch_discounts)),
+        batchDiscounts: JSON.parse(item.batch_discounts),
         batchRemark: item.batch_remark,
         batchUnit: item.snapshot_goodsUnit,
       }
@@ -626,7 +627,7 @@ function toSubmit() {
   //   return;
   // }
 
-  for (const item of batchDiscounts) { // 检查优惠策略
+  for (const item of batchDiscounts.value) { // 检查优惠策略
     if (!item.quantity || !item.discount) {
       ElMessage({
         message: '优惠策略未填写完整',
@@ -668,11 +669,11 @@ function toSubmit() {
         if ($route.query.flag==='edit' && (form.batchId || isStartingNewCurrentBatch)) {
           let batchParams = {
             goodsId: Number($route.query.id),
+            batchId: form.batchId,
             batchType: form.batchType,
-            batchStatus: 1,
             batchMinQuantity: form.batchMinQuantity,
             batchRemark: form.batchRemark,
-            batchDiscounts: JSON.stringify(batchDiscounts),
+            batchDiscounts: batchDiscounts.value,
 
             snapshot_goodsName: form.goodsName,
             snapshot_goodsUnit: form.goodsUnit,
@@ -715,7 +716,7 @@ function toSubmit() {
 
 
 function resetForm() {
-  batchDiscounts.length = 0
+  batchDiscounts.value = []
   
   Object.assign(form, {
     goodsId: null,
@@ -754,7 +755,7 @@ function getGoodsDetailById() { // 获取详情
         currentBatch.batchUnitPrice = Number(res.data.currentBatch.batch_unitPrice)
       }
 
-      batchDiscounts.push(...JSON.parse(JSON.parse(res.data.currentBatch.batch_discounts)))
+      batchDiscounts.value.push(...JSON.parse(res.data.currentBatch.batch_discounts))
 
       // 其他的禁止编辑
       setTimeout(() => {

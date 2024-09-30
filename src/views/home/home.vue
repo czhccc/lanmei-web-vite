@@ -1,5 +1,12 @@
 <template>
   <div class="home">
+    <video controls src="https://vdept3.bdstatic.com/mda-pch9ij96wie50294/cae_h264/1679122324537329507/mda-pch9ij96wie50294.mp4?v_from_s=hkapp-haokan-nanjing&auth_key=1727690133-0-0-21f605fa3c3ca06be455781659ba2bde&bcevod_channel=searchbox_feed&pd=1&cr=0&cd=0&pt=3&logid=3333136877&vid=1689555910717191250&klogid=3333136877&abtest=">
+      Your browser does not support the video tag.
+    </video>
+    <video controls src="http://localhost:8888/goods-49_20240926-104544_qyvvu3.mp4">
+      Your browser does not support the video tag.
+    </video>
+
     <div class="tabs-wrapper">
       <el-tabs type="card" v-model="tabValue" @tab-click="tabsClick">
         <el-tab-pane label="商品数据" name="goods"></el-tab-pane>
