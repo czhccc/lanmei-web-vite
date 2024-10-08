@@ -37,7 +37,7 @@
               <div class="search-item-input">
                 <el-select v-model="searchParams.currentBatch" placeholder="请选择" clearable>
                   <el-option label="预订" :value="0" />
-                  <el-option label="现卖" :value="1" />
+                  <el-option label="现货" :value="1" />
                   <el-option label="无当前批次" :value="-1" />
                 </el-select>
               </div>
@@ -239,7 +239,7 @@ function getList() {
         goodsRemark: item.goods_remark,
         goodsIsSelling: item.goods_isSelling===1 ? true : false,
         currentBatchType: item.currentBatchType,
-        currentBatchTypeText: item.currentBatchType!==null ? (item.currentBatchType===1?'现卖':'预订') : '无当前批次'
+        currentBatchTypeText: item.currentBatchType!==null ? (item.currentBatchType===1?'现货':'预订') : '无当前批次'
       }
     })
   })

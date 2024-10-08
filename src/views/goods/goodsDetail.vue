@@ -141,7 +141,7 @@
               <el-form-item label="批次类型：" prop="batchType">
                 <el-radio-group v-model="form.batchType">
                   <el-radio :value="0">预订</el-radio>
-                  <el-radio :value="1">现卖</el-radio>
+                  <el-radio :value="1">现货</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-col>
@@ -462,9 +462,9 @@ const richTextEditorRef = shallowRef()
 // 内容 HTML
 const richTextEditorMode = 'default' // default or simple
 const goodsRichText = ref('<p>暂无更多介绍</p>')
-const richTextEditorToolbarConfig = {
+const richTextEditorToolbarConfig = reactive({
   readOnly: Boolean(form.batchNo)
-}
+})
 const richTextEditorConfig = { 
   placeholder: '请输入内容...',
   MENU_CONF: {
@@ -521,6 +521,8 @@ function endCurrentBatch() {
       })
 
       getGoodsDetailById()
+      richTextEditorRef.value.enable()
+      isStartingNewCurrentBatch.value = false
     })
   })
 }
@@ -599,7 +601,7 @@ function getHistoryBatchesList() {
       return {
         batchNo: item.batch_no,
         batchType: item.batch_type,
-        batchTypeText: item.batch_type===0?'预订':'现卖',
+        batchTypeText: item.batch_type===0?'预订':'现货',
         batchStartTime: dayjs(item.batch_startTime).format('YYYY-MM-DD HH:mm'),
         batchEndTime: dayjs(item.batch_endTime).format('YYYY-MM-DD HH:mm'),
         batchTotalDates: calculateDateDurationByMinutes(item.batch_startTime, item.batch_endTime),
@@ -684,7 +686,7 @@ function toSubmit() {
           if (form.batchType === 0) { // 预订
             batchParams.batchMinPrice = form.batchMinPrice
             batchParams.batchMaxPrice = form.batchMaxPrice
-          } else if (form.batchType === 1) { // 现卖
+          } else if (form.batchType === 1) { // 现货
             batchParams.batchUnitPrice = form.batchUnitPrice
           }
 
@@ -751,7 +753,7 @@ function getGoodsDetailById() { // 获取详情
       if (res.data.currentBatch.batch_type === 0) { // 预订
         currentBatch.batchMinPrice = Number(res.data.currentBatch.batch_minPrice)
         currentBatch.batchMaxPrice = Number(res.data.currentBatch.batch_maxPrice)
-      } else if (form.batchType === 1) { // 现卖
+      } else if (form.batchType === 1) { // 现货
         currentBatch.batchUnitPrice = Number(res.data.currentBatch.batch_unitPrice)
       }
 
