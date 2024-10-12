@@ -22,10 +22,13 @@
       <el-menu-item index="6" @click="changeRoute('/comment')">
         <span>处理留言</span>
       </el-menu-item>
-      <el-menu-item index="7" @click="changeRoute('/configureSeller')">
+      <el-menu-item index="7" @click="changeRoute('/notify')">
+        <span>首页通知</span>
+      </el-menu-item>
+      <el-menu-item index="8" @click="changeRoute('/configureSeller')">
         <span>卖家信息</span>
       </el-menu-item>
-      <el-menu-item index="8" @click="changeRoute('/account')">
+      <el-menu-item index="9" @click="changeRoute('/account')">
         <span>账号管理</span>
       </el-menu-item>
     </el-menu>

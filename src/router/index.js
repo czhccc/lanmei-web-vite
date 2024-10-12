@@ -57,6 +57,11 @@ const routes = [
     component: () => import('../views/comment/comment.vue'),
   },
   {
+    path: '/notify',
+    name: 'Notify',
+    component: () => import('../views/notify/notify.vue'),
+  },
+  {
     path: '/account',
     name: 'Account',
     component: () => import('../views/account/account.vue'),
