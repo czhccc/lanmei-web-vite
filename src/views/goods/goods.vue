@@ -148,7 +148,7 @@ import { onMounted, reactive, ref, nextTick } from 'vue';
 import { useRouter } from 'vue-router'
 
 import {
-  _getGoodsList
+  _getGoodsList,
 } from '@/network/goods'
 import {
   _getCategory

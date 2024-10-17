@@ -36,6 +36,15 @@ export function _endCurrentBatch(data) {
   });
 }
 
+// 改变上架状态
+export function _changeGoodsIsSelling(data) {
+  return request({
+    url: '/goods/changeGoodsIsSelling',
+    method: 'post',
+    data
+  });
+}
+
 // 获取历史批次列表
 export function _getHistoryBatchesList(data) {
   return request({

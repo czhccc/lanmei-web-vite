@@ -152,7 +152,7 @@ const richTextEditorConfig = {
   MENU_CONF: {
     uploadImage: {
       // 配置上传图片的服务器地址
-      server: 'http://localhost:8888/api/upload',
+      server: `${import.meta.env.VITE_BASE_API}/api/upload`,
 
       // 上传图片时的自定义参数，例如 token
       fieldName: 'file',
@@ -164,7 +164,8 @@ const richTextEditorConfig = {
         formData.append('flag', `aboutUs`);
         _uploadFile(formData).then(res => {
           // 最后插入图片
-          insertFn(res.data.url)
+          console.log(`${import.meta.env.VITE_BASE_URL}/${res.data.fileKey}`)
+          insertFn(`${import.meta.env.VITE_BASE_URL}/${res.data.fileKey}`)
         })
       },
     },
@@ -231,9 +232,9 @@ function submit() {
 
 onMounted(() => {
   _getAboutUs().then(res => {
-    offlineAddressList.push(...res.data[0].address) 
-    contactList.push(...res.data[0].contact)
-    aboutUsRichText.value = res.data[0].aboutUs
+    offlineAddressList.push(...res.data.address) 
+    contactList.push(...res.data.contact)
+    aboutUsRichText.value = res.data.aboutUs
   })
 })
 
