@@ -46,13 +46,36 @@
         <div class="title">商品介绍</div>
         <div class="content introduction-content">
           <div class="introduction-item">
-            <div class="introduction-title">轮播图</div>
+            <div class="introduction-title">封面图</div>
             <div class="introduction-item-content">
-              <el-button type="primary" @click="triggerFileInput" class="custom-button" v-if="!Boolean(form.batchNo)">选择文件</el-button>
+              <el-button type="primary" @click="triggerFileInput('goods_coverImage')" class="custom-button" v-if="!Boolean(form.batchNo)">上传封面图</el-button>
               <input 
                 type="file" 
-                ref="fileInput" 
-                @change="handleFileChange"
+                ref="coverImageFileInput" 
+                @change="e => handleFileChange(e, 'goods_coverImage')"
+                accept="image/*" 
+                style="display: none"
+              />
+              <div class="coverImage-preview-wrapper" v-if="coverImageUrl">
+                <el-image
+                  fit="scale-down"
+                  :src="coverImageUrl"
+                  :preview-src-list="[coverImageUrl]"
+                  hide-on-click-modal
+                  class="coverImage-preview-image"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="introduction-item" style="margin-top: 30px;">
+            <div class="introduction-title">轮播图</div>
+            <div class="introduction-item-content">
+              <el-button type="primary" @click="triggerFileInput('goods_media')" class="custom-button" v-if="!Boolean(form.batchNo)">上传轮播图</el-button>
+              <input 
+                type="file" 
+                ref="swiperFileInput" 
+                @change="e => handleFileChange(e, 'goods_media')"
                 accept="image/*,video/*" 
                 style="display: none"
               />
@@ -435,17 +458,34 @@ const formRules = reactive({
   batchRemark: [{ required: false, message: '请输入批次备注', trigger: 'blur' },],
 })
 
+let coverImageUrl = ref(null)
 let swiperList = ref([])
 
-const fileInput = ref(null);  // 引用文件输入框
+const coverImageFileInput = ref(null);  // 封面图文件上传Input
+const swiperFileInput = ref(null);  // 轮播图文件上传Input
 
-function triggerFileInput() { // 手动触发文件输入框的点击事件
-  fileInput.value.click();
+function triggerFileInput(flag) { // 手动触发文件输入框的点击事件
+  if (flag === 'goods_coverImage') {
+    coverImageFileInput.value.click();
+  }
+  if (flag === 'goods_media') {
+    swiperFileInput.value.click();
+  }
 };
-function handleFileChange(event) {
+function handleFileChange(event, flag) {
   const file = event.target.files[0];
   
-  if (file) {
+  if (file && flag==='goods_coverImage') {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('flag', `${flag}-${$route.query.id}`);
+
+    _uploadFile(formData).then(res => {
+      coverImageUrl.value = `${import.meta.env.VITE_BASE_URL}/${res.data.fileKey}`
+    })
+  }
+
+  if (file && flag==='goods_media') {
     let fileType = ''
     if (file.type.includes('image')) {
       fileType = 'image'
@@ -464,12 +504,12 @@ function handleFileChange(event) {
     // }
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('flag', `goods-${$route.query.id}`);
+    formData.append('flag', `${flag}-${$route.query.id}`);
 
     _uploadFile(formData).then(res => {
       swiperList.value.push({
         type: fileType,
-        url: res.data.url
+        url: `${import.meta.env.VITE_BASE_URL}/${res.data.fileKey}`
       })
     })
   }
@@ -518,10 +558,11 @@ const richTextEditorConfig = {
       async customUpload(file, insertFn) {
         const formData = new FormData()
         formData.append('file', file)
-        formData.append('flag', `goods-${$route.query.id}`);
+        formData.append('flag', `goods_richText-${$route.query.id}`);
         _uploadFile(formData).then(res => {
           // 最后插入图片
-          insertFn(res.data.url)
+          console.log(`${import.meta.env.VITE_BASE_URL}/${res.data.fileKey}`)
+          insertFn(`${import.meta.env.VITE_BASE_URL}/${res.data.fileKey}`)
         })
       },
     },
@@ -657,15 +698,16 @@ function getHistoryBatchesList() {
 
 let isFormSubmiting = ref(false)
 function toSubmit() {
-  // const haveImg = swiperList.value.some(item => item.type === 'image');
-  // if (!haveImg) {
-  //   ElMessage({
-  //     message: '请上传一张图片作为封面图',
-  //     type: 'warning',
-  //     plain: true,
-  //   });
-  //   return;
-  // }
+  console.log(coverImageUrl.value);
+  console.log(!coverImageUrl.value);
+  if (!coverImageUrl.value) {
+    ElMessage({
+      message: '请上传封面图',
+      type: 'warning',
+      plain: true,
+    });
+    return;
+  }
 
   for (const item of batchDiscounts.value) { // 检查优惠策略
     if (!item.quantity || !item.discount) {
@@ -703,10 +745,13 @@ function toSubmit() {
           goodsRichText: goodsRichText.value,
         }
 
-        // console.log(swiperList);
-        // if (swiperList.value.length > 0) {
-        //   params.swiperList = swiperList.value
-        // }
+        if (coverImageUrl.value) {
+          params.coverImageUrl = coverImageUrl.value
+        }
+
+        if (swiperList.value.length > 0) {
+          params.swiperList = swiperList.value
+        }
 
         if ($route.query.flag==='edit' && (form.batchNo || isStartingNewCurrentBatch)) {
           let batchParams = {
@@ -815,7 +860,13 @@ function getGoodsDetailById() { // 获取详情
       ...currentBatch,
     })
     goodsRichText.value = res.data.goods_richText
-    swiperList.value = res.data.swiperList
+    coverImageUrl.value = res.data.goods_coverImage || null
+    swiperList.value = res.data.swiperList.map(item => {
+      return {
+        url: item.url,
+        type: item.fileType,
+      }
+    }) || []
   })
 }
 
@@ -918,6 +969,15 @@ function changeGoodsIsSelling(e) {
         .introduction-item-content {
           .uploader {
 
+          }
+          .coverImage-preview-wrapper {
+            margin-top: 20px;
+            .coverImage-preview-image {
+              width: 200px;
+              height: 200px;
+              border: 1px solid #ccc;
+              border-radius: 6px;
+            }
           }
           .swiperList-preview-wrapper {
             display: flex;
