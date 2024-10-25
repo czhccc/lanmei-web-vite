@@ -33,12 +33,12 @@
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">当前状态：</div>
+              <div class="search-item-label">当前批次类型：</div>
               <div class="search-item-input">
-                <el-select v-model="searchParams.currentBatch" placeholder="请选择" clearable>
-                  <el-option label="预订" :value="0" />
-                  <el-option label="现货" :value="1" />
-                  <el-option label="无当前批次" :value="-1" />
+                <el-select v-model="searchParams.batchType" placeholder="请选择" clearable>
+                  <el-option label="预订" value="preorder" />
+                  <el-option label="现货" value="stock" />
+                  <el-option label="无当前批次" value="null" />
                 </el-select>
               </div>
             </div>
@@ -90,7 +90,7 @@
             <div v-else></div>
           </template>
         </el-table-column>
-        <el-table-column prop="currentBatchTypeText" label="当前状态" align="center" />
+        <el-table-column prop="batchTypeText" label="当前批次类型" align="center" />
         <el-table-column prop="totalpreOrderQuantity" label="总预订量" align="center" >
           <template #default="scope">
             <div>{{ scope.row.totalPreorderQuantity }} {{ scope.row.unit }}</div>
@@ -161,7 +161,7 @@ let searchParams = reactive({
   goodsNo: null,
   goodsName: null,
   goodsCategoryId: null,
-  currentBatch: null,
+  batchType: null,
   goodsIsSelling: null,
 })
 let tableData = ref([])
@@ -187,7 +187,7 @@ function searchReset() {
     goodsNo: null,
     goodsName: null,
     goodsCategoryId: null,
-    currentBatch: null,
+    batchType: null,
     goodsIsSelling: null,
   })
   pagination.pageNo = 1
@@ -235,11 +235,11 @@ function getList() {
         goodsName: item.goods_name,
         goodsUnit: item.goods_unit,
         goodsCategoryId: item.goods_categoryId,
-        goodsCoverImg: item.goodsCoverImg,
+        goodsCoverImg: item.goods_coverImage,
         goodsRemark: item.goods_remark,
         goodsIsSelling: item.goods_isSelling===1 ? true : false,
-        currentBatchType: item.currentBatchType,
-        currentBatchTypeText: item.currentBatchType!==null ? (item.currentBatchType===1?'现货':'预订') : '无当前批次'
+        batchType: item.batch_type,
+        batchTypeText: item.batch_type ? (item.batch_type==='stock'?'现货':'预订') : ''
       }
     })
   })

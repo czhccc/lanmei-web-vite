@@ -71,11 +71,11 @@
           <div class="introduction-item" style="margin-top: 30px;">
             <div class="introduction-title">轮播图</div>
             <div class="introduction-item-content">
-              <el-button type="primary" @click="triggerFileInput('goods_media')" class="custom-button" v-if="!Boolean(form.batchNo)">上传轮播图</el-button>
+              <el-button type="primary" @click="triggerFileInput('goods_swiper')" class="custom-button" v-if="!Boolean(form.batchNo)">上传轮播图</el-button>
               <input 
                 type="file" 
                 ref="swiperFileInput" 
-                @change="e => handleFileChange(e, 'goods_media')"
+                @change="e => handleFileChange(e, 'goods_swiper')"
                 accept="image/*,video/*" 
                 style="display: none"
               />
@@ -468,7 +468,7 @@ function triggerFileInput(flag) { // 手动触发文件输入框的点击事件
   if (flag === 'goods_coverImage') {
     coverImageFileInput.value.click();
   }
-  if (flag === 'goods_media') {
+  if (flag === 'goods_swiper') {
     swiperFileInput.value.click();
   }
 };
@@ -485,7 +485,7 @@ function handleFileChange(event, flag) {
     })
   }
 
-  if (file && flag==='goods_media') {
+  if (file && flag==='goods_swiper') {
     let fileType = ''
     if (file.type.includes('image')) {
       fileType = 'image'
@@ -666,6 +666,7 @@ function historyBatchPageNoChange(newPageNo) {
 // function seeHistoryBatchStatistic() { // 查看历史批次统计数据
 // }
 function getHistoryBatchesList() {
+  return;
   _getHistoryBatchesList({
     id: $route.query.id,
     pageNo: historyBatchPagination.pageNo,
@@ -700,7 +701,7 @@ let isFormSubmiting = ref(false)
 function toSubmit() {
   console.log(coverImageUrl.value);
   console.log(!coverImageUrl.value);
-  if (!coverImageUrl.value) {
+  if ($route.query.flag==='edit' && !coverImageUrl.value) {
     ElMessage({
       message: '请上传封面图',
       type: 'warning',
