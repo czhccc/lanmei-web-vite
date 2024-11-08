@@ -6,14 +6,15 @@
           <input class="level1Input" v-model="item.name" type="text" maxlength="10" placeholder="请填写一级分类名称">
           <div class="btns">
             <el-button type="primary" round class="addBtn" @click="addNode(index)">新增</el-button>
-            <el-button type="danger" round class="deleteBtn" @click="deleteNode(index, null)">删除</el-button>
+            <el-button type="danger" round class="deleteBtn" v-if="item.children.length===0" @click="deleteNode(index, null)">删除</el-button>
           </div>
         </div>
         <div class="tree-level2" v-for="(iten, indey) in item.children" :key="indey">
           <div class="input-wrapper">
             <input class="level2Input" v-model="iten.name" type="text" maxlength="10" placeholder="请填写二级分类名称">
+            <div>{{ iten.goodsCount }}</div>
             <div class="btns">
-              <el-button type="danger" round class="deleteBtn" @click="deleteNode(index, indey)">删除</el-button>
+              <el-button type="danger" round class="deleteBtn" v-if="iten.goodsCount===0" @click="deleteNode(index, indey)">删除</el-button>
             </div>
           </div>
         </div>
@@ -54,9 +55,16 @@ function addNode(index) {
 }
 function deleteNode(index, indey) {
   console.log(indey);
-  if (indey === null) {
+  if (indey === null) { // 一级
     treeData.value.splice(index, 1)
-  } else {
+  } else { // 二级
+    if (treeData.value[index].children[indey].goodsCount > 0) {
+      ElMessage({
+        message: '',
+        type: 'warning',
+        plain: true,
+      })
+    }
     treeData.value[index].children.splice(indey, 1)
   }
 }

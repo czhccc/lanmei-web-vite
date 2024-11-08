@@ -222,7 +222,7 @@
               </el-form-item>
             </el-col>
           </el-row>
-          <el-row :gutter="20" style="margin-top: 10px;">
+          <el-row :gutter="20" style="margin-top: 10px;" v-if="form.batchType==='stock'">
             <el-col :span="8">
               <el-form-item label="当前余量：" prop="batchStock">
                 <div style="display: flex;align-items: center;width: 100%;">
@@ -235,9 +235,9 @@
               </el-form-item>
             </el-col>
           </el-row>
-          <el-row :gutter="20" style="margin-top: 10px;">
+          <el-row :gutter="20" style="margin-top: 10px;" v-if="form.batch_no">
             <el-col :span="8">
-              <el-form-item label="已售出：">
+              <el-form-item :label="form.batchType==='preorder' ? '已预订：' : '已售出：'">
                 <div style="display: flex;align-items: center;width: 100%;">
                   <div style="word-break: keep-all;margin-left: 10px;">23456</div>
                   <div style="word-break: keep-all;margin-left: 10px;">{{ form.goodsUnit }}</div>
@@ -245,7 +245,7 @@
               </el-form-item>
             </el-col>
           </el-row>
-          <el-row :gutter="20" style="margin-top: 10px;">
+          <el-row :gutter="20" style="margin-top: 10px;" v-if="form.batch_no">
             <el-col :span="8">
               <el-form-item label="开始时间：">
                 <div style="display: flex;align-items: center;width: 100%;">
@@ -666,7 +666,6 @@ function historyBatchPageNoChange(newPageNo) {
 // function seeHistoryBatchStatistic() { // 查看历史批次统计数据
 // }
 function getHistoryBatchesList() {
-  return;
   _getHistoryBatchesList({
     id: $route.query.id,
     pageNo: historyBatchPagination.pageNo,
@@ -679,18 +678,18 @@ function getHistoryBatchesList() {
 
     historyBatchTableData.value = res.data.records.map(item => {
       return {
-        batchNo: item.batch_no,
-        batchType: item.batch_type,
-        batchTypeText: item.batch_type==='preorder'?'预订':'现货',
-        batchStartTime: dayjs(item.batch_startTime).format('YYYY-MM-DD HH:mm'),
-        batchEndTime: dayjs(item.batch_endTime).format('YYYY-MM-DD HH:mm'),
-        batchTotalDates: calculateDateDurationByMinutes(item.batch_startTime, item.batch_endTime),
-        batchUnitPrice: item.batch_unitPrice,
-        batchMinPrice: item.batch_minPrice,
-        batchMaxPrice: item.batch_maxPrice,
-        batchMinQuantity: item.batch_minQuantity,
-        batchDiscounts: JSON.parse(item.batch_discounts),
-        batchRemark: item.batch_remark,
+        batchNo: item.no,
+        batchType: item.type,
+        batchTypeText: item.type==='preorder'?'预订':'现货',
+        batchStartTime: dayjs(item.startTime).format('YYYY-MM-DD HH:mm'),
+        batchEndTime: dayjs(item.endTime).format('YYYY-MM-DD HH:mm'),
+        batchTotalDates: calculateDateDurationByMinutes(item.startTime, item.endTime),
+        batchUnitPrice: item.unitPrice,
+        batchMinPrice: item.minPrice,
+        batchMaxPrice: item.maxPrice,
+        batchMinQuantity: item.minQuantity,
+        batchDiscounts: JSON.parse(item.discounts),
+        batchRemark: item.remark,
         batchUnit: item.snapshot_goodsUnit,
       }
     })
