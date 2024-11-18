@@ -5,36 +5,51 @@
         <el-row :gutter="20">
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">订单类型：</div>
+              <div class="search-item-label">订单号：</div>
               <div class="search-item-input">
-                <el-select v-model="searchParams.orderType" placeholder="请选择" clearable>
-                  <el-option label="线上订单" value="onlineOrder" />
-                  <el-option label="线下订单" value="offlineOrder" />
+                <el-input placeholder="请输入" clearable v-model="searchParams.order_no"></el-input>
+              </div>
+            </div>
+          </el-col>
+          <el-col :span="6">
+            <div class="saerch-item">
+              <div class="search-item-label">生成类型：</div>
+              <div class="search-item-input">
+                <el-select v-model="searchParams.generation_type" placeholder="请选择" clearable>
+                  <el-option label="客户下单" value="auto" />
+                  <el-option label="手动添加" value="manual" />
                 </el-select>
               </div>
             </div>
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">订单号：</div>
+              <div class="search-item-label">订单类型：</div>
               <div class="search-item-input">
-                <el-input placeholder="请输入" clearable v-model="searchParams.orderNo"></el-input>
+                <el-select v-model="searchParams.batch_type" placeholder="请选择" clearable @change="searchBatchTypeChange">
+                  <el-option label="预订" value="preorder" />
+                  <el-option label="现货" value="stock" />
+                </el-select>
+              </div>
+            </div>
+          </el-col>
+          <el-col :span="6" v-if="searchParams.batch_type">
+            <div class="saerch-item">
+              <div class="search-item-label">订单状态：</div>
+              <div class="search-item-input">
+                <el-select v-model="searchParams.status" placeholder="请选择" clearable>
+                  <el-option v-for="(item, index) in searchStatusList" :key="index" :label="item.label" :value="item.value" />
+                </el-select>
               </div>
             </div>
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">商品编号：</div>
+              <div class="search-item-label">商品：</div>
               <div class="search-item-input">
-                <el-input placeholder="请输入" clearable v-model="searchParams.goodsNo"></el-input>
-              </div>
-            </div>
-          </el-col>
-          <el-col :span="6">
-            <div class="saerch-item">
-              <div class="search-item-label">商品名称：</div>
-              <div class="search-item-input">
-                <el-input placeholder="请输入" clearable v-model="searchParams.goodsName"></el-input>
+                <el-select v-model="searchParams.goods_id" placeholder="请选择" clearable>
+                  <el-option v-for="(item, index) in goodsList" :key="index" :label="item.goods_name" :value="item.id" />
+                </el-select>
               </div>
             </div>
           </el-col>
@@ -42,39 +57,26 @@
             <div class="saerch-item">
               <div class="search-item-label">批次编号：</div>
               <div class="search-item-input">
-                <el-input placeholder="请输入" clearable v-model="searchParams.batch"></el-input>
+                <el-input placeholder="请输入" clearable v-model="searchParams.batch_no"></el-input>
               </div>
             </div>
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">客户联系方式：</div>
+              <div class="search-item-label">下单客户：</div>
               <div class="search-item-input">
-                <el-input placeholder="请输入" clearable v-model="searchParams.customerPhone"></el-input>
+                <el-input placeholder="请输入" clearable v-model="searchParams.user"></el-input>
               </div>
             </div>
           </el-col>
-          <el-col :span="6">
-            <div class="saerch-item">
-              <div class="search-item-label">订单状态：</div>
-              <div class="search-item-input">
-                <el-select v-model="searchParams.orderStatus" placeholder="请选择" clearable>
-                  <el-option label="预订中" value="ydz" />
-                  <el-option label="待付款" value="dfk" />
-                  <el-option label="已付款" value="yfk" />
-                  <el-option label="已完结" value="ywj" />
-                  <el-option label="已取消" value="yqx" />
-                </el-select>
-              </div>
-            </div>
-          </el-col>
+          
           <el-col :span="6">
             <div class="saerch-item">
               <div class="search-item-label">下单日期：</div>
               <div class="search-item-input">
                 <el-date-picker 
                   type="daterange"
-                  format="YYYY/MM/DD" value-format="YYYY-MM-DD" 
+                  format="YYYY-MM-DD" value-format="YYYY-MM-DD" 
                   start-placeholder="开始日期"
                   end-placeholder="结束日期"
                   clearable 
@@ -98,38 +100,40 @@
 
     <div class="table-wrapper">
       <el-table :height="tableHeight" :data="tableData">
-        <el-table-column prop="orderNo" label="订单号" align="center" />
-        <el-table-column prop="orderTypeText" label="订单类型" align="center" />
-        <el-table-column prop="goodsNo" label="商品" align="center" >
+        <el-table-column prop="order_no" label="订单号" align="center" />
+        <el-table-column prop="generationTypeText" label="生成类型" align="center" />
+        <el-table-column prop="batchTypeText" label="订单类型" align="center" />
+        <el-table-column prop="snapshot_goodsName" label="商品" align="center" >
           <template #default="scope">
-            <el-tooltip :content="'商品编号：'+scope.row.goodsNo">
-              <div>{{ scope.row.goodsName }}</div>
+            <el-tooltip :content="'商品编号：'+scope.row.goods_id">
+              <div style="cursor: pointer;" @click="goGoodsDetail(scope.row.goods_id)">{{ scope.row.snapshot_goodsName }}</div>
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column prop="goodsQuantity" label="数量" align="center" >
+        <el-table-column prop="num" label="数量" align="center" >
           <template #default="scope">
-            <div>{{ scope.row.goodsQuantity }} {{ scope.row.goodsUnit }}</div>
+            <div>{{ scope.row.num }} {{ scope.row.snapshot_goodsUnit }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="payAmount" label="实付总金额" align="center" >
+        <el-table-column prop="finalPrice" label="预订/实付 总金额" align="center" >
           <template #default="scope">
-            <el-tooltip :content="'商品金额：'+scope.row.goodsPrice.toFixed(2)+'元' + ' ' + '邮费：'+scope.row.goodsPostage.toFixed(2)+' 元'">
-              <div style="display: flex;flex-direction: column;align-items: center  ;">
-                <div>{{ scope.row.goodsTotalPrice.toFixed(2) }} 元</div>
+            <el-tooltip v-if="scope.row.batch_type === 'preorder'" :content="'商品金额：'+scope.row.total_minPrice+'~'+scope.row.total_maxPrice+' 元' + ' ' + '邮费：'+scope.row.postage+' 元'">
+              <div style="display: flex;flex-direction: column;align-items: center;">
+                <div>{{ scope.row.finalPrice }} 元</div>
+              </div>
+            </el-tooltip>
+            <el-tooltip v-if="scope.row.batch_type === 'stock'" :content="'商品金额：'+scope.row.total_price+' 元' + ' ' + '邮费：'+scope.row.postage+' 元'">
+              <div style="display: flex;flex-direction: column;align-items: center;">
+                <div>{{ scope.row.finalPrice }} 元</div>
               </div>
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column prop="customerPhone" label="客户联系方式" align="center" />
-        <el-table-column prop="orderCreateTime" label="下单时间" width="170" align="center" />
-        <el-table-column prop="orderStatus" label="订单状态" align="center">
-          <template #default="scope">
-            <el-tooltip :content="'取消原因：'+scope.row.orderCancelReason">
-              <div>{{ scope.row.orderStatusText }}</div>
-            </el-tooltip>
-          </template>
-        </el-table-column>
+        <el-table-column prop="user" label="下单客户" align="center" />
+        <el-table-column prop="createTime" label="下单时间" width="170" align="center" />
+        <el-table-column prop="endTime" label="完结时间" width="170" align="center" />
+        <el-table-column prop="statusText" label="订单状态" align="center" />
+        <el-table-column prop="remark_customer" label="客户备注" align="center" />
         <el-table-column prop="selfRemark" label="己方备注" align="center" />
         <el-table-column fixed="right" label="操作" width="120" align="center" >
           <template #default="scope">
@@ -160,19 +164,28 @@
 import { onMounted, reactive, ref, nextTick } from 'vue';
 import { useRouter } from 'vue-router'
 
+import dayjs from 'dayjs'
+
+import { 
+  _getOrderList, 
+} from '@/network/order'
+import { 
+  _getGoodsList, 
+} from '@/network/goods'
+
 const $router = useRouter()
 
 let loadingInstance = null
 
 // Table
 let searchParams = reactive({
-  orderType: '',
-  orderNo: '',
-  goodsNo: '',
-  goodsName: '',
-  batch: '',
-  customerPhone: '',
-  orderStatus: '',
+  order_no: '',
+  generation_type: '',
+  batch_type: '',
+  status: '',
+  goods_id: '',
+  batch_no: '',
+  user: '',
   orderCreateTime: [],
 })
 let tableData = ref([])
@@ -191,26 +204,29 @@ const calculateTableHeight = () => {
   tableHeight.value = viewportHeight - searchWrapperHeight - optionsWrapperHeight - paginationWrapperHeight - 120;
 };
 function search() {
-
+  getOrderList()
 }
 function searchReset() {
   Object.assign(searchParams, {
-    orderType: '',
-    orderNo: '',
-    goodsNo: '',
-    goodsName: '',
-    batch: '',
-    customerPhone: '',
-    orderStatus: '',
+    order_no: '',
+    generation_type: '',
+    batch_type: '',
+    status: '',
+    goods_id: '',
+    batch_no: '',
+    user: '',
     orderCreateTime: [],
   })
   pagination.pageNo = 1
+  getOrderList()
 }
 function tablePageSizeChange(newPageSize) {
-  console.log(newPageSize)
+  pagination.pageSize = newPageSize
+  getOrderList()
 }
 function tablePageNoChange(newPageNo) {
-  console.log(newPageNo)
+  pagination.pageNo = newPageNo
+  getOrderList()
 }
 function tableAdd(record) {
   // console.log(record.date)
@@ -242,39 +258,98 @@ function tableEdit(record) {
   })
 }
 
-onMounted(() => {
-  for (let i = 0; i < 100; i++) {
-    tableData.value.push({
-      orderNo: '202407022236526936',
-      orderType: 'onlineOrder',
-      orderTypeText: '线上订单',
-      goodsNo: '202407022236526936',
-      goodsName: '蓝莓大果',
-      goodsQuantity: 200,
-      goodsUnit: '斤',
-      goodsPrice: 150.00,
-      goodsPostage: 10.00,
-      goodsTotalPrice: 160.00,
-      customerPhone: '13989562356',
-      orderCreateTime: '2024-07-02 22:42:26',
-      orderStatus: 'yqx',
-      orderStatusText: '已取消',
-      orderCancelReason: '就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消',
-      selfRemark: '我是备注我是备注我是备注2222222222222222222222222222222我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-    })
-  }
-  pagination.total = tableData.value.length
-
-  calculateTableHeight()
-
+function getOrderList() {
   loadingInstance = ElLoading.service({text: '加载中...'})
-  setTimeout(() => {
+  let params = {
+    pageNo: pagination.pageNo,
+    pageSize: pagination.pageSize,
+    ...searchParams,
+  }
+  if (searchParams.orderCreateTime.length > 0) {
+    params.startTime = `${searchParams.orderCreateTime[0]} 00:00:00`
+    params.endTime = `${searchParams.orderCreateTime[0]} 23:59:59`
+  }
+  _getOrderList(params).then(res => {
+    tableData.value = res.data.records.map(item => {
+      let statusText = ''
+      switch (item.status) {
+        case 'reserved': statusText='已预订'; break;
+        case 'paid': statusText='已付款'; break;
+        case 'unpaid': statusText='未付款'; break;
+        case 'completed': statusText='已完成'; break;
+        case 'canceled': statusText='已取消'; break;
+        case 'refunded': statusText='已退款'; break;
+        default: break;
+      }
+
+      let finalPrice = ''
+      if (item.batch_type==='preorder') {
+        let minPrice = (Number(item.total_minPrice) + Number(item.postage) - Number(item.discount_amount)).toFixed(2)
+        let maxPrice = (Number(item.total_maxPrice) + Number(item.postage) - Number(item.discount_amount)).toFixed(2)
+        finalPrice = `${minPrice} ~ ${maxPrice}`
+      } else {
+        finalPrice = (Number(item.total_price) + Number(item.postage) - Number(item.discount_amount)).toFixed(2)
+      }
+
+      return {
+        ...item,
+        batchTypeText: item.batch_type === 'preorder' ? '预订' : '现货',
+        createTime: dayjs(item.createTime).format('YYYY-MM-DD HH:mm:ss'),
+        endTime: item.endTime ? dayjs(item.endTime).format('YYYY-MM-DD HH:mm:ss') : null,
+        statusText,
+        finalPrice,
+        generationTypeText: item.generation_type === 'auto' ? '客户下单' : '手动生成'
+      }
+    })
+    pagination.total = res.data.total
+  }).finally(() => {
     loadingInstance.close()
-  }, 500)
+  })
+}
+
+onMounted(() => {
+  getOrderList()
+  getGoodsList()
+  calculateTableHeight()
 })
 
+function goGoodsDetail(goodsId) {
+  $router.push({
+    path: '/goodsDetail',
+    query: {
+      flag: 'edit',
+      id: goodsId,
+    }
+  })
+}
 
+let goodsList = ref([])
+function getGoodsList() {
+  _getGoodsList({
+    pageNo: 1,
+    pageSize: 999
+  }).then(res => {
+    goodsList.value = res.data.records
+  })
+}
 
+let searchStatusList = ref([])
+function searchBatchTypeChange(e) {
+  if (e === 'preorder') {
+    searchStatusList.value = [
+      {label: '已预订', value: 'reserved'},
+      {label: '未付款', value: 'unpaid'},
+      {label: '已完成', value: 'completed'},
+      {label: '已取消', value: 'canceled'},
+    ]
+  } else {
+    searchStatusList.value = [
+      {label: '已付款', value: 'paid'},
+      {label: '已完成', value: 'completed'},
+      {label: '已取消', value: 'refunded'},
+    ]
+  }
+}
 </script>
 
 <style lang="less" scoped>
