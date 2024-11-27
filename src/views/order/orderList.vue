@@ -134,11 +134,10 @@
         <el-table-column prop="endTime" label="完结时间" width="170" align="center" />
         <el-table-column prop="statusText" label="订单状态" align="center" />
         <el-table-column prop="remark_customer" label="客户备注" align="center" />
-        <el-table-column prop="selfRemark" label="己方备注" align="center" />
+        <el-table-column prop="remark_self" label="己方备注" align="center" />
         <el-table-column fixed="right" label="操作" width="120" align="center" >
           <template #default="scope">
-            <el-button link type="primary" @click="tableDetail(scope.row)">详情</el-button>
-            <el-button link type="primary" @click="tableEdit(scope.row)">编辑</el-button>
+            <el-button link type="primary" @click="tableEdit(scope.row)">查看</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -229,7 +228,6 @@ function tablePageNoChange(newPageNo) {
   getOrderList()
 }
 function tableAdd(record) {
-  // console.log(record.date)
   $router.push({
     path: '/orderDetail',
     query: {
@@ -237,22 +235,11 @@ function tableAdd(record) {
     }
   })
 }
-function tableDetail(record) {
-  // console.log(record.date)
-  $router.push({
-    path: '/orderDetail',
-    query: {
-      id: '123321',
-      flag: 'detail'
-    }
-  })
-}
 function tableEdit(record) {
-  // console.log(record.date)
   $router.push({
     path: '/orderDetail',
     query: {
-      id: '123321',
+      id: record.id,
       flag: 'edit'
     }
   })
@@ -267,7 +254,7 @@ function getOrderList() {
   }
   if (searchParams.orderCreateTime.length > 0) {
     params.startTime = `${searchParams.orderCreateTime[0]} 00:00:00`
-    params.endTime = `${searchParams.orderCreateTime[0]} 23:59:59`
+    params.endTime = `${searchParams.orderCreateTime[1]} 23:59:59`
   }
   _getOrderList(params).then(res => {
     tableData.value = res.data.records.map(item => {
@@ -339,14 +326,14 @@ function searchBatchTypeChange(e) {
     searchStatusList.value = [
       {label: '已预订', value: 'reserved'},
       {label: '未付款', value: 'unpaid'},
-      {label: '已完成', value: 'completed'},
+      {label: '已完结', value: 'completed'},
       {label: '已取消', value: 'canceled'},
     ]
   } else {
     searchStatusList.value = [
       {label: '已付款', value: 'paid'},
-      {label: '已完成', value: 'completed'},
-      {label: '已取消', value: 'refunded'},
+      {label: '已完结', value: 'completed'},
+      {label: '已退款', value: 'refunded'},
     ]
   }
 }

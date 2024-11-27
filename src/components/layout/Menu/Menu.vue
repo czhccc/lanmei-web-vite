@@ -16,13 +16,16 @@
       <el-menu-item index="4" @click="changeRoute('/goods')">
         <span>商品管理</span>
       </el-menu-item>
-      <el-menu-item index="5" @click="changeRoute('/order')">
+      <el-menu-item index="5" @click="changeRoute('/orderList')">
         <span>订单管理</span>
       </el-menu-item>
-      <el-menu-item index="6" @click="changeRoute('/comment')">
+      <el-menu-item index="6" @click="changeRoute('/orderLogs')">
+        <span>订单日志</span>
+      </el-menu-item>
+      <el-menu-item index="7" @click="changeRoute('/comment')">
         <span>处理留言</span>
       </el-menu-item>
-      <el-menu-item index="7" @click="changeRoute('/notify')">
+      <el-menu-item index="8" @click="changeRoute('/notify')">
         <span>首页通知</span>
       </el-menu-item>
       <el-menu-item index="8" @click="changeRoute('/configureSeller')">

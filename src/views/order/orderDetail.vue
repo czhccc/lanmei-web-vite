@@ -5,35 +5,75 @@
       :model="form" 
       :rules="formRules" 
       label-width="auto"
-      :disabled="$route.query.flag==='detail'"
     >
       <div class="item">
         <div class="title">
+          商品信息
+          <el-button type="primary" v-if="$route.query.flag==='add'" @click="toChooseGoods">选择商品</el-button>
+          <el-button type="primary" v-else @click="seeGoods">查看商品</el-button>
+        </div>
+        <div class="content">
+          <el-row :gutter="20">
+            <el-col :span="8">
+              <el-form-item label="商品编号：">
+                {{ form.goods_id }} 
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="商品名称：">
+                {{ form.snapshot_goodsName }}
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="商品批次：">
+                {{ form.batch_no }}
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <!-- <el-row :gutter="20" style="margin-top: 10px" v-if="form.batch_type==='preorder'">
+            <el-col :span="8">
+              <el-form-item label="付款金额：" prop="realPayPrice">
+                <div style="width: 100%;display: flex;justify-content: space-between;">
+                  <el-input-number v-model="form.realPayPrice" :precision="2" placeholder="请输入" :min="0.01" :max="999999" :controls="false" style="width: 100%;" />
+                  <span style="margin-left: 10px">元</span>
+                </div>
+              </el-form-item>
+            </el-col>
+          </el-row> -->
+        </div>
+      </div>
+      <div class="item" v-if="form.goods_id">
+        <div class="title">
           <div style="display: flex;justify-content: space-between;">
-            订单信息
+            基础信息
             <el-button 
               type="danger" class="deleteBtn" 
               :loading="isDeleting"
               @click="toDelete" 
-              v-if="$route.query.flag==='edit'&&form.orderType==='offline'"
+              v-if="$route.query.flag==='edit'&&form.generation_type==='offline'"
             >删 除</el-button>
           </div>
         </div>
         <div class="content">
           <el-row :gutter="20">
-            <el-col :span="8">
-              <el-form-item label="订单号：" v-if="$route.query.flag!=='add'">
-                {{ form.orderNo }}
+            <el-col :span="8" v-if="$route.query.flag!=='add'">
+              <el-form-item label="订单号：">
+                {{ form.order_no }}
+              </el-form-item>
+            </el-col>
+            <el-col :span="8" v-if="$route.query.flag!=='add'">
+              <el-form-item label="生成类型：">
+                {{ form.generation_type==='auto'?'自动生成':'手动添加' }}
+              </el-form-item>
+            </el-col>
+            <el-col :span="8" v-if="form.batch_type">
+              <el-form-item label="订单类型：">
+                {{ form.batch_type==='preorder'?'预订':'现货' }}
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="订单类型：" v-if="$route.query.flag!=='add'">
-                {{ form.orderTypeText }}
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="创建人：" v-if="$route.query.flag!=='add'">
-                {{ form.orderCreateBy }}
+              <el-form-item :label="form.generation_type==='auto'?'下单客户：':'创建人：'" v-if="$route.query.flag!=='add'">
+                {{ form.user }}
               </el-form-item>
             </el-col>
             <el-col :span="8">
@@ -44,136 +84,108 @@
           </el-row>
           <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item label="订单状态：" prop="orderStatus">
-                <el-select v-model="form.orderStatus" placeholder="请选择">
-                  <el-option label="预订中" value="ydz" />
-                  <el-option label="待付款" value="dfk" />
-                  <el-option label="已付款" value="yfk" />
-                  <el-option label="已完结" value="ywj" />
-                  <el-option label="已取消" value="yqx" />
-                </el-select>
-              </el-form-item>
-            </el-col>
-            <el-col :span="8" v-if="form.orderStatus==='yqx'">
-              <el-form-item label="取消原因：" prop="orderCancelReason">
-                <el-input type="textarea" autosize v-model="form.orderCancelReason" maxlength="200" show-word-limit placeholder="请输入" clearable />
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="己方备注：" prop="selfRemark">
-                <el-input type="textarea" autosize v-model="form.selfRemark" maxlength="200" show-word-limit placeholder="请输入" clearable />
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </div>
-      </div>
-      <div class="item">
-        <div class="title">
-          商品信息
-          <el-button type="primary" v-if="$route.query.flag!=='detail'" @click="toChooseGoods">选择商品</el-button>
-        </div>
-        <div class="content">
-          <el-row :gutter="20">
-            <el-col :span="8">
-              <el-form-item label="商品编号：">
-                {{ form.goodsNo }}
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="商品名称：">
-                {{ form.goodsName }}
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="商品批次：">
-                {{ form.goodsBatch }}
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="数量：" required>
-                <div style="width: 100%;display: flex;align-items: center;justify-content: space-between;">
-                  <el-form-item prop="quantity" style="flex: 1;">
-                    <el-input-number v-model="form.quantity" placeholder="总量" :precision="1" :min="0.1" :max="999999" :controls="false" style="width: 100%;" />
-                  </el-form-item>
-                  <div style="text-align: right;margin-left: 10px;">{{ form.goodsUnit || '单位' }}</div>
+              <el-form-item label="数量：" prop="num">
+                <div style="display: flex;width: 100%;">
+                  <div v-if="$route.query.id">{{ form.num }}</div>
+                  <el-input-number v-else v-model="form.num" placeholder="数量" :precision="1" :min="0.1" :max="999999" :controls="false" style="flex: 1;" />
+                  <div v-if="form.snapshot_goodsUnit" style="text-align: right;margin-left: 10px;">{{ form.snapshot_goodsUnit || '单位' }}</div>
                 </div>
               </el-form-item>
             </el-col>
           </el-row>
           <el-row :gutter="20" style="margin-top: 10px">
             <el-col :span="20">
-              <el-form-item label="应付金额：">
+              <el-form-item label="金额：">
                 <div style="display: flex;align-items: center;">
                   <el-form-item>
                     <div style="text-align: center;">
                       <div>商品金额</div>
-                      <div>￥{{ form.goodsPrice.toFixed(2) }}</div>
+                      <div>￥{{ form.totalPrice }}</div>
                     </div>
                   </el-form-item>
                   <div style="text-align: center;margin: 0 30px;">-</div>
                   <el-form-item>
                     <div style="text-align: center;">
                       <div>优惠</div>
-                      <div>￥{{ form.goodsDiscount.toFixed(2) }}</div>
+                      <div>￥{{ form.discount_amount }}</div>
                     </div>
                   </el-form-item>
                   <div style="text-align: center;margin: 0 30px;">+</div>
                   <el-form-item>
                     <div style="text-align: center;">
                       <div>邮费</div>
-                      <div>￥{{ form.goodsPostage.toFixed(2) }}</div>
+                      <div>￥{{ form.postage }}</div>
                     </div>
                   </el-form-item>
                   <div style="text-align: center;margin: 0 30px;">=</div>
                   <el-form-item>
                     <div style="text-align: center;">
                       <div>应付总金额</div>
-                      <div>￥{{ (form.goodsPrice - form.goodsDiscount + form.goodsPostage).toFixed(2) || 0.00 }}</div>
+                      <div>￥{{ form.finalPrice }}</div>
                     </div>
                   </el-form-item>
                 </div>
               </el-form-item>
             </el-col>
           </el-row>
-          <el-row :gutter="20" style="margin-top: 10px">
+          <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item label="实付金额：" prop="realPayPrice">
-                <div style="width: 100%;display: flex;justify-content: space-between;">
-                  <el-input-number v-model="form.realPayPrice" :precision="2" placeholder="请输入" :min="0.01" :max="999999" :controls="false" style="width: 100%;" />
-                  <span style="margin-left: 10px">元</span>
-                </div>
+              <el-form-item label="订单状态：" prop="status">
+                <el-select v-model="form.status" placeholder="请选择">
+                  <el-option v-for="(item, index) in statusList" :key="index" :label="item.label" :value="item.value" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8" v-if="form.status==='canceled'">
+              <el-form-item label="客户取消原因：" prop="cancel_reason">
+                {{ form.cancel_reason }}
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="20">
+            <el-col :span="8">
+              <el-form-item label="己方备注：" prop="remark_self">
+                <el-input type="textarea" autosize v-model="form.remark_self" maxlength="200" show-word-limit placeholder="请输入" clearable />
               </el-form-item>
             </el-col>
           </el-row>
         </div>
       </div>
-      <div class="item">
+      <div class="item" v-if="form.goods_id">
         <div class="title">收货信息</div>
         <div class="content">
           <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item label="客户联系方式：" prop="customerPhone">
-                <el-input v-model="form.customerPhone" placeholder="请输入" maxlength="50" clearable />
+              <el-form-item label="收货人姓名：" prop="receive_name">
+                <el-input v-model="form.receive_name" placeholder="请输入" maxlength="20" clearable />
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="收货人联系方式：" prop="recipientPhone">
-                <el-input v-model="form.recipientPhone" placeholder="请输入" maxlength="50" clearable />
+              <el-form-item label="收货人手机号：" prop="receive_phone">
+                <el-input v-model="form.receive_phone" placeholder="请输入" maxlength="20" clearable />
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="省市区：" prop="recipientRegion">
-                <el-input v-model="form.recipientRegion" placeholder="请输入" maxlength="50" clearable />
+              <el-form-item label="收货方式：" prop="receive_method">
+                <el-select v-model="form.receive_method" placeholder="请选择">
+                  <el-option label="送货上门" value="delivery" />
+                  <el-option label="邮寄" value="post" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8" v-if="$route.query.flag!=='add'">
+              <el-form-item label="收货省市区：" prop="receive_region">
+                {{ form.receive_region }}
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="收货地址详情：" prop="recipientAddressDetail">
-                <el-input type="textarea" autosize v-model="form.recipientAddressDetail" maxlength="200" show-word-limit placeholder="请输入" clearable />
+              <el-form-item label="收货详细地址：" prop="receive_address">
+                <el-input type="textarea" autosize v-model="form.receive_address" maxlength="200" show-word-limit placeholder="请输入" clearable />
               </el-form-item>
             </el-col>
-            <el-col :span="8">
-              <el-form-item label="客户备注：" prop="customerRemark">
-                <el-input type="textarea" autosize v-model="form.customerRemark" maxlength="200" show-word-limit placeholder="请输入" clearable />
+            <el-col :span="8" v-if="$route.query.flag!=='add'">
+              <el-form-item label="客户备注：" prop="remark_customer">
+                {{ form.remark_customer }}
               </el-form-item>
             </el-col>
           </el-row>
@@ -188,7 +200,7 @@
     <el-dialog 
       v-model="isShowChooseGoodsDialog" 
       title="选择商品" 
-      width="800"
+      width="1200"
       align-center
       class="chooseGoods-dialog"
     >
@@ -198,17 +210,13 @@
             <el-col :span="12">
               <div class="chooseGoods-search-item">
                 <div class="chooseGoods-search-item-label">商品编号：</div>
-                <div>
-                  <el-input placeholder="请输入" clearable v-model="chooseGoodsSearchParams.goodsNo"></el-input>
-                </div>
+                <el-input placeholder="请输入" clearable v-model="chooseGoodsSearchParams.goodsNo"></el-input>
               </div>
             </el-col>
             <el-col :span="12">
               <div class="chooseGoods-search-item">
                 <div class="chooseGoods-search-item-label">商品名称：</div>
-                <div class="chooseGoods-search-item-input">
-                  <el-input placeholder="请输入" clearable v-model="chooseGoodsSearchParams.goodsName"></el-input>
-                </div>
+                <el-input placeholder="请输入" clearable v-model="chooseGoodsSearchParams.goodsName"></el-input>
               </div>
             </el-col>
           </el-row>
@@ -218,13 +226,13 @@
           <el-button @click="chooseGoodsSearchReset">重置</el-button>
         </div>
       </div>
-      <el-table :data="chooseGoodsDialogTableData">
-        <el-table-column property="goodsNo" label="商品编号" align="center" />
-        <el-table-column property="goodsName" label="商品名称" align="center" />
+      <el-table :data="goodsList" max-height="60vh">
+        <el-table-column property="id" label="商品编号" align="center" />
+        <el-table-column property="goods_name" label="商品名称" align="center" />
         <el-table-column fixed="right" label="操作" width="110" align="center" >
           <template #default="scope">
             <el-button link type="primary" @click="chooseGoodsConfirm(scope.row)">选择</el-button>
-            <el-button link type="primary" @click="chooseGoodsSeeDetail(scope.row)">详情</el-button>
+            <el-button link type="primary" @click="chooseGoodsSeeDetail(scope.row)">查看</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -237,41 +245,48 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import dayjs from 'dayjs'
+
+import { _getGoodsList } from '@/network/goods'
+import { _getOrderDetailById, _updateOrder } from '@/network/order' 
+
 const $route = useRoute()
 const $router = useRouter()
-console.log($route.query.flag)
 
 let formRef = ref(null)
 let isSubmiting = ref(false)
 let isDeleting = ref(false)
 
 let form = reactive({
-  orderNo: '',
-  orderType: '',
-  orderTypeText: '',
-  orderCreateTime: '',
-  orderCreateBy: '',
-  goodsNo: '',
-  goodsName: '',
-  quantity: 0,
-  goodsUnit: '',
-  goodsPrice: 0.00,
-  goodsDiscount: 30.00,
-  goodsPostage: 0.00,
-  realPayPrice: 160.00,
-  customerPhone: '',
-  orderCreateTime: '',
-  orderStatus: '',
-  orderStatusText: '',
-  orderCancelReason: '',
-  selfRemark: '',
+  generation_type: 'manual',
+  goods_id: null,
+  batch_no: null,
+  batch_type: null,
+  num: 1.0,
+  receive_method: 'post',
+  receive_name: '',
+  receive_phone: '',
+  receive_region: '',
+  receive_address: '',
+  remark_customer: '',
+  discount_amount: 0.00,
+  postage: 0.00,
+  snapshot_coverImage: null,
+  snapshot_goodsName: null,
+  snapshot_goodsUnit: null,
+  snapshot_goodsRemark: null,
+  snapshot_goodsRichText: null,
+  snapshot_discounts: null,
+  total_minPrice: 0.00,
+  total_maxPrice: 0.00,
+  total_price: 0.00,
 })
 const formRules = reactive({
-  orderStatus: [{ required: true, message: '请选择订单状态', trigger: 'blur' },],
-  orderCancelReason: [{ required: true, message: '请输入取消原因', trigger: 'blur' },],
-  selfRemark: [{ required: false, message: '请输入己方备注', trigger: 'blur' },],
+  status: [{ required: true, message: '请选择订单状态', trigger: 'blur' },],
+  cancel_reason: [{ required: false, message: '请输入取消原因', trigger: 'blur' },],
+  remark_self: [{ required: false, message: '请输入己方备注', trigger: 'blur' },],
 
-  quantity: [
+  num: [
     { required: true, message: '请输入商品数量', trigger: 'blur' },
     { type: 'number', min: 0.1, max: 999999, message: '请输入总数量', trigger: 'blur' },
   ],
@@ -284,18 +299,24 @@ const formRules = reactive({
     { type: 'number', min: 0.01, max: 999999, message: '请输入总数量', trigger: 'blur' },
   ],
 
-  customerPhone: [{ required: true, message: '请输入客户联系方式', trigger: 'blur' },],
-  recipientPhone: [{ required: true, message: '请输入客户联系方式', trigger: 'blur' },],
-  recipientRegion: [{ required: true, message: '请选择省市区', trigger: 'blur' },],
-  recipientAddressDetail: [{ required: true, message: '请输入收货地址详情', trigger: 'blur' },],
-  customerRemark: [{ required: false, message: '请输入客户备注', trigger: 'blur' },],
+  receive_name: [{ required: false, message: '请输入收货人姓名', trigger: 'blur' },],
+  receive_phone: [{ required: false, message: '请输入收货人手机号', trigger: 'blur' },],
+  receive_method: [{ required: false, message: '请输入收获方式', trigger: 'blur' },],
+  receive_region: [{ required: false, message: '请选择收货省市区', trigger: 'blur' },],
+  receive_address: [{ required: false, message: '请输入收货详细地址', trigger: 'blur' },],
+  remark_customer: [{ required: false, message: '请输入客户备注', trigger: 'blur' },],
 })
 
 function toSubmit() {
   formRef.value.validate((valid, fields) => {
     if (valid) {
       isSubmiting.value = true
-      console.log('submit!', form)
+      
+      if ($route.query.id) { // edit
+
+      } else { // add
+
+      }
 
       ElMessageBox.confirm(
         '确定提交保存?',
@@ -305,11 +326,29 @@ function toSubmit() {
           type: 'warning',
         }
       ).then(() => {
-        $router.replace({
-          path: '/order'
-        })
-      }).catch(() => {
-        
+        if ($route.query.id) { // edit
+          _updateOrder({
+            id: form.id,
+            remark_self: form.remark_self,
+            receive_name: form.receive_name,
+            receive_phone: form.receive_phone,
+            receive_method: form.receive_method,
+            receive_address: form.receive_address,
+            status: form.status,
+          }).then(res => {
+            ElMessage({
+              message: res.message,
+              type: 'success',
+              plain: true,
+            })
+
+            getOrderDetailById()
+          })
+        } else { // add
+          
+        }
+      }).finally(() => {
+        isSubmiting.value = false
       })
     }
   })
@@ -329,6 +368,59 @@ function toDelete() {
   })
 }
 
+function getOrderDetailById() {
+  _getOrderDetailById({ id: $route.query.id }).then(res => {
+    let finalPrice = ''
+    if (res.data.batch_type==='preorder') {
+      let minPrice = (Number(res.data.total_minPrice) + Number(res.data.postage) - Number(res.data.discount_amount)).toFixed(2)
+      let maxPrice = (Number(res.data.total_maxPrice) + Number(res.data.postage) - Number(res.data.discount_amount)).toFixed(2)
+      finalPrice = `${minPrice} ~ ${maxPrice}`
+    } else {
+      finalPrice = (Number(res.data.total_price) + Number(res.data.postage) - Number(res.data.discount_amount)).toFixed(2)
+    }
+    Object.assign(form, {
+      id: res.data.id,
+      order_no: res.data.order_no,
+      generation_type: res.data.generation_type,
+      batch_type: res.data.batch_type,
+      user: res.data.user,
+      orderCreateTime: res.data.batch_type==='preorder' ? dayjs(res.data.order_time).format('YYYY-MM-DD HH:mm:ss') : dayjs(res.data.pay_time).format('YYYY-MM-DD HH:mm:ss'),
+      remark_self: res.data.remark_self || '',
+      status: res.data.status,
+      cancel_reason: res.data.cancel_reason,
+      
+
+      goods_id: res.data.goods_id,
+      snapshot_goodsName: res.data.snapshot_goodsName,
+      batch_no: res.data.batch_no,
+      num: res.data.num,
+      snapshot_goodsUnit: res.data.snapshot_goodsUnit,
+
+      totalPrice: res.data.batch_type==='preorder' ? `${res.data.total_minPrice}~${res.data.total_maxPrice}` : res.data.total_price,
+      discount_amount: res.data.discount_amount,
+      postage: 10.00,
+      finalPrice,
+      
+      receive_name: res.data.receive_name,
+      receive_phone: res.data.receive_phone,
+      receive_method: res.data.receive_method,
+      receive_region: res.data.receive_region,
+      receive_address: res.data.receive_address,
+      remark_customer: res.data.remark_customer,
+    })
+
+    generateStatusList(res.data.batch_type)
+  })
+}
+
+onMounted(() => {
+  if ($route.query.id) {
+    getOrderDetailById()
+  } else {
+    getGoodsList()
+  }
+})
+
 // 选择商品弹框
 let isShowChooseGoodsDialog = ref(false)
 let chooseGoodsSearchParams = reactive({
@@ -338,57 +430,89 @@ let chooseGoodsSearchParams = reactive({
 function toChooseGoods() {
   isShowChooseGoodsDialog.value = true
 }
-let chooseGoodsDialogTableData = reactive([
-  {goodsNo: '111', goodsName: '蓝莓大大'},
-  {goodsNo: '222', goodsName: '蓝莓小小'},
-])
 function chooseGoodsSearch() {
-
+  getGoodsList()
 }
 function chooseGoodsSearchReset() {
   Object.assign(chooseGoodsSearchParams, { // reactive 直接替换对象的引用不会影响原始对象的代理
     goodsNo: '',
     goodsName: '',
   })
+  getGoodsList()
 }
 function chooseGoodsConfirm(record) {
-  console.log(record)
+  Object.assign(form, {
+    generation_type: 'manual',
+    goods_id: record.id,
+    batch_no: record.batch_no,
+    batch_type: record.batch_type,
+    num: 1.0,
+    receive_method: 'post',
+    receive_name: '',
+    receive_phone: '',
+    receive_region: '',
+    receive_address: '',
+    remark_customer: '',
+    discount_amount: 0.00,
+    postage: 0.00,
+    snapshot_coverImage: record.goods_coverImage,
+    snapshot_goodsName: record.goods_name,
+    snapshot_goodsUnit: record.goods_unit,
+    snapshot_goodsRemark: record.goods_remark,
+    snapshot_goodsRichText: record.goods_richText,
+    snapshot_discounts: JSON.stringify(record.batch_discounts),
+  })
+  isShowChooseGoodsDialog.value = false
+  generateStatusList(record.batch_type)
 }
 function chooseGoodsSeeDetail(record) {
-  console.log(record)
   const url = `${window.location.origin}${$router.resolve({
     path: '/goodsDetail',
     query: {
-      id: '123321',
-      flag: 'detail'
+      id: record.id,
+      flag: 'edit'
     }
   }).href}`
   window.open(url, '_blank')
 }
-
-onMounted(() => {
-  Object.assign(form, { // reactive 直接替换对象的引用不会影响原始对象的代理
-    orderNo: '202407022236526936',
-    orderType: 'offline',
-    orderTypeText: '线下订单',
-    orderCreateTime: '2024-07-02 22:36:52',
-    orderCreateBy: 'czh',
-    goodsBatch: '202420242024',
-    goodsNo: '202407022236526936',
-    goodsName: '蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果蓝莓大果',
-    quantity: 200,
-    goodsUnit: '斤',
-    goodsPrice: 150.00,
-    goodsPostage: 10.00,
-    realPayPrice: 160.00,
-    customerPhone: '13989562356',
-    orderCreateTime: '2024-07-02 22:42:26',
-    orderStatus: 'yqx',
-    orderStatusText: '已取消',
-    orderCancelReason: '就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消就是要取消',
-    selfRemark: '我是备注我是备注我是备注2222222222222222222222222222222我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
+let goodsList = ref([])
+function getGoodsList() {
+  _getGoodsList({
+    pageNo: 1,
+    pageSize: 999,
+    ...chooseGoodsSearchParams,
+  }).then(res => {
+    goodsList.value = [...res.data.records,...res.data.records,...res.data.records,...res.data.records,...res.data.records,...res.data.records,...res.data.records,...res.data.records,]
   })
-})
+}
+
+function seeGoods() {
+  $router.push({
+    path: '/goodsDetail',
+    query: {
+      flag: 'edit',
+      id: form.goods_id,
+    }
+  })
+}
+
+let statusList = ref([])
+function generateStatusList(e) {
+  if (e === 'preorder') {
+    statusList.value = [
+      {label: '已预订', value: 'reserved'},
+      {label: '未付款', value: 'unpaid'},
+      {label: '已完结', value: 'completed'},
+      {label: '已取消', value: 'canceled'},
+    ]
+  } else {
+    statusList.value = [
+      {label: '已付款', value: 'paid'},
+      {label: '已完结', value: 'completed'},
+      {label: '已退款', value: 'refunded'},
+    ]
+  }
+}
 
 </script>
 
@@ -439,9 +563,6 @@ onMounted(() => {
           .chooseGoods-search-item-label {
             word-break: keep-all;
           }
-          .chooseGoods-search-item-input {
-            width: 200px;
-          }
         }
       }
       .chooseGoods-search-btns {
@@ -451,6 +572,10 @@ onMounted(() => {
       }
     }
   }
+  // :deep(.el-scrollbar) {
+  //   max-height: 60vh;
+  //   overflow-y: auto;
+  // }
 }
 .el-input[readonly] .el-input__inner,
 .el-input[disabled] .el-input__inner,
