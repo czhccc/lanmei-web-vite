@@ -698,8 +698,6 @@ function getHistoryBatchesList() {
 
 let isFormSubmiting = ref(false)
 function toSubmit() {
-  console.log(coverImageUrl.value);
-  console.log(!coverImageUrl.value);
   if ($route.query.flag==='edit' && !coverImageUrl.value) {
     ElMessage({
       message: '请上传封面图',
@@ -784,7 +782,9 @@ function toSubmit() {
           })
 
           if (!$route.query.id) { // 新增
-            window.location.href = `${window.location.href.split('?')[0]}?flag=edit&id=${res.data.goodsId}`;
+            setTimeout(() => {
+              window.location.href = `${window.location.href.split('?')[0]}?flag=edit&id=${res.data.goodsId}`;
+            }, 1500)
           } else { // 编辑
             getGoodsDetailById()
           }

@@ -1,6 +1,15 @@
 import request from './request'
 
 // 获取订单列表
+export function _createOrder(data) {
+  return request({
+    url: '/order/createOrder',
+    method: 'post',
+    data
+  })
+}
+
+// 获取订单列表
 export function _getOrderList(data) {
   return request({
     url: '/order/getOrderList',
