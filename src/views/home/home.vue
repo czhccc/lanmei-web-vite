@@ -15,8 +15,8 @@
           <span class="choosedGoods-goodsName-value">{{ choosedGoods.name }}</span>
           <span class="choosedGoods-goodsName-label"> ~ </span>
           <span class="choosedGoods-goodsName-value">{{ choosedGoods.unit }}</span>
-          <span class="choosedGoods-goodsName-label" v-if="choosedBatch"> ~ </span>
-          <span class="choosedGoods-goodsName-value" v-if="choosedBatch">{{ choosedBatch }}</span>
+          <span class="choosedGoods-goodsName-label" v-if="choosedBatchNo"> ~ </span>
+          <span class="choosedGoods-goodsName-value" v-if="choosedBatchNo">{{ choosedBatchNo }}</span>
         </div>
       </div>
 
@@ -29,7 +29,7 @@
                   <div class="saerch-item">
                     <div class="search-item-label">商品编号：</div>
                     <div class="search-item-input">
-                      <el-input placeholder="请输入" clearable v-model="searchParams.goodsId"></el-input>
+                      <el-input placeholder="请输入" clearable v-model="searchParams.goodsNo"></el-input>
                     </div>
                   </div>
                 </el-col>
@@ -37,7 +37,7 @@
                   <div class="saerch-item">
                     <div class="search-item-label">商品名称：</div>
                     <div class="search-item-input">
-                      <el-input placeholder="请输入" clearable v-model="searchParams.name"></el-input>
+                      <el-input placeholder="请输入" clearable v-model="searchParams.goodsName"></el-input>
                     </div>
                   </div>
                 </el-col>
@@ -59,13 +59,32 @@
               highlight-current-row
               @current-change="tableItemClick"
             >
-              <el-table-column prop="no" label="商品编号" align="center" />
-              <el-table-column prop="name" label="商品名称" align="center" />
-              <el-table-column prop="unit" label="商品单位" align="center" />
-              <el-table-column prop="remark" label="备注" align="center" />
-              <el-table-column fixed="right" label="操作" width="80" align="center" >
+              <el-table-column prop="goodsNo" label="商品编号" align="center" />
+              <el-table-column prop="goodsName" label="商品名称" align="center" />
+              <el-table-column prop="goodsUnit" label="商品单位" align="center" />
+              <el-table-column prop="goodsCategoryId" label="商品分类" align="center" >
                 <template #default="scope">
-                  <el-button link type="primary" @click="tableDetail(scope.row)">详情</el-button>
+                  <div>{{ translateCategoryId(scope.row.goodsCategoryId) }}</div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="goodsCategoryId" label="封面图" align="center" >
+                <template #default="scope">
+                  <el-image
+                    v-if="scope.row.goodsCoverImg"
+                    fit="scale-down"
+                    :src="scope.row.goodsCoverImg"
+                    :preview-src-list="[scope.row.goodsCoverImg]"
+                    hide-on-click-modal
+                    class="listCoverImg"
+                    preview-teleported
+                    style="width: 100px;height: 100px;"
+                  />
+                  <div v-else></div>
+                </template>
+              </el-table-column>
+              <el-table-column fixed="right" label="操作" width="120" align="center" >
+                <template #default="scope">
+                  <el-button link type="primary" @click.stop="seeGoodsDetail(scope.row)">查看</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -153,12 +172,19 @@
           <div class="batchChooseContent-wrapper">
             <div class="batchChooseContent">
               <div class="batchChooseContent-container">
-                <div class="batchChoose-item" v-for="(item, index) in batches" :key="index"
-                  :style="{backgroundColor: choosedBatch===item?'rgba(64,158,255)':'white',
-                          color: choosedBatch===item?'white':'black'}"
-                  @click="chooseBatch(item)"
+                <div class="batchChoose-item" v-if="choosedGoods.batch_no"
+                  :style="{backgroundColor: choosedBatchNo===choosedGoods.batch_no?'rgba(64,158,255)':'white',
+                          color: choosedBatchNo===choosedGoods.batch_no?'white':'black'}"
+                  @click="chooseBatch(choosedGoods.batch_no, true)"
                 >
-                  {{ item }}
+                  {{ choosedGoods.batch_no }} 当前
+                </div>
+                <div class="batchChoose-item" v-for="(item, index) in historyBatches" :key="index"
+                  :style="{backgroundColor: choosedBatchNo===item.no?'rgba(64,158,255)':'white',
+                          color: choosedBatchNo===item.no?'white':'black'}"
+                  @click="chooseBatch(item.no, false)"
+                >
+                  {{ item.no }}
                 </div>
               </div>
             </div>
@@ -166,79 +192,75 @@
         </div>
 
         <!-- 批次信息 -->
-        <div class="batchInfo-wrapper" v-if="choosedBatch">
+        <div class="batchInfo-wrapper" v-if="choosedBatchNo">
           <div class="batchInfo-bigTitle">批次信息</div>
           <div class="batchInfo-title">时间</div>
           <div class="batchInfo-content">
             <div class="batchInfo-item">
               <div class="batchInfo-item-label">日期范围：</div>
-              <div class="batchInfo-item-value">2024-06-02 ~ 2024-07-11</div>
-            </div>
-            <div class="batchInfo-item">
-              <div class="batchInfo-item-label">持续周数：</div>
-              <div class="batchInfo-item-value">8周</div>
+              <div class="batchInfo-item-value">{{ choosedBatchInfo.startTime }} ~ {{ choosedBatchInfo.endTime }}</div>
             </div>
             <div class="batchInfo-item">
               <div class="batchInfo-item-label">持续天数：</div>
-              <div class="batchInfo-item-value">53天</div>
+              <div class="batchInfo-item-value">{{ choosedBatchInfo.durationDays }} 天</div>
             </div>
           </div>
           <div class="batchInfo-title">采购</div>
           <div class="batchInfo-content">
             <div class="batchInfo-item">
               <div class="batchInfo-item-label">采购总次数：</div>
-              <div class="batchInfo-item-value">28次</div>
+              <div class="batchInfo-item-value">??? 次</div>
             </div>
             <div class="batchInfo-item">
               <div class="batchInfo-item-label">采购总成本：</div>
-              <div class="batchInfo-item-value">196425元</div>
+              <div class="batchInfo-item-value">??? 元</div>
             </div>
             <div class="batchInfo-item">
               <div class="batchInfo-item-label">其他总成本：</div>
-              <div class="batchInfo-item-value">14623元</div>
+              <div class="batchInfo-item-value">??? 元</div>
             </div>
             <div class="batchInfo-item">
               <div class="batchInfo-item-label">总成本：</div>
-              <div class="batchInfo-item-value">218469元</div>
+              <div class="batchInfo-item-value">??? 元</div>
             </div>
           </div>
           <div class="batchInfo-title">订单</div>
           <div class="batchInfo-content">
             <div class="batchInfo-item">
               <div class="batchInfo-item-label">线上订单数量：</div>
-              <div class="batchInfo-item-value">246</div>
+              <div class="batchInfo-item-value">??? </div>
             </div>
             <div class="batchInfo-item">
               <div class="batchInfo-item-label">线下订单数量：</div>
-              <div class="batchInfo-item-value">246</div>
+              <div class="batchInfo-item-value">??? </div>
             </div>
             <div class="batchInfo-item">
               <div class="batchInfo-item-label">订单总数量：</div>
-              <div class="batchInfo-item-value">246</div>
+              <div class="batchInfo-item-value">??? </div>
             </div>
           </div>
           <div class="batchInfo-title">利润</div>
           <div class="batchInfo-content">
             <div class="batchInfo-item">
               <div class="batchInfo-item-label">线上销售额：</div>
-              <div class="batchInfo-item-value">298567元</div>
+              <div class="batchInfo-item-value">??? 元</div>
             </div>
             <div class="batchInfo-item">
               <div class="batchInfo-item-label">线下销售额：</div>
-              <div class="batchInfo-item-value">37586元</div>
+              <div class="batchInfo-item-value">??? 元</div>
             </div>
             <div class="batchInfo-item">
               <div class="batchInfo-item-label">总销售额：</div>
-              <div class="batchInfo-item-value">359762元</div>
+              <div class="batchInfo-item-value">??? 元</div>
             </div>
             <div class="batchInfo-item">
               <div class="batchInfo-item-label">总利润：</div>
-              <div class="batchInfo-item-value">245683元</div>
+              <div class="batchInfo-item-value">??? 元</div>
             </div>
           </div>
 
           <!-- 批次图表 -->
-          <div class="batchChart-wrapper" v-if="choosedBatch">
+          <div class="batchChart-wrapper" v-if="choosedBatchNo">
             <div class="batchChartContainer" ref="batchChartContainer"></div>
           </div>
         </div>
@@ -324,10 +346,20 @@
 
 <script setup>
 import { onMounted, onUnmounted, reactive, ref, nextTick } from 'vue';
+import { useRouter } from 'vue-router'
 
 import * as echarts from 'echarts';
+import dayjs from 'dayjs'
 
-import { useRouter } from 'vue-router'
+import { ElLoading } from 'element-plus'
+
+import { 
+  _getGoodsList,
+  _getHistoryBatchesList,
+} from '@/network/goods'
+import {
+  _getCategory
+} from '@/network/category'
 
 const $router = useRouter()
 
@@ -342,15 +374,14 @@ function tabsClick(tab, event) {
 
   } else if (tab.paneName === 'overview') {
     choosedGoods.value = null
-    choosedBatch.value = ''
+    choosedBatchNo.value = ''
   }
 }
 
 // table
 let searchParams = reactive({
-  goodsId: '',
-  name: '',
-  date: null,
+  goodsNo: '',
+  goodsName: '',
 })
 let tableData = ref([
 
@@ -360,9 +391,19 @@ let pagination = reactive({
   pageSize: 10,
   total: 0,
 })
+
+let choosedGoods = ref(null)
+let historyBatches = ref([])
 function tableItemClick(item) {
-  console.log(item)
   choosedGoods.value = item
+
+  _getHistoryBatchesList({
+    id: item.id,
+    pageNo: 1,
+    pageSize: 99999,
+  }).then(res => {
+    historyBatches.value = res.data.records
+  })
 }
 
 function search() {
@@ -370,9 +411,8 @@ function search() {
 }
 function searchReset() {
   Object.assign(searchParams, {
-    batch: '',
-    name: '',
-    date: null,
+    goodsNo: '',
+    goodsName: '',
   })
   pagination.pageNo = 1
 }
@@ -394,52 +434,31 @@ function tableDetail(record) {
 }
 
 
-// goods
-let choosedGoods = ref(null)
-
-
 // batch
 let batches = reactive([
   '20240708165401',
-  '20240708165402',
-  '20240708165403',
-  '20240708165404',
-  '20240708165405',
-  '20240708165406',
-  '20240708165407',
-  '20240708165408',
-  '20240708165409',
-  '20240708165410',
-  '20240708165411',
-  '20240708165412',
-  '20240708165413',
-  '20240708165414',
-  '20240708165415',
-  '20240708165416',
-  '20240708165417',
-  '20240708165418',
-  '20240708165419',
-  '20240708165420',
-  '20240708165421',
-  '20240708165422',
-  '20240708165423',
-  '20240708165424',
-  '20240708165425',
-  '20240708165426',
-  '20240708165427',
-  '20240708165428',
-  '20240708165429',
 ])
 
-let choosedBatch = ref('')
-function chooseBatch(item) {
-  console.log(item)
-  choosedBatch.value = item
-  
-  nextTick(() => {
-    initBatchChart();
-  })
-  
+let choosedBatchNo = ref('')
+let choosedBatchInfo = ref({})
+function chooseBatch(item, isCurrent) {
+  choosedBatchNo.value = item // 去掉 '当前'
+  if (isCurrent) { // 当前批次
+    choosedBatchInfo.value.startTime = dayjs(choosedGoods.batch_startTime).format('YYYY-MM-DD')
+    choosedBatchInfo.value.endTime = '未结束'
+    console.log(dayjs().diff(dayjs(choosedGoods.batch_startTime), 'day') + 1)
+    choosedBatchInfo.value.durationDays = dayjs().diff(dayjs(choosedGoods.batch_startTime), 'day') + 1
+  } else { // 历史批次
+    let choosedBatch = historyBatches.value.find(el => el.no===item)
+    choosedBatchInfo.value.startTime = dayjs(choosedBatch.startTime).format('YYYY-MM-DD')
+    choosedBatchInfo.value.endTime = dayjs(choosedBatch.endTime).format('YYYY-MM-DD')
+    console.log(dayjs(choosedBatch.endTime).diff(dayjs(choosedBatch.startTime), 'day') + 1)
+    choosedBatchInfo.value.durationDays = dayjs(choosedBatch.endTime).diff(dayjs(choosedBatch.startTime), 'day') + 1
+  }
+
+  // nextTick(() => {
+  //   initBatchChart();
+  // })
 }
 
 
@@ -600,31 +619,47 @@ function initBatchChart() {
 let overviewDateSpan = ref([])
 
 
+let categoryList = ref([])
+function getCategoryList() {
+  _getCategory().then(res => {
+    categoryList.value = res.data
+  })
+}
+function translateCategoryId(id) {
+  const category = categoryList.value.flatMap(item => item.children).find(iten => iten.id === id);
+  return category ? category.name : null; // 返回找到的名称或 null
+}
+
+function getList() {
+  loadingInstance = ElLoading.service({text: '加载中...'})
+
+  _getGoodsList({
+    pageNo: pagination.pageNo,
+    pageSize: pagination.pageSize,
+    ...searchParams
+  }).then(res => {
+    pagination.total = res.data.total
+
+    tableData.value = res.data.records.map(item => {
+      return {
+        ...item,
+        goodsNo: item.id,
+        goodsName: item.goods_name,
+        goodsUnit: item.goods_unit,
+        goodsCategoryId: item.goods_categoryId,
+        goodsCoverImg: item.goods_coverImage,
+        goodsRemark: item.goods_remark,
+        goodsIsSelling: item.goods_isSelling===1 ? true : false,
+        batchType: item.batch_type,
+        batchTypeText: item.batch_type ? (item.batch_type==='stock'?'现货':'预订') : ''
+      }
+    })
+  })
+}
 
 onMounted(() => {
-  
-  for (let i = 0; i < 10; i++) {
-    tableData.value.push({
-      no: '202407022236526936',
-      name: '蓝莓大果',
-      totalSaleQuantity: 150,
-      unit: '斤',
-      status: '1',
-      statusText: '预定中',
-      totalPreorderQuantity: 100,
-      remainingQuantity: 80,
-      price: 200.00,
-      originalPrice: 150.00,
-      remark: '我是备注我是备注我是备注2222222222222222222222222222222我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注我是备注',
-      isSelling: true,
-    })
-  }
-  pagination.total = tableData.value.length
-
-  loadingInstance = ElLoading.service({text: '加载中...'})
-  setTimeout(() => {
-    loadingInstance.close()
-  }, 500)
+  getCategoryList()
+  getList()
 });
 
 onUnmounted(() => {
@@ -633,6 +668,19 @@ onUnmounted(() => {
     batchChart.dispose();
   }
 });
+
+
+function seeGoodsDetail(record) {
+  console.log(record, '00000000')
+  const url = `${window.location.origin}${$router.resolve({
+    path: '/goodsDetail',
+    query: {
+      id: record.id,
+      flag: 'edit'
+    }
+  }).href}`
+  window.open(url, '_blank')
+}
 
 
 </script>
@@ -767,7 +815,7 @@ onUnmounted(() => {
           .batchChooseContent {
             .batchChooseContent-container {
               display: grid;
-              grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+              grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
               gap: 20px;
               margin-top: 20px;
               .batchChoose-item {
