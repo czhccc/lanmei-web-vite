@@ -8,13 +8,13 @@
     </div>
     
     <div class="goods" v-if="tabValue==='goods'">
-      <div class="choosedGoods" v-if="choosedGoods&&choosedGoods.name">
+      <div class="choosedGoods" v-if="choosedGoods&&choosedGoods.goods_name">
         <div class="choosedGoods-goodsName">
-          <span class="choosedGoods-goodsName-value">{{ choosedGoods.no }}</span>
+          <span class="choosedGoods-goodsName-value">{{ choosedGoods.id }}</span>
           <span class="choosedGoods-goodsName-label"> ~ </span>
-          <span class="choosedGoods-goodsName-value">{{ choosedGoods.name }}</span>
+          <span class="choosedGoods-goodsName-value">{{ choosedGoods.goods_name }}</span>
           <span class="choosedGoods-goodsName-label"> ~ </span>
-          <span class="choosedGoods-goodsName-value">{{ choosedGoods.unit }}</span>
+          <span class="choosedGoods-goodsName-value">{{ choosedGoods.goods_unit }}</span>
           <span class="choosedGoods-goodsName-label" v-if="choosedBatchNo"> ~ </span>
           <span class="choosedGoods-goodsName-value" v-if="choosedBatchNo">{{ choosedBatchNo }}</span>
         </div>
@@ -59,21 +59,21 @@
               highlight-current-row
               @current-change="tableItemClick"
             >
-              <el-table-column prop="goodsNo" label="商品编号" align="center" />
-              <el-table-column prop="goodsName" label="商品名称" align="center" />
-              <el-table-column prop="goodsUnit" label="商品单位" align="center" />
-              <el-table-column prop="goodsCategoryId" label="商品分类" align="center" >
+              <el-table-column prop="id" label="商品编号" align="center" />
+              <el-table-column prop="goods_name" label="商品名称" align="center" />
+              <el-table-column prop="goods_unit" label="商品单位" align="center" />
+              <el-table-column prop="goods_categoryId" label="商品分类" align="center" >
                 <template #default="scope">
-                  <div>{{ translateCategoryId(scope.row.goodsCategoryId) }}</div>
+                  <div>{{ translateCategoryId(scope.row.goods_categoryId) }}</div>
                 </template>
               </el-table-column>
-              <el-table-column prop="goodsCategoryId" label="封面图" align="center" >
+              <el-table-column prop="goods_coverImage" label="封面图" align="center" >
                 <template #default="scope">
                   <el-image
-                    v-if="scope.row.goodsCoverImg"
+                    v-if="scope.row.goods_coverImage"
                     fit="scale-down"
-                    :src="scope.row.goodsCoverImg"
-                    :preview-src-list="[scope.row.goodsCoverImg]"
+                    :src="scope.row.goods_coverImage"
+                    :preview-src-list="[scope.row.goods_coverImage]"
                     hide-on-click-modal
                     class="listCoverImg"
                     preview-teleported
@@ -196,6 +196,10 @@
           <div class="batchInfo-bigTitle">批次信息</div>
           <div class="batchInfo-title">时间</div>
           <div class="batchInfo-content">
+            <div class="batchInfo-item">
+              <div class="batchInfo-item-label">批次类型：</div>
+              <div class="batchInfo-item-value">{{ choosedBatchInfo.type === 'preorder' ? '预订' : '现货' }}</div>
+            </div>
             <div class="batchInfo-item">
               <div class="batchInfo-item-label">日期范围：</div>
               <div class="batchInfo-item-value">{{ choosedBatchInfo.startTime }} ~ {{ choosedBatchInfo.endTime }}</div>
@@ -444,16 +448,16 @@ let choosedBatchInfo = ref({})
 function chooseBatch(item, isCurrent) {
   choosedBatchNo.value = item // 去掉 '当前'
   if (isCurrent) { // 当前批次
-    choosedBatchInfo.value.startTime = dayjs(choosedGoods.batch_startTime).format('YYYY-MM-DD')
+    choosedBatchInfo.value.startTime = dayjs(choosedGoods.value.batch_startTime).format('YYYY-MM-DD')
     choosedBatchInfo.value.endTime = '未结束'
-    console.log(dayjs().diff(dayjs(choosedGoods.batch_startTime), 'day') + 1)
-    choosedBatchInfo.value.durationDays = dayjs().diff(dayjs(choosedGoods.batch_startTime), 'day') + 1
+    choosedBatchInfo.value.durationDays = dayjs().diff(dayjs(choosedGoods.value.batch_startTime), 'day') + 1
+    choosedBatchInfo.value.type = choosedGoods.value.batch_type
   } else { // 历史批次
     let choosedBatch = historyBatches.value.find(el => el.no===item)
     choosedBatchInfo.value.startTime = dayjs(choosedBatch.startTime).format('YYYY-MM-DD')
     choosedBatchInfo.value.endTime = dayjs(choosedBatch.endTime).format('YYYY-MM-DD')
-    console.log(dayjs(choosedBatch.endTime).diff(dayjs(choosedBatch.startTime), 'day') + 1)
     choosedBatchInfo.value.durationDays = dayjs(choosedBatch.endTime).diff(dayjs(choosedBatch.startTime), 'day') + 1
+    choosedBatchInfo.value.type = choosedBatch.type
   }
 
   // nextTick(() => {
@@ -643,15 +647,6 @@ function getList() {
     tableData.value = res.data.records.map(item => {
       return {
         ...item,
-        goodsNo: item.id,
-        goodsName: item.goods_name,
-        goodsUnit: item.goods_unit,
-        goodsCategoryId: item.goods_categoryId,
-        goodsCoverImg: item.goods_coverImage,
-        goodsRemark: item.goods_remark,
-        goodsIsSelling: item.goods_isSelling===1 ? true : false,
-        batchType: item.batch_type,
-        batchTypeText: item.batch_type ? (item.batch_type==='stock'?'现货':'预订') : ''
       }
     })
   })
