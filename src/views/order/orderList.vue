@@ -161,7 +161,7 @@
 
 <script setup>
 import { onMounted, reactive, ref, nextTick } from 'vue';
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 import dayjs from 'dayjs'
 
@@ -172,6 +172,7 @@ import {
   _getGoodsList, 
 } from '@/network/goods'
 
+const $route = useRoute()
 const $router = useRouter()
 
 let loadingInstance = null
@@ -295,6 +296,7 @@ function getOrderList() {
 }
 
 onMounted(() => {
+  searchParams.batch_no = $route.query.batchNo
   getOrderList()
   getGoodsList()
   calculateTableHeight()

@@ -5,10 +5,10 @@
       class="el-menu-vertical-demo"
     >
       <el-menu-item index="1" @click="changeRoute('/home')">
-        <span>首页</span>
+        <span>首页（二期）</span>
       </el-menu-item>
       <el-menu-item index="2" @click="changeRoute('/purchase')">
-        <span>采购管理</span>
+        <span>采购管理（二期）</span>
       </el-menu-item>
       <el-menu-item index="3" @click="changeRoute('/category')">
         <span>分类管理</span>

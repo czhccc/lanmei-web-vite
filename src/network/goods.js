@@ -54,3 +54,30 @@ export function _getHistoryBatchesList(data) {
   });
 }
 
+// 获取商品批次总计
+export function _getBatchTotalInfo(data) {
+  return request({
+    url: '/goods/getBatchTotalInfo',
+    method: 'get',
+    params: data
+  });
+}
+
+// 删除当前批次
+export function _deleteCurrentBatch(data) {
+  return request({
+    url: '/goods/deleteCurrentBatch',
+    method: 'delete',
+    data
+  });
+}
+
+// 取消当前批次所有订单
+export function _cancelAllOrdersInCurrentBatch(data) {
+  return request({
+    url: '/goods/cancelAllOrdersInCurrentBatch',
+    method: 'post',
+    data
+  });
+}
+

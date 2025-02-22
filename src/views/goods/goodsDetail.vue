@@ -136,11 +136,9 @@
           当前批次
           <div>
             <el-button class="title-btn" :type="isStartingNewCurrentBatch?'warning':'success'" @click="startNewBatch" v-if="!form.batchNo">{{ isStartingNewCurrentBatch ? '取消新批次' : '开启新批次' }}</el-button>
-            <el-button class="title-btn" type="warning" @click="endCurrentBatch" v-if="form.batchNo">结束当前批次</el-button>
-            <el-button class="title-btn" type="danger" @click="cancelCurrentBatchAllOrder" v-if="form.batchNo&&form.batchType==='preorder'">取消所有订单</el-button>
-            <el-button class="title-btn" type="danger" @click="deleteCurrentBatch">删除当前批次(考虑限制条件及相关的联动)</el-button>
-
-            还需新增判断订单为0的时候可以修改
+            <el-button class="title-btn" type="warning" @click="endCurrentBatch" v-if="form.batchNo&&currentBatchTotalInfo.totalOrdersCount>0">结束当前批次</el-button>
+            <el-button class="title-btn" type="danger" @click="cancelCurrentBatchAllOrder" v-if="form.batchNo&&form.batchType==='preorder'&&currentBatchTotalInfo.totalOrdersCount>0">取消所有预订</el-button>
+            <el-button class="title-btn" type="danger" v-if="form.batchNo&&currentBatchTotalInfo.totalOrdersCount===0" @click="deleteCurrentBatch">删除当前批次</el-button>
           </div>
         </div>
         <div class="content" v-if="form.batchNo || isStartingNewCurrentBatch">
@@ -150,7 +148,7 @@
             </el-col>
             <el-col :span="8">
               <el-form-item label="批次类型：" prop="batchType">
-                <el-radio-group v-model="form.batchType">
+                <el-radio-group v-model="form.batchType" :disabled="Boolean(form.batchNo)">
                   <el-radio value="preorder">预订</el-radio>
                   <el-radio value="stock">现货</el-radio>
                 </el-radio-group>
@@ -161,7 +159,7 @@
             <el-col :span="8">
               <el-form-item label="最少购买量：" prop="batchMinQuantity">
                 <div style="display: flex;align-items: center;width: 100%;">
-                  <el-input-number v-model="form.batchMinQuantity" 
+                  <el-input-number v-model="form.batchMinQuantity" :disabled="Boolean(form.batchNo)"
                     :precision="1" placeholder="请输入" :min="0.01" :max="999999" :controls="false" 
                     style="flex: 1;"
                   />
@@ -173,13 +171,13 @@
               <el-form-item label="价格区间：" required>
                 <div style="display: flex;align-items: center;">
                   <el-form-item prop="batchMinPrice" style="flex: 1;">
-                    <el-input-number v-model="form.batchMinPrice" :precision="2" placeholder="最低单价" 
+                    <el-input-number v-model="form.batchMinPrice" :precision="2" placeholder="最低单价" :disabled="Boolean(form.batchNo)"
                     :min="0.01" :max="999999" :controls="false" style="flex: 1;" />
                   </el-form-item>
                   <div style="margin-left: 10px;">元</div>
                   <div style="margin: 0 10px;">~</div>
                   <el-form-item prop="batchMaxPrice" style="flex: 1;">
-                    <el-input-number v-model="form.batchMaxPrice" :precision="2" placeholder="最高单价" 
+                    <el-input-number v-model="form.batchMaxPrice" :precision="2" placeholder="最高单价" :disabled="Boolean(form.batchNo)"
                      :min="0.01" :max="999999" :controls="false" style="flex: 1;" />
                   </el-form-item>
                   <div style="margin-left: 10px;">元</div>
@@ -189,8 +187,8 @@
             <el-col :span="8" v-if="form.batchType==='stock'">
               <el-form-item label="单价：" prop="batchUnitPrice">
                 <div style="display: flex;align-items: center;width: 100%;">
-                  <el-input-number v-model="form.batchUnitPrice" :precision="2" placeholder="请输入" 
-                  :min="0.01" :max="999999" :controls="false" style="flex: 1;" />
+                  <el-input-number v-model="form.batchUnitPrice" :precision="2" placeholder="请输入" :disabled="Boolean(form.batchNo)"
+                    :min="0.01" :max="999999" :controls="false" style="flex: 1;" />
                   <div style="word-break: keep-all;margin-left: 10px;"> 元 / {{ form.goodsUnit }}</div>
                 </div>
               </el-form-item>
@@ -201,11 +199,11 @@
               <el-form-item label="优惠策略：">
                 <div v-for="(item, index) in batchDiscounts" :key="index" style="display: flex;align-items: center;">
                   <div style="margin-right: 10px;">满</div>
-                  <el-input-number v-model="item.quantity" :precision="1" placeholder="数量" 
+                  <el-input-number v-model="item.quantity" :precision="1" placeholder="数量" :disabled="Boolean(form.batchNo)"
                   :min="0.1" :max="999999" :controls="false" style="width: 100%;" />
                   <div style="word-break: keep-all;margin-left: 10px;">{{ form.goodsUnit }}</div>
                   <div style="margin: 10px;">减</div>
-                  <el-input-number v-model="item.discount" :precision="2" placeholder="优惠金额"
+                  <el-input-number v-model="item.discount" :precision="2" placeholder="优惠金额" :disabled="Boolean(form.batchNo)"
                    :min="0.01" :max="999999" :controls="false" style="width: 100%;" />
                   <div style="margin-left: 10px;">元</div>
                   <el-button type="danger" size="small" style="margin-left: 10px;" @click="deleteDiscountItem(index)" v-if="!Boolean(form.batchNo)">删除</el-button>
@@ -218,7 +216,7 @@
           <el-row :gutter="20" style="margin-top: 10px;">
             <el-col :span="8">
               <el-form-item label="批次备注：" prop="batchRemark">
-                <el-input type="textarea" autosize v-model="form.batchRemark" maxlength="200" show-word-limit placeholder="请输入" clearable />
+                <el-input type="textarea" autosize v-model="form.batchRemark" :disabled="Boolean(form.batchNo)" maxlength="200" show-word-limit placeholder="请输入" clearable />
               </el-form-item>
             </el-col>
           </el-row>
@@ -226,7 +224,7 @@
             <el-col :span="8">
               <el-form-item label="当前余量：" prop="batchStock">
                 <div style="display: flex;align-items: center;width: 100%;">
-                  <el-input-number v-model="form.batchStock" 
+                  <el-input-number v-model="form.batchStock" :disabled="Boolean(form.batchNo)"
                     :precision="1" placeholder="请输入" :min="0" :max="999999" :controls="false" 
                     style="flex: 1;"
                   />
@@ -254,6 +252,31 @@
               </el-form-item>
             </el-col>
           </el-row>
+
+          <div class="batch-total" v-if="form.batchNo">
+            <el-divider content-position="left">
+              <div style="font-weight: 700;display: flex;align-items: center;">
+                <el-icon><i-ep-TrendCharts /></el-icon>
+                <span>批次总览</span>
+              </div>
+            </el-divider>
+
+            <el-row :gutter="20">
+              <el-col :span="8">
+                <el-form-item label="总订单数：">
+                  <div>
+                    <span>{{ currentBatchTotalInfo.totalOrdersCount || 0 }}</span>
+                    <el-button type="primary" v-if="currentBatchTotalInfo.totalOrdersCount>0" style="margin-left: 30px;" @click="seeOrdersByBatchNo">查看订单</el-button>
+                  </div>
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item label="总量：">
+                  {{ currentBatchTotalInfo.totalSalesVolumn || 0 }} {{ form.goodsUnit }}
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </div>
 
         </div>
       </div>
@@ -292,6 +315,16 @@
                   </div>
                 </div>
               </el-col>
+              <el-col :span="6">
+                <div class="historyBatchSearch-item">
+                  <div class="historyBatchSearch-item-label">批次状态：</div>
+                  <el-select v-model="historyBatchSearchParams.status" style="width: 100%;" placeholder="请选择">
+                    <el-option label="已完成" value="completed" />
+                    <el-option label="已取消" value="canceled" />
+                    <el-option label="已删除" value="deleted" />
+                  </el-select>
+                </div>
+              </el-col>
             </el-row>
           </div>
           <div class="historyBatchSearch-btns">
@@ -321,19 +354,29 @@
           </el-table-column>
           <el-table-column property="batchNo" label="批次" align="center" />
           <el-table-column property="batchTypeText" label="批次类型" align="center" />
-          <el-table-column property="time" label="持续时间" align="center" >
+          <el-table-column property="time" label="持续时间" align="center" width="280">
             <template #default="scope">
               <div>{{ scope.row.batchStartTime }} ~ {{ scope.row.batchEndTime }}</div>
             </template>
           </el-table-column>
-          <el-table-column property="totalDates" label="持续时间" align="center" >
+          <el-table-column property="totalDates" label="持续时间" align="center">
             <template #default="scope">
               <div>{{ scope.row.batchTotalDates }}</div>
             </template>
           </el-table-column>
-          <el-table-column property="totalOrderQuantity" label="总订单数" align="center" >
+          <el-table-column property="totalOrdersCount" label="总订单数" align="center" >
             <template #default="scope">
-              <div>{{ scope.row.totalOrderQuantity }}</div>
+              <div>{{ scope.row.totalOrdersCount || 0 }}</div>
+            </template>
+          </el-table-column>
+          <el-table-column property="totalSalesVolumn" label="总量" align="center" >
+            <template #default="scope">
+              <div>{{ scope.row.totalSalesVolumn || 0.00 }} {{ scope.row.batchUnit }}</div>
+            </template>
+          </el-table-column>
+          <el-table-column property="totalSalesVolumn" label="批次状态" align="center" >
+            <template #default="scope">
+              <div>{{ scope.row.statusText }}</div>
             </template>
           </el-table-column>
           <!-- <el-table-column fixed="right" label="操作" width="110" align="center" >
@@ -374,6 +417,32 @@
       <el-button type="primary" class="submitBtn" :loading=isFormSubmiting @click="toSubmit">提 交</el-button>
     </div>
 
+    <!-- 取消所有预订弹出框 -->
+    <el-dialog
+      v-model="isShowCancelAllOrdersDialog"
+      title="确定取消当前批次所有预订？"
+      width="600"
+      align-center
+    >
+      <div class="cancelAllOrdersDialog">
+        <el-input
+          v-model="cancenlAllOrdersReason"
+          autosize
+          type="textarea"
+          placeholder="请输入取消原因（将展示给客户）"
+          clearable
+          maxlength="100"
+          show-word-limit
+        />
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="isShowCancelAllOrdersDialog = false">取消</el-button>
+          <el-button type="primary" @click="cancelAllOrdersDialogConfirm">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -398,6 +467,9 @@ import {
   _endCurrentBatch,
   _changeGoodsIsSelling,
   _getHistoryBatchesList,
+  _getBatchTotalInfo,
+  _deleteCurrentBatch,
+  _cancelAllOrdersInCurrentBatch,
 } from '@/network/goods'
 import {
   _getCategory
@@ -605,23 +677,63 @@ function endCurrentBatch() {
     })
   })
 }
+
+let isShowCancelAllOrdersDialog = ref(false)
+let cancenlAllOrdersReason = ref('')
 function cancelCurrentBatchAllOrder() {
+  cancenlAllOrdersReason.value = ''
+  isShowCancelAllOrdersDialog.value = true
+}
+function cancelAllOrdersDialogConfirm() {
+  if (!cancenlAllOrdersReason.value.trim()) {
+    ElMessage({
+      message: '请输入取消原因',
+      type: 'warning',
+      plain: true,
+    })
+    return;
+  }
+  _cancelAllOrdersInCurrentBatch({
+    id: form.goodsId,
+    canceledReason: cancenlAllOrdersReason.value
+  }).then(res => {
+    if (res.code === 200) {
+      ElMessage({
+        message: '操作成功',
+        type: 'success',
+        plain: true,
+      })
+      isShowCancelAllOrdersDialog.value = false
+      getGoodsDetailById()
+    }
+  })
+}
+function deleteCurrentBatch() { // 删除当前批次
   ElMessageBox.confirm(
-    '确定取消当前批次所有订单?',
+    '确定删除当前批次?',
     {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',
     }
   ).then(() => {
-    
-  }).catch(() => {
-    
+    _deleteCurrentBatch({id: $route.query.id}).then(res => {
+      ElMessage({
+        message: '操作成功',
+        type: 'success',
+        plain: true,
+      })
+
+      getGoodsDetailById()
+      richTextEditorRef.value.enable()
+      isStartingNewCurrentBatch.value = false
+    })
   })
-}
-function deleteCurrentBatch() { // 删除当前批次
-  batchDiscounts.value.length = 0
-  console.log(form);
+
+  // batchDiscounts.value.length = 0
+  // _deleteCurrentBatch({id: $route.query.id}).then(res => {
+  //   console.log(res)
+  // })
 }
 
 let batchDiscounts = ref([])
@@ -636,6 +748,7 @@ function addDiscountItem() {
 let historyBatchSearchParams = reactive({
   batchNo: '',
   time: [],
+  status: null,
 })
 let historyBatchPagination = reactive({
   pageNo: 1,
@@ -649,6 +762,7 @@ function historyBatchSearchReset() {
   Object.assign(historyBatchSearchParams, {
     batchNo: '',
     time: [],
+    status: null,
   })
   historyBatchPagination.pageNo = 1
   getHistoryBatchesList()
@@ -663,8 +777,7 @@ function historyBatchPageNoChange(newPageNo) {
   historyBatchPagination.pageNo = newPageNo
   getHistoryBatchesList()
 }
-// function seeHistoryBatchStatistic() { // 查看历史批次统计数据
-// }
+
 function getHistoryBatchesList() {
   _getHistoryBatchesList({
     id: $route.query.id,
@@ -673,10 +786,18 @@ function getHistoryBatchesList() {
     batchNo: historyBatchSearchParams.batchNo,
     startTime: historyBatchSearchParams.time[0],
     endTime: historyBatchSearchParams.time[1],
+    status: historyBatchSearchParams.status,
   }).then(res => {
     historyBatchPagination.total = res.data.total
 
     historyBatchTableData.value = res.data.records.map(item => {
+      let statusText = ''
+      switch (item.status) {
+        case 'completed': statusText='已完成';break;
+        case 'canceled': statusText='已取消';break;
+        case 'deleted': statusText='已删除';break;
+        default: break;
+      }
       return {
         batchNo: item.no,
         batchType: item.type,
@@ -691,6 +812,9 @@ function getHistoryBatchesList() {
         batchDiscounts: JSON.parse(item.discounts),
         batchRemark: item.remark,
         batchUnit: item.snapshot_goodsUnit,
+        totalOrdersCount: item.totalOrdersCount,
+        totalSalesVolumn: item.totalSalesVolumn,
+        statusText,
       }
     })
   })
@@ -704,6 +828,15 @@ function toSubmit() {
       type: 'warning',
       plain: true,
     });
+    return;
+  }
+
+  if (form.batchMinPrice === form.batchMaxPrice) {
+    ElMessage({
+      message: '当前批次价格区间相同',
+      type: 'warning',
+      plain: true,
+    })
     return;
   }
 
@@ -841,6 +974,8 @@ function getGoodsDetailById() { // 获取详情
 
       batchDiscounts.value.push(...JSON.parse(res.data.batch_discounts))
 
+      getBatchTotalInfo({id: $route.query.id, batchNo: res.data.batch_no}) // 获取当前批次总计
+
       // 其他的禁止编辑
       setTimeout(() => {
         richTextEditorRef.value.disable() // 禁用富文本编辑器
@@ -867,6 +1002,8 @@ function getGoodsDetailById() { // 获取详情
         type: item.fileType,
       }
     }) || []
+
+    getHistoryBatchesList()
   })
 }
 
@@ -874,6 +1011,13 @@ let categoryList = ref([])
 function getCategoryList() {
   _getCategory().then(res => {
     categoryList.value = res.data
+  })
+}
+
+let currentBatchTotalInfo = ref({})
+function getBatchTotalInfo(params) {
+  _getBatchTotalInfo(params).then(res => {
+    currentBatchTotalInfo.value = res.data
   })
 }
 
@@ -886,7 +1030,6 @@ onMounted(() => {
     });
 
     getGoodsDetailById() // 获取详情信息
-    getHistoryBatchesList() // 获取历史批次列表
   }
 
 })
@@ -922,6 +1065,16 @@ function changeGoodsIsSelling(e) {
       plain: true,
     })
   })
+}
+function seeOrdersByBatchNo() {
+  console.log(form.batchNo)
+  const url = `${window.location.origin}${$router.resolve({
+    path: '/orderList',
+    query: {
+      batchNo: form.batchNo,
+    }
+  }).href}`
+  window.open(url, '_blank')
 }
 
 </script>
@@ -1034,6 +1187,10 @@ function changeGoodsIsSelling(e) {
       right: 30px;
       z-index: 999;
     }
+  }
+
+  .batch-total {
+
   }
 
   .history-batch {
