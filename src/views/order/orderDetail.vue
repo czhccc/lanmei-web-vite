@@ -555,13 +555,15 @@ function generateStatusList(e) {
     statusList.value = [
       {label: '已预订', value: 'reserved'},
       {label: '未付款', value: 'unpaid'},
-      {label: '已完结', value: 'completed'},
+      {label: '已付款', value: 'paid'},
+      {label: '已完成', value: 'completed'},
       {label: '已取消', value: 'canceled'},
+      {label: '已退款', value: 'refunded'},
     ]
   } else {
     statusList.value = [
       {label: '已付款', value: 'paid'},
-      {label: '已完结', value: 'completed'},
+      {label: '已完成', value: 'completed'},
       {label: '已退款', value: 'refunded'},
     ]
   }

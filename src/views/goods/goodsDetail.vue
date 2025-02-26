@@ -131,15 +131,35 @@
       </div>
 
       <!-- 当前批次 -->
-      <div class="item" v-if="$route.query.flag==='edit'">
+      <div class="item">
         <div class="title">
           当前批次
           <div>
             <el-button class="title-btn" :type="isStartingNewCurrentBatch?'warning':'success'" @click="startNewBatch" v-if="!form.batchNo">{{ isStartingNewCurrentBatch ? '取消新批次' : '开启新批次' }}</el-button>
-            <el-button class="title-btn" type="warning" @click="endCurrentBatch" v-if="form.batchNo&&currentBatchTotalInfo.totalOrdersCount>0">结束当前批次</el-button>
-            <el-button class="title-btn" type="danger" @click="cancelCurrentBatchAllOrder" v-if="form.batchNo&&form.batchType==='preorder'&&currentBatchTotalInfo.totalOrdersCount>0">取消所有预订</el-button>
-            <el-button class="title-btn" type="danger" v-if="form.batchNo&&currentBatchTotalInfo.totalOrdersCount===0" @click="deleteCurrentBatch">删除当前批次</el-button>
+
+            <div v-if="form.batchNo">
+              <el-popconfirm title="确认开始售卖？" confirm-button-text="确定" cancel-button-text="取消" v-if="form.batchType==='preorder'&&form.batchPreorderStage==='pending'&&currentBatchTotalInfo.totalOrdersCount>0" @confirm="preorderBatchIsReadyToSell">
+                <template #reference>
+                  <el-button class="title-btn" type="primary">开始售卖</el-button>
+                </template>
+              </el-popconfirm>
+
+              <el-popconfirm title="确认删除当前批次？" confirm-button-text="确定" cancel-button-text="取消" v-if="currentBatchTotalInfo.totalOrdersCount>0&&((form.batchPreorderStage==='selling')||(form.batchType==='stock'))" @confirm="endCurrentBatch">
+                <template #reference>
+                  <el-button class="title-btn" type="warning">结束当前批次</el-button>
+                </template>
+              </el-popconfirm>
+
+              <el-button class="title-btn" type="danger" @click="cancelCurrentBatchAllOrder" v-if="form.batchType==='preorder'&&form.batchPreorderStage==='pending'&&currentBatchTotalInfo.totalOrdersCount>0">取消所有预订</el-button>
+
+              <el-popconfirm title="确认删除当前批次？" confirm-button-text="确定" cancel-button-text="取消" v-if="currentBatchTotalInfo.totalOrdersCount===0" @confirm="deleteCurrentBatch">
+                <template #reference>
+                  <el-button class="title-btn" type="danger">删除当前批次</el-button>
+                </template>
+              </el-popconfirm>
+            </div>
           </div>
+
         </div>
         <div class="content" v-if="form.batchNo || isStartingNewCurrentBatch">
           <el-row :gutter="20">
@@ -152,6 +172,7 @@
                   <el-radio value="preorder">预订</el-radio>
                   <el-radio value="stock">现货</el-radio>
                 </el-radio-group>
+                <span v-if="form.batchType==='preorder'" style="margin-left: 30px;color: #666;">{{ form.batchPreorderStage==='pending' ? '预订阶段' : '售卖阶段' }}</span>
               </el-form-item>
             </el-col>
           </el-row>
@@ -209,7 +230,7 @@
                   <el-button type="danger" size="small" style="margin-left: 10px;" @click="deleteDiscountItem(index)" v-if="!Boolean(form.batchNo)">删除</el-button>
                 </div>
                 <div v-if="batchDiscounts.length === 0">无</div>
-                <el-button style="width: 100%;" @click="addDiscountItem">新增</el-button>
+                <el-button style="width: 100%;" v-if="!Boolean(form.batchNo)" @click="addDiscountItem">新增</el-button>
               </el-form-item>
             </el-col>
           </el-row>
@@ -222,9 +243,9 @@
           </el-row>
           <el-row :gutter="20" style="margin-top: 10px;" v-if="form.batchType==='stock'">
             <el-col :span="8">
-              <el-form-item label="当前余量：" prop="batchStock">
+              <el-form-item label="当前余量：" prop="batchRemainingAmount">
                 <div style="display: flex;align-items: center;width: 100%;">
-                  <el-input-number v-model="form.batchStock" :disabled="Boolean(form.batchNo)"
+                  <el-input-number v-model="form.batchRemainingAmount" :disabled="Boolean(form.batchNo)"
                     :precision="1" placeholder="请输入" :min="0" :max="999999" :controls="false" 
                     style="flex: 1;"
                   />
@@ -261,21 +282,101 @@
               </div>
             </el-divider>
 
-            <el-row :gutter="20">
-              <el-col :span="8">
-                <el-form-item label="总订单数：">
-                  <div>
+            <div class="batchTotal">
+              <div class="batchTotal-row">
+                <div class="batchTotal-item">
+                  <div class="batchTotal-item-title">全部订单数：</div>
+                  <div class="batchTotal-item-content">
                     <span>{{ currentBatchTotalInfo.totalOrdersCount || 0 }}</span>
-                    <el-button type="primary" v-if="currentBatchTotalInfo.totalOrdersCount>0" style="margin-left: 30px;" @click="seeOrdersByBatchNo">查看订单</el-button>
+                    <el-button type="primary"  style="margin-left: 30px;" v-if="currentBatchTotalInfo.totalOrdersCount>0" @click="seeOrdersByBatchNo">查看订单</el-button>
                   </div>
-                </el-form-item>
-              </el-col>
-              <el-col :span="8">
-                <el-form-item label="总量：">
-                  {{ currentBatchTotalInfo.totalSalesVolumn || 0 }} {{ form.goodsUnit }}
-                </el-form-item>
-              </el-col>
-            </el-row>
+                </div>
+              </div>
+
+              <div class="batchTotal-row batchTotal-row2">
+                <div class="batchTotal-item">
+                  <div class="batchTotal-item-title">已预订</div>
+                  <div class="batchTotal-item-content">
+                    <div class="batchTotal-item-content-order">
+                      <span class="batchTotal-item-content-label">订单数：</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.reservedOrdersCount || 0 }}</span>
+                    </div>
+                    <div class="batchTotal-item-content-amount">
+                      <span class="batchTotal-item-content-label">总量：</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.reservedAmount || 0 }} {{ form.goodsUnit }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="batchTotal-item">
+                  <div class="batchTotal-item-title">已取消</div>
+                  <div class="batchTotal-item-content">
+                    <div class="batchTotal-item-content-order">
+                      <span class="batchTotal-item-content-label">订单数：</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.canceledOrdersCount || 0 }}</span>
+                    </div>
+                    <div class="batchTotal-item-content-amount">
+                      <span class="batchTotal-item-content-label">总量：</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.canceledAmount || 0 }} {{ form.goodsUnit }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="batchTotal-row batchTotal-row2" v-if="form.batchPreorderStage==='selling'||form.batchType==='stock'">
+                <div class="batchTotal-item" v-if="form.batchType==='preorder'">
+                  <div class="batchTotal-item-title">未付款</div>
+                  <div class="batchTotal-item-content">
+                    <div class="batchTotal-item-content-order">
+                      <span class="batchTotal-item-content-label">订单数：</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.unpaidOrdersCount || 0 }}</span>
+                    </div>
+                    <div class="batchTotal-item-content-amount">
+                      <span class="batchTotal-item-content-label">总量：</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.unpaidAmount || 0 }} {{ form.goodsUnit }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="batchTotal-item">
+                  <div class="batchTotal-item-title">已付款</div>
+                  <div class="batchTotal-item-content">
+                    <div class="batchTotal-item-content-order">
+                      <span class="batchTotal-item-content-label">订单数：</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.paidOrdersCount || 0 }}</span>
+                    </div>
+                    <div class="batchTotal-item-content-amount">
+                      <span class="batchTotal-item-content-label">总量：</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.paidAmount || 0 }} {{ form.goodsUnit }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="batchTotal-item">
+                  <div class="batchTotal-item-title">已完成</div>
+                  <div class="batchTotal-item-content">
+                    <div class="batchTotal-item-content-order">
+                      <span class="batchTotal-item-content-label">订单数：</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.canceledOrdersCount || 0 }}</span>
+                    </div>
+                    <div class="batchTotal-item-content-amount">
+                      <span class="batchTotal-item-content-label">总量：</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.completedAmount || 0 }} {{ form.goodsUnit }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="batchTotal-item">
+                  <div class="batchTotal-item-title">已退款</div>
+                  <div class="batchTotal-item-content">
+                    <div class="batchTotal-item-content-order">
+                      <span class="batchTotal-item-content-label">订单数：</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.refundedOrdersCount || 0 }}</span>
+                    </div>
+                    <div class="batchTotal-item-content-amount">
+                      <span class="batchTotal-item-content-label">总量：</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.refundedAmount || 0 }} {{ form.goodsUnit }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>
@@ -369,12 +470,12 @@
               <div>{{ scope.row.totalOrdersCount || 0 }}</div>
             </template>
           </el-table-column>
-          <el-table-column property="totalSalesVolumn" label="总量" align="center" >
+          <el-table-column property="totalAmount" label="总量" align="center" >
             <template #default="scope">
-              <div>{{ scope.row.totalSalesVolumn || 0.00 }} {{ scope.row.batchUnit }}</div>
+              <div>{{ scope.row.totalAmount || 0.00 }} {{ scope.row.batchUnit }}</div>
             </template>
           </el-table-column>
-          <el-table-column property="totalSalesVolumn" label="批次状态" align="center" >
+          <el-table-column property="statusText" label="批次状态" align="center" >
             <template #default="scope">
               <div>{{ scope.row.statusText }}</div>
             </template>
@@ -470,6 +571,7 @@ import {
   _getBatchTotalInfo,
   _deleteCurrentBatch,
   _cancelAllOrdersInCurrentBatch,
+  _preorderBatchIsReadyToSell,
 } from '@/network/goods'
 import {
   _getCategory
@@ -501,8 +603,7 @@ let form = reactive({
   batchMaxPrice: 0.01,
   batchUnitPrice: 0.01,
   batchRemark: '',
-  batchStock: 0,
-  batchTotalSalesVolumn: 0,
+  batchRemainingAmount: 0,
 })
 const formRules = reactive({
   goodsName: [{ required: true, message: '请输入商品名称', trigger: 'blur' },],
@@ -510,7 +611,7 @@ const formRules = reactive({
   goodsCategoryId: [{ required: true, message: '请选择商品分类', trigger: 'blur' },],
   goodsIsSelling: [{ required: true, message: '请选择是否上架', trigger: 'blur' },],
   goodsRemark: [{ required: false, message: '请输入商品备注', trigger: 'blur' },],
-  batchStock: [{ required: true, message: '请输入当前余量', trigger: 'blur' },],
+  batchRemainingAmount: [{ required: true, message: '请输入当前余量', trigger: 'blur' },],
   
 
   batchType: [{ required: true, message: '请选择批次类型', trigger: 'blur' },],
@@ -654,27 +755,18 @@ function startNewBatch() {
 }
 
 function endCurrentBatch() {
-  ElMessageBox.confirm(
-    '确定结束当前批次?',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  ).then(() => {
-    _endCurrentBatch({
-      goodsId: form.goodsId
-    }).then(res => {
-      ElMessage({
-        message: res.message,
-        type: 'success',
-        plain: true,
-      })
-
-      getGoodsDetailById()
-      richTextEditorRef.value.enable()
-      isStartingNewCurrentBatch.value = false
+  _endCurrentBatch({
+    goodsId: form.goodsId
+  }).then(res => {
+    ElMessage({
+      message: res.message,
+      type: 'success',
+      plain: true,
     })
+
+    getGoodsDetailById()
+    richTextEditorRef.value.enable()
+    isStartingNewCurrentBatch.value = false
   })
 }
 
@@ -709,31 +801,28 @@ function cancelAllOrdersDialogConfirm() {
   })
 }
 function deleteCurrentBatch() { // 删除当前批次
-  ElMessageBox.confirm(
-    '确定删除当前批次?',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  ).then(() => {
-    _deleteCurrentBatch({id: $route.query.id}).then(res => {
-      ElMessage({
-        message: '操作成功',
-        type: 'success',
-        plain: true,
-      })
-
-      getGoodsDetailById()
-      richTextEditorRef.value.enable()
-      isStartingNewCurrentBatch.value = false
+  _deleteCurrentBatch({id: $route.query.id}).then(res => {
+    ElMessage({
+      message: '操作成功',
+      type: 'success',
+      plain: true,
     })
-  })
 
-  // batchDiscounts.value.length = 0
-  // _deleteCurrentBatch({id: $route.query.id}).then(res => {
-  //   console.log(res)
-  // })
+    getGoodsDetailById()
+    richTextEditorRef.value.enable()
+    isStartingNewCurrentBatch.value = false
+  })
+}
+function preorderBatchIsReadyToSell() {
+  _preorderBatchIsReadyToSell({ id: form.goodsId }).then(res => {
+    ElMessage({
+      message: '操作成功',
+      type: 'success',
+      plain: true,
+    })
+
+    getGoodsDetailById()
+  })
 }
 
 let batchDiscounts = ref([])
@@ -813,7 +902,7 @@ function getHistoryBatchesList() {
         batchRemark: item.remark,
         batchUnit: item.snapshot_goodsUnit,
         totalOrdersCount: item.totalOrdersCount,
-        totalSalesVolumn: item.totalSalesVolumn,
+        totalAmount: item.totalAmount,
         statusText,
       }
     })
@@ -891,7 +980,7 @@ function toSubmit() {
             batchStartTime: form.batchStartTime,
             batchMinQuantity: form.batchMinQuantity,
             batchRemark: form.batchRemark,
-            batchStock: form.batchStock,
+            batchRemainingAmount: form.batchRemainingAmount,
             batchDiscounts: batchDiscounts.value,
           }
           if (form.batchType === 'preorder') { // 预订
@@ -949,8 +1038,7 @@ function resetForm() {
     batchMaxPrice: 0.01,
     batchUnitPrice: 0.01,
     batchRemark: '',
-    batchStock: 0,
-    batchTotalSalesVolumn: 0,
+    batchRemainingAmount: 0,
   })
 }
 function getGoodsDetailById() { // 获取详情
@@ -962,19 +1050,19 @@ function getGoodsDetailById() { // 获取详情
       currentBatch = {
         batchNo: res.data.batch_no,
         batchType: res.data.batch_type,
+        batchPreorderStage: res.data.batch_preorder_stage,
         batchStartTime: dayjs(res.data.batch_startTime).format('YYYY-MM-DD HH:mm:ss'),
         batchUnitPrice: Number(res.data.batch_unitPrice),
         batchMinPrice: Number(res.data.batch_minPrice),
         batchMaxPrice: Number(res.data.batch_maxPrice),
         batchMinQuantity: Number(res.data.batch_minQuantity),
         batchRemark: res.data.batch_remark,
-        batchStock: Number(res.data.batch_stock),
-        batchTotalSalesVolumn: res.data.batch_totalSalesVolumn
+        batchRemainingAmount: Number(res.data.batch_remainingAmount),
       }
 
       batchDiscounts.value.push(...JSON.parse(res.data.batch_discounts))
 
-      getBatchTotalInfo({id: $route.query.id, batchNo: res.data.batch_no}) // 获取当前批次总计
+      getBatchTotalInfo({id: $route.query.id}) // 获取当前批次总计
 
       // 其他的禁止编辑
       setTimeout(() => {
@@ -1189,8 +1277,51 @@ function seeOrdersByBatchNo() {
     }
   }
 
-  .batch-total {
+  .batchTotal {
+    padding: 0 100px;
+    .batchTotal-row {
+      display: flex;
+      // justify-content: space-between;
+      justify-content: flex-start;
+      .batchTotal-item {
+        display: flex;
+        align-items: center;
+        width: 25%;
+        .batchTotal-item-title {
+          text-align: right;
+          color: #606266;
+          font-size: 14px;
+        }
+        .batchTotal-item-content {
+          color: black;
+          font-size: 14px;
+        }
+      }
+    }
+    .batchTotal-row2 {
+      margin-top: 30px;
+      .batchTotal-item {
+        display: flex;
+        align-items: center;
+        .batchTotal-item-title {
+          margin-right: 6px;
+        }
+        .batchTotal-item-content {
+          .batchTotal-item-content-order {
 
+          }
+          .batchTotal-item-content-amount {
+            margin-top: 10px;
+          }
+          .batchTotal-item-content-label {
+            color: #606266;
+          }
+          .batchTotal-item-content-value {
+            color: black;
+          }
+        }
+      }
+    }
   }
 
   .history-batch {

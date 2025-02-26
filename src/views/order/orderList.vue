@@ -100,6 +100,7 @@
 
     <div class="table-wrapper">
       <el-table :height="tableHeight" :data="tableData">
+        <el-table-column type="index" width="50" />
         <el-table-column prop="order_no" label="订单号" align="center" />
         <el-table-column prop="generationTypeText" label="生成类型" align="center" />
         <el-table-column prop="batchTypeText" label="订单类型" align="center" />
@@ -328,8 +329,10 @@ function searchBatchTypeChange(e) {
     searchStatusList.value = [
       {label: '已预订', value: 'reserved'},
       {label: '未付款', value: 'unpaid'},
-      {label: '已完结', value: 'completed'},
+      {label: '已付款', value: 'paid'},
+      {label: '已完成', value: 'completed'},
       {label: '已取消', value: 'canceled'},
+      {label: '已退款', value: 'refunded'},
     ]
   } else {
     searchStatusList.value = [

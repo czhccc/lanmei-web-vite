@@ -81,3 +81,12 @@ export function _cancelAllOrdersInCurrentBatch(data) {
   });
 }
 
+// 预订批次开始售卖
+export function _preorderBatchIsReadyToSell(data) {
+  return request({
+    url: '/goods/preorderBatchIsReadyToSell',
+    method: 'post',
+    data
+  });
+}
+
