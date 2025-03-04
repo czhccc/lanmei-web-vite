@@ -34,6 +34,9 @@
       <el-menu-item index="9" @click="changeRoute('/account')">
         <span>账号管理</span>
       </el-menu-item>
+      <el-menu-item index="10" @click="changeRoute('/shipArea')">
+        <span>邮寄区域</span>
+      </el-menu-item>
     </el-menu>
   </div>
 </template>

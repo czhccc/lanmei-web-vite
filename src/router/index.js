@@ -70,6 +70,11 @@ const routes = [
     name: 'Account',
     component: () => import('../views/account/account.vue'),
   },
+  {
+    path: '/shipArea',
+    name: 'ShipArea',
+    component: () => import('../views/ship/shipArea.vue'),
+  },
 ];
 
 const router = createRouter({
