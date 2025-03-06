@@ -98,12 +98,12 @@
         </el-table-column>
         <el-table-column prop="totalSaleQuantity" label="售卖进度" align="center" >
           <template #default="scope">
-            <div>{{ scope.row.totalSaleQuantity-scope.row.remainingQuantity }}/{{ scope.row.totalSaleQuantity }} {{ scope.row.unit }}</div>
+            <div>{{ 111 }} {{ scope.row.unit }}</div>
           </template>
         </el-table-column>
         <el-table-column prop="totalpreOrderQuantity" label="剩余量" align="center" >
           <template #default="scope">
-            <div>{{ scope.row.remainingQuantity }} {{ scope.row.unit }}</div>
+            <div>{{ 111 }} {{ scope.row.unit }}</div>
           </template>
         </el-table-column>
         <el-table-column prop="goodsRemark" label="备注" align="center" />

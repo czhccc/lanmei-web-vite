@@ -138,19 +138,15 @@
             <el-button class="title-btn" :type="isStartingNewCurrentBatch?'warning':'success'" @click="startNewBatch" v-if="!form.batchNo">{{ isStartingNewCurrentBatch ? '取消新批次' : '开启新批次' }}</el-button>
 
             <div v-if="form.batchNo">
-              <el-popconfirm title="确认开始售卖？" confirm-button-text="确定" cancel-button-text="取消" v-if="form.batchType==='preorder'&&form.batchPreorderStage==='pending'&&currentBatchTotalInfo.totalOrdersCount>0" @confirm="preorderBatchIsReadyToSell">
-                <template #reference>
-                  <el-button class="title-btn" type="primary">开始售卖</el-button>
-                </template>
-              </el-popconfirm>
+              <el-button class="title-btn" type="primary" v-if="form.batchType==='preorder'&&!form.batchPreorderFinalPrice&&currentBatchTotalInfo.totalOrdersCount>0" @click="showPreorderBatchIsReadyToSellDialog">开始售卖</el-button>
 
-              <el-popconfirm title="确认删除当前批次？" confirm-button-text="确定" cancel-button-text="取消" v-if="currentBatchTotalInfo.totalOrdersCount>0&&((form.batchPreorderStage==='selling')||(form.batchType==='stock'))" @confirm="endCurrentBatch">
+              <el-popconfirm title="确认删除当前批次？" confirm-button-text="确定" cancel-button-text="取消" v-if="currentBatchTotalInfo.totalOrdersCount>0&&(form.batchPreorderFinalPrice||(form.batchType==='stock'))" @confirm="endCurrentBatch">
                 <template #reference>
                   <el-button class="title-btn" type="warning">结束当前批次</el-button>
                 </template>
               </el-popconfirm>
 
-              <el-button class="title-btn" type="danger" @click="cancelCurrentBatchAllOrder" v-if="form.batchType==='preorder'&&form.batchPreorderStage==='pending'&&currentBatchTotalInfo.totalOrdersCount>0">取消所有预订</el-button>
+              <el-button class="title-btn" type="danger" @click="cancelCurrentBatchAllOrder" v-if="form.batchType==='preorder'&&!form.batchPreorderFinalPrice&&currentBatchTotalInfo.totalOrdersCount>0">取消所有预订</el-button>
 
               <el-popconfirm title="确认删除当前批次？" confirm-button-text="确定" cancel-button-text="取消" v-if="currentBatchTotalInfo.totalOrdersCount===0" @confirm="deleteCurrentBatch">
                 <template #reference>
@@ -172,7 +168,7 @@
                   <el-radio value="preorder">预订</el-radio>
                   <el-radio value="stock">现货</el-radio>
                 </el-radio-group>
-                <span v-if="form.batchType==='preorder'" style="margin-left: 30px;color: #666;">{{ form.batchPreorderStage==='pending' ? '预订阶段' : '售卖阶段' }}</span>
+                <span v-if="form.batchType==='preorder'" style="margin-left: 30px;color: #666;">{{ form.batchPreorderFinalPrice ? '售卖阶段' : '预订阶段' }}</span>
               </el-form-item>
             </el-col>
           </el-row>
@@ -243,9 +239,9 @@
           </el-row>
           <el-row :gutter="20" style="margin-top: 10px;" v-if="form.batchType==='stock'">
             <el-col :span="8">
-              <el-form-item label="当前余量：" prop="batchRemainingAmount">
+              <el-form-item label="总量：" prop="batchStockTotalAmount">
                 <div style="display: flex;align-items: center;width: 100%;">
-                  <el-input-number v-model="form.batchRemainingAmount" :disabled="Boolean(form.batchNo)"
+                  <el-input-number v-model="form.batchStockTotalAmount" :disabled="Boolean(form.batchNo)"
                     :precision="1" placeholder="请输入" :min="0" :max="999999" :controls="false" 
                     style="flex: 1;"
                   />
@@ -357,7 +353,7 @@
                 </div>
               </div>
 
-              <div class="batchTotal-row batchTotal-row2" v-if="form.batchPreorderStage==='selling'||form.batchType==='stock'">
+              <div class="batchTotal-row batchTotal-row2" v-if="form.batchPreorderFinalPrice||form.batchType==='stock'">
                 <div class="batchTotal-item" v-if="form.batchType==='preorder'">
                   <div class="batchTotal-item-title">未付款</div>
                   <div class="batchTotal-item-content">
@@ -554,6 +550,32 @@
       <el-button type="primary" class="submitBtn" :loading=isFormSubmiting @click="linshi" style="bottom: 100px;">临时1111</el-button>
     </div>
 
+    <!-- 开始售卖 填写售卖定价 -->
+    <el-dialog
+      v-model="isShowPreorderBatchIsReadyToSellDialog"
+      title="确定开始售卖？"
+      width="400"
+      align-center
+    >
+      <div class="cancelAllOrdersDialog">
+        最终定价：
+        <el-input-number
+          v-model="preorderFinalPrice"
+          :min="1"
+          :max="999999"
+          :precision="2"
+          :controls="false"
+          placeholder="请输入最终定价"
+        />
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="isShowPreorderBatchIsReadyToSellDialog = false">取消</el-button>
+          <el-button type="primary" @click="confirmPreorderBatchIsReadyToSell">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
     <!-- 取消所有预订弹出框 -->
     <el-dialog
       v-model="isShowCancelAllOrdersDialog"
@@ -643,7 +665,7 @@ let form = reactive({
   batchMaxPrice: 0.01,
   batchUnitPrice: 0.01,
   batchRemark: '',
-  batchRemainingAmount: 0,
+  batchStockTotalAmount: 0,
 })
 const formRules = reactive({
   goodsName: [{ required: true, message: '请输入商品名称', trigger: 'blur' },],
@@ -651,7 +673,7 @@ const formRules = reactive({
   goodsCategoryId: [{ required: true, message: '请选择商品分类', trigger: 'blur' },],
   goodsIsSelling: [{ required: true, message: '请选择是否上架', trigger: 'blur' },],
   goodsRemark: [{ required: false, message: '请输入商品备注', trigger: 'blur' },],
-  batchRemainingAmount: [{ required: true, message: '请输入当前余量', trigger: 'blur' },],
+  batchStockTotalAmount: [{ required: true, message: '请输入总量', trigger: 'blur' },],
   
 
   batchType: [{ required: true, message: '请选择批次类型', trigger: 'blur' },],
@@ -810,6 +832,39 @@ function endCurrentBatch() {
   })
 }
 
+// 开始售卖
+let isShowPreorderBatchIsReadyToSellDialog = ref(false)
+let preorderFinalPrice = ref(null)
+function showPreorderBatchIsReadyToSellDialog() {
+  preorderFinalPrice.value = null
+  isShowPreorderBatchIsReadyToSellDialog.value = true
+}
+function confirmPreorderBatchIsReadyToSell() {
+  if (!preorderFinalPrice.value) {
+    ElMessage({
+      message: '请输入最终定价',
+      type: 'warning',
+      plain: true,
+    })
+    return;
+  }
+
+  _preorderBatchIsReadyToSell({ goodsId: form.goodsId, finalPrice: preorderFinalPrice.value }).then(res => {
+    if (res.code === 200) {
+      ElMessage({
+        message: '操作成功',
+        type: 'success',
+        plain: true,
+      })
+
+      isShowPreorderBatchIsReadyToSellDialog.value = false
+
+      getGoodsDetailById()
+    }
+  })
+}
+
+
 let isShowCancelAllOrdersDialog = ref(false)
 let cancenlAllOrdersReason = ref('')
 function cancelCurrentBatchAllOrder() {
@@ -853,17 +908,6 @@ function deleteCurrentBatch() { // 删除当前批次
     isStartingNewCurrentBatch.value = false
   })
 }
-function preorderBatchIsReadyToSell() {
-  _preorderBatchIsReadyToSell({ id: form.goodsId }).then(res => {
-    ElMessage({
-      message: '操作成功',
-      type: 'success',
-      plain: true,
-    })
-
-    getGoodsDetailById()
-  })
-}
 
 let batchDiscounts = ref([])
 function deleteDiscountItem(index) {
@@ -883,8 +927,8 @@ function getUsableProvince() {
     if (res.code === 200) {
       // 所有 -> 选中rules -> 去除不可用     顺序不能乱，不然选中的rules显示不全
       postageRules.value = res.data.map(item => {
-        if (form.batchPostage) {
-          let itemOfRules = form.batchPostage.find(el => el.code === item.code);
+        if (form.batchShipProvinces) {
+          let itemOfRules = form.batchShipProvinces.find(el => el.code === item.code);
           if (itemOfRules) {
             if (!item.usable) {
               unusableButChoosedProvince.value.push(item.name)
@@ -1030,9 +1074,9 @@ function toSubmit() {
     }
   }
 
-  if (form.batchRemainingAmount === 0) {
+  if (form.batchStockTotalAmount === 0) {
     ElMessage({
-      message: '请填写当前余量',
+      message: '请填写总量',
       type: 'warning',
       plain: true,
     })
@@ -1042,27 +1086,36 @@ function toSubmit() {
   let postageChoosedNum = 0
   for (const item of postageRules.value) {
     if (item.isChoosed) {
+      if (item.freeShippingNum === 1) { // 1个就包邮
+        // 其他就可以不填写
+      } else {
+        if (item.baseNum > item.freeShippingNum) {
+          ElMessage({ message: `包邮数量须大于等于首重最大数量`, type: 'warning', plain: true })
+          return;
+        } else {
+          if (!item.baseNum) {
+            ElMessage({ message: `${item.name} 首重最大数量 未填写`, type: 'warning', plain: true })
+            return;
+          }
+          if (!item.basePostage) {
+            ElMessage({ message: `${item.name} 首重邮费 未填写`, type: 'warning', plain: true })
+            return;
+          }
+          if (!item.extraNum) {
+            ElMessage({ message: `${item.name} 每续重几件 未填写`, type: 'warning', plain: true })
+            return;
+          }
+          if (!item.extraPostage) {
+            ElMessage({ message: `${item.name} 续重单位邮费 未填写`, type: 'warning', plain: true })
+            return;
+          }
+          if (!item.freeShippingNum) {
+            ElMessage({ message: `${item.name} 包邮数量 未填写`, type: 'warning', plain: true })
+            return;
+          }
+        }
+      }
       postageChoosedNum += 1
-      if (!item.baseNum) {
-        ElMessage({ message: `${item.name} 首重最大数量 未填写`, type: 'warning', plain: true })
-        return;
-      }
-      if (!item.basePostage) {
-        ElMessage({ message: `${item.name} 首重邮费 未填写`, type: 'warning', plain: true })
-        return;
-      }
-      if (!item.extraNum) {
-        ElMessage({ message: `${item.name} 每续重几件 未填写`, type: 'warning', plain: true })
-        return;
-      }
-      if (!item.extraPostage) {
-        ElMessage({ message: `${item.name} 续重单位邮费 未填写`, type: 'warning', plain: true })
-        return;
-      }
-      if (!item.freeShippingNum) {
-        ElMessage({ message: `${item.name} 包邮数量 未填写`, type: 'warning', plain: true })
-        return;
-      }
     }
   }
   if (postageChoosedNum === 0) {
@@ -1111,12 +1164,12 @@ function toSubmit() {
             batchStartTime: form.batchStartTime,
             batchMinQuantity: form.batchMinQuantity,
             batchRemark: form.batchRemark,
-            batchRemainingAmount: form.batchRemainingAmount,
+            batchStockTotalAmount: form.batchStockTotalAmount,
             batchDiscounts: batchDiscounts.value,
-            batchPostage: postageRules.value.filter(item => item.isChoosed).map(({ isChoosed, ...rest }) => rest),
+            batchShipProvinces: postageRules.value.filter(item => item.isChoosed).map(({ isChoosed, ...rest }) => rest),
           }
           if (form.batchType === 'preorder') { // 预订
-            batchParams.batchPreorderStage = form.batchPreorderStage
+            batchParams.batchPreorderFinalPrice = form.batchPreorderFinalPrice
             batchParams.batchMinPrice = form.batchMinPrice
             batchParams.batchMaxPrice = form.batchMaxPrice
           } else if (form.batchType === 'stock') { // 现货
@@ -1164,15 +1217,15 @@ function resetForm() {
     
     batchNo: '',
     batchType: null,
-    batchPreorderStage: null,
+    batchPreorderFinalPrice: null,
     batchStartTime: null,
     batchMinQuantity: 1.0,
     batchMinPrice: 0.01,
     batchMaxPrice: 0.01,
     batchUnitPrice: 0.01,
-    batchPostage: [],
+    batchShipProvinces: [],
     batchRemark: '',
-    batchRemainingAmount: 0,
+    batchStockTotalAmount: 0,
   })
 }
 function getGoodsDetailById() { // 获取详情
@@ -1184,15 +1237,15 @@ function getGoodsDetailById() { // 获取详情
       currentBatch = {
         batchNo: res.data.batch_no,
         batchType: res.data.batch_type,
-        batchPreorderStage: res.data.batch_preorder_stage,
+        batchPreorderFinalPrice: res.data.batch_preorder_finalPrice,
         batchStartTime: dayjs(res.data.batch_startTime).format('YYYY-MM-DD HH:mm:ss'),
         batchUnitPrice: Number(res.data.batch_unitPrice),
         batchMinPrice: Number(res.data.batch_minPrice),
         batchMaxPrice: Number(res.data.batch_maxPrice),
         batchMinQuantity: Number(res.data.batch_minQuantity),
-        batchPostage: res.data.batch_postage,
+        batchShipProvinces: res.data.batch_shipProvinces,
         batchRemark: res.data.batch_remark,
-        batchRemainingAmount: Number(res.data.batch_remainingAmount),
+        batchStockTotalAmount: Number(res.data.batch_stock_totalAmount),
       }
 
       batchDiscounts.value.push(...JSON.parse(res.data.batch_discounts))
