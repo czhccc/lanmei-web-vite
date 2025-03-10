@@ -55,7 +55,7 @@ onBeforeUnmount(() => {
 });
 
 
-let phone = ref('13989536936')
+let phone = ref('19967303498')
 let password = ref('123456')
 
 import { useRouter } from 'vue-router';

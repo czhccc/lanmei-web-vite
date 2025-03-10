@@ -168,7 +168,7 @@
                   <el-radio value="preorder">预订</el-radio>
                   <el-radio value="stock">现货</el-radio>
                 </el-radio-group>
-                <span v-if="form.batchType==='preorder'" style="margin-left: 30px;color: #666;">{{ form.batchPreorderFinalPrice ? '售卖阶段' : '预订阶段' }}</span>
+                <span v-if="form.batchType==='preorder'" style="margin-left: 30px;color: #666;">{{ form.batchType==='preorder'&&form.batchPreorderFinalPrice ? '售卖阶段' : '预订阶段' }}</span>
               </el-form-item>
             </el-col>
           </el-row>
@@ -213,7 +213,7 @@
           </el-row>
           <el-row :gutter="20" style="margin-top: 10px;">
             <el-col :span="8">
-              <el-form-item label="优惠策略：">
+              <el-form-item label="满减优惠：">
                 <div v-for="(item, index) in batchDiscounts" :key="index" style="display: flex;align-items: center;">
                   <div style="margin-right: 10px;">满</div>
                   <el-input-number v-model="item.quantity" :precision="1" placeholder="数量" :disabled="Boolean(form.batchNo)"
@@ -250,17 +250,7 @@
               </el-form-item>
             </el-col>
           </el-row>
-          <el-row :gutter="20" style="margin-top: 10px;" v-if="form.batch_no">
-            <el-col :span="8">
-              <el-form-item :label="form.batchType==='preorder' ? '已预订：' : '已售出：'">
-                <div style="display: flex;align-items: center;width: 100%;">
-                  <div style="word-break: keep-all;margin-left: 10px;">23456</div>
-                  <div style="word-break: keep-all;margin-left: 10px;">{{ form.goodsUnit }}</div>
-                </div>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row :gutter="20" style="margin-top: 10px;" v-if="form.batch_no">
+          <el-row :gutter="20" style="margin-top: 10px;" v-if="form.batchNo">
             <el-col :span="8">
               <el-form-item label="开始时间：">
                 <div style="display: flex;align-items: center;width: 100%;">
@@ -278,7 +268,7 @@
               </div>
             </el-divider>
             <div v-if="!Boolean(form.batchNo)">
-              <el-button type="primary" size="small" @click="getPostageOfLastBatch">继承上一批次邮费配置</el-button>
+              <el-button type="primary" size="small" @click="getShipProvincesOfLastBatch">继承上一批次邮费配置</el-button>
             </div>
             <div v-if="!Boolean(form.batchNo)&&unusableButChoosedProvince.length>0" style="color: red;margin-top: 10px;font-size: 14px;">
               {{ unusableButChoosedProvince.join('、') }} 已被禁用，请确认
@@ -322,9 +312,15 @@
                     <el-button type="primary"  style="margin-left: 30px;" v-if="currentBatchTotalInfo.totalOrdersCount>0" @click="seeOrdersByBatchNo">查看订单</el-button>
                   </div>
                 </div>
+                <div class="batchTotal-item" v-if="form.batchType==='stock'">
+                  <div class="batchTotal-item-title">剩余量：</div>
+                  <div class="batchTotal-item-content">
+                    <span>{{ form.batchStockRemainingAmount }} {{form.goodsUnit}}</span>
+                  </div>
+                </div>
               </div>
 
-              <div class="batchTotal-row batchTotal-row2">
+              <div class="batchTotal-row batchTotal-row2" v-if="form.batchType==='preorder'">
                 <div class="batchTotal-item">
                   <div class="batchTotal-item-title">已预订</div>
                   <div class="batchTotal-item-content">
@@ -540,7 +536,7 @@
       inactive-text="下架"
       inline-prompt
       size="large"
-      @click="clickGoodsIsSelling"
+      :before-change="clickGoodsIsSelling"
       @change="changeGoodsIsSelling"
     />
 
@@ -585,7 +581,7 @@
     >
       <div class="cancelAllOrdersDialog">
         <el-input
-          v-model="cancenlAllOrdersReason"
+          v-model="cancelAllOrdersReason"
           autosize
           type="textarea"
           placeholder="请输入取消原因（将展示给客户）"
@@ -639,7 +635,7 @@ import {
 } from '@/network/upload'
 import {
   _getAll,
-  _getPostageOfLastBatch,
+  _getShipProvincesOfLastBatch,
 } from '@/network/ship'
 
 const fileSortableList = ref(null);
@@ -866,13 +862,13 @@ function confirmPreorderBatchIsReadyToSell() {
 
 
 let isShowCancelAllOrdersDialog = ref(false)
-let cancenlAllOrdersReason = ref('')
+let cancelAllOrdersReason = ref('')
 function cancelCurrentBatchAllOrder() {
-  cancenlAllOrdersReason.value = ''
+  cancelAllOrdersReason.value = ''
   isShowCancelAllOrdersDialog.value = true
 }
 function cancelAllOrdersDialogConfirm() {
-  if (!cancenlAllOrdersReason.value.trim()) {
+  if (!cancelAllOrdersReason.value.trim()) {
     ElMessage({
       message: '请输入取消原因',
       type: 'warning',
@@ -882,7 +878,7 @@ function cancelAllOrdersDialogConfirm() {
   }
   _cancelAllOrdersInCurrentBatch({
     id: form.goodsId,
-    canceledReason: cancenlAllOrdersReason.value
+    cancelReason: cancelAllOrdersReason.value
   }).then(res => {
     if (res.code === 200) {
       ElMessage({
@@ -953,8 +949,8 @@ function getUsableProvince() {
     }
   })
 }
-function getPostageOfLastBatch() {
-  _getPostageOfLastBatch({ goodsId: $route.query.id }).then(res => {
+function getShipProvincesOfLastBatch() {
+  _getShipProvincesOfLastBatch({ goodsId: $route.query.id }).then(res => {
     if (res.code === 200) {
       if (res.data) {
         console.log(res.data);
@@ -1054,73 +1050,75 @@ function toSubmit() {
     return;
   }
 
-  if (form.batchType==='preorder' && form.batchMinPrice===form.batchMaxPrice) {
-    ElMessage({
-      message: '当前批次价格区间相同',
-      type: 'warning',
-      plain: true,
-    })
-    return;
-  }
-
-  for (const item of batchDiscounts.value) { // 检查优惠策略
-    if (!item.quantity || !item.discount) {
+  if (isStartingNewCurrentBatch.value || form.batchNo) {
+    if (form.batchType==='preorder' && form.batchMinPrice===form.batchMaxPrice) {
       ElMessage({
-        message: '优惠策略未填写完整',
+        message: '当前批次价格区间相同',
         type: 'warning',
         plain: true,
       })
       return;
     }
-  }
 
-  if (form.batchStockTotalAmount === 0) {
-    ElMessage({
-      message: '请填写总量',
-      type: 'warning',
-      plain: true,
-    })
-    return;
-  }
+    for (const item of batchDiscounts.value) { // 检查优惠策略
+      if (!item.quantity || !item.discount) {
+        ElMessage({
+          message: '优惠策略未填写完整',
+          type: 'warning',
+          plain: true,
+        })
+        return;
+      }
+    }
 
-  let postageChoosedNum = 0
-  for (const item of postageRules.value) {
-    if (item.isChoosed) {
-      if (item.freeShippingNum === 1) { // 1个就包邮
-        // 其他就可以不填写
-      } else {
-        if (item.baseNum > item.freeShippingNum) {
-          ElMessage({ message: `包邮数量须大于等于首重最大数量`, type: 'warning', plain: true })
-          return;
+    if (form.batchType==='stock' && form.batchStockTotalAmount===0) {
+      ElMessage({
+        message: '请填写总量',
+        type: 'warning',
+        plain: true,
+      })
+      return;
+    }
+
+    let postageChoosedNum = 0
+    for (const item of postageRules.value) {
+      if (item.isChoosed) {
+        if (item.freeShippingNum === 1) { // 1个就包邮
+          // 其他就可以不填写
         } else {
-          if (!item.baseNum) {
-            ElMessage({ message: `${item.name} 首重最大数量 未填写`, type: 'warning', plain: true })
+          if (item.baseNum > item.freeShippingNum) {
+            ElMessage({ message: `包邮数量须大于等于首重最大数量`, type: 'warning', plain: true })
             return;
-          }
-          if (!item.basePostage) {
-            ElMessage({ message: `${item.name} 首重邮费 未填写`, type: 'warning', plain: true })
-            return;
-          }
-          if (!item.extraNum) {
-            ElMessage({ message: `${item.name} 每续重几件 未填写`, type: 'warning', plain: true })
-            return;
-          }
-          if (!item.extraPostage) {
-            ElMessage({ message: `${item.name} 续重单位邮费 未填写`, type: 'warning', plain: true })
-            return;
-          }
-          if (!item.freeShippingNum) {
-            ElMessage({ message: `${item.name} 包邮数量 未填写`, type: 'warning', plain: true })
-            return;
+          } else {
+            if (!item.baseNum) {
+              ElMessage({ message: `${item.name} 首重最大数量 未填写`, type: 'warning', plain: true })
+              return;
+            }
+            if (!item.basePostage) {
+              ElMessage({ message: `${item.name} 首重邮费 未填写`, type: 'warning', plain: true })
+              return;
+            }
+            if (!item.extraNum) {
+              ElMessage({ message: `${item.name} 每续重几件 未填写`, type: 'warning', plain: true })
+              return;
+            }
+            if (!item.extraPostage) {
+              ElMessage({ message: `${item.name} 续重单位邮费 未填写`, type: 'warning', plain: true })
+              return;
+            }
+            if (!item.freeShippingNum) {
+              ElMessage({ message: `${item.name} 包邮数量 未填写`, type: 'warning', plain: true })
+              return;
+            }
           }
         }
+        postageChoosedNum += 1
       }
-      postageChoosedNum += 1
     }
-  }
-  if (postageChoosedNum === 0) {
-    ElMessage({ message: `请配置邮费`, type: 'warning', plain: true })
-    return;
+    if (postageChoosedNum === 0) {
+      ElMessage({ message: `请配置邮费`, type: 'warning', plain: true })
+      return;
+    }
   }
 
 
@@ -1157,7 +1155,7 @@ function toSubmit() {
           params.swiperList = swiperList.value
         }
 
-        if ($route.query.flag==='edit' && (form.batchNo || isStartingNewCurrentBatch)) {
+        if ($route.query.flag==='edit' && (form.batchNo || isStartingNewCurrentBatch.value)) {
           let batchParams = {
             batchNo: form.batchNo,
             batchType: form.batchType,
@@ -1246,6 +1244,7 @@ function getGoodsDetailById() { // 获取详情
         batchShipProvinces: res.data.batch_shipProvinces,
         batchRemark: res.data.batch_remark,
         batchStockTotalAmount: Number(res.data.batch_stock_totalAmount),
+        batchStockRemainingAmount: Number(res.data.batch_stock_remainingAmount),
       }
 
       batchDiscounts.value.push(...JSON.parse(res.data.batch_discounts))
@@ -1324,12 +1323,14 @@ onBeforeUnmount(() => {
 
 function clickGoodsIsSelling() {
   if (!form.goodsIsSelling && !form.batchNo) {
-    ElMessage({
-      message: '无当前批次',
-      type: 'warning',
-      plain: true,
-    })
+    ElMessage({ message: '无当前批次', type: 'warning', plain: true, })
+    return false;
   }
+  if (form.batchType==='stock' && form.batchStockRemainingAmount<=0) {
+    ElMessage({ message: '剩余量为0，无法上架', type: 'warning', plain: true, })
+    return false;
+  }
+  return true
 }
 function changeGoodsIsSelling(e) {
   _changeGoodsIsSelling({
@@ -1356,7 +1357,7 @@ function seeOrdersByBatchNo() {
 
 
 function linshi() {
-  getUsableProvince()
+  console.log(Boolean(form.batchNo));
 }
 
 </script>

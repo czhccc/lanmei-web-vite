@@ -19,9 +19,9 @@ export function _changeUsable(data) {
 }
 
 // 获取上一批次的邮费配置
-export function _getPostageOfLastBatch(data) {
+export function _getShipProvincesOfLastBatch(data) {
   return request({
-    url: '/ship/getPostageOfLastBatch',
+    url: '/ship/getShipProvincesOfLastBatch',
     method: 'get',
     params: data
   });
