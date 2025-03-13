@@ -36,6 +36,11 @@ const routes = [
     component: () => import('../views/goods/goodsDetail.vue'),
   },
   {
+    path: '/historyBatches',
+    name: 'HistoryBatches',
+    component: () => import('../views/goods/historyBatches.vue'),
+  },
+  {
     path: '/orderList',
     name: 'OrderList',
     component: () => import('../views/order/orderList.vue'),

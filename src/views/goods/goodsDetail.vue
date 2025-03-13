@@ -133,14 +133,14 @@
       <!-- 当前批次 -->
       <div class="item">
         <div class="title">
-          当前批次
+          批次
           <div>
             <el-button class="title-btn" :type="isStartingNewCurrentBatch?'warning':'success'" @click="startNewBatch" v-if="!form.batchNo">{{ isStartingNewCurrentBatch ? '取消新批次' : '开启新批次' }}</el-button>
 
             <div v-if="form.batchNo">
               <el-button class="title-btn" type="primary" v-if="form.batchType==='preorder'&&!form.batchPreorderFinalPrice&&currentBatchTotalInfo.totalOrdersCount>0" @click="showPreorderBatchIsReadyToSellDialog">开始售卖</el-button>
 
-              <el-popconfirm title="确认删除当前批次？" confirm-button-text="确定" cancel-button-text="取消" v-if="currentBatchTotalInfo.totalOrdersCount>0&&(form.batchPreorderFinalPrice||(form.batchType==='stock'))" @confirm="endCurrentBatch">
+              <el-popconfirm title="确认结束当前批次？" confirm-button-text="确定" cancel-button-text="取消" v-if="currentBatchTotalInfo.totalOrdersCount>0&&(form.batchPreorderFinalPrice||(form.batchType==='stock'))" @confirm="endCurrentBatch">
                 <template #reference>
                   <el-button class="title-btn" type="warning">结束当前批次</el-button>
                 </template>
@@ -154,6 +154,9 @@
                 </template>
               </el-popconfirm>
             </div>
+          </div>
+          <div style="position: absolute;right: 10px;">
+            <el-button type="primary" size="small" @click="seeHistoryBatches">历史批次</el-button>
           </div>
 
         </div>
@@ -409,124 +412,6 @@
         </div>
       </div>
     </el-form>
-
-    <!-- 历史批次 -->
-    <div class="item history-batch" v-if="$route.query.flag==='edit'">
-      <div class="title">
-        历史批次
-      </div>
-      <div class="content">
-        <div class="historyBatchSearch-wrapper">
-          <div class="historyBatchSearch-content">
-            <el-row :gutter="20">
-              <el-col :span="6">
-                <div class="historyBatchSearch-item">
-                  <div class="historyBatchSearch-item-label">批次编号：</div>
-                  <div class="historyBatchSearch-item-input">
-                    <el-input placeholder="请输入" clearable v-model="historyBatchSearchParams.batchNo"></el-input>
-                  </div>
-                </div>
-              </el-col>
-              <el-col :span="6">
-                <div class="historyBatchSearch-item">
-                  <div class="historyBatchSearch-item-label">批次日期：</div>
-                  <div class="historyBatchSearch-item-input">
-                    <el-date-picker 
-                      type="daterange"
-                      format="YYYY-MM-DD" value-format="YYYY-MM-DD" 
-                      start-placeholder="开始日期"
-                      end-placeholder="结束日期"
-                      clearable 
-                      v-model="historyBatchSearchParams.time" 
-                      style="width: 100%;"
-                    />
-                  </div>
-                </div>
-              </el-col>
-              <el-col :span="6">
-                <div class="historyBatchSearch-item">
-                  <div class="historyBatchSearch-item-label">批次状态：</div>
-                  <el-select v-model="historyBatchSearchParams.status" style="width: 100%;" placeholder="请选择">
-                    <el-option label="已完成" value="completed" />
-                    <el-option label="已取消" value="canceled" />
-                    <el-option label="已删除" value="deleted" />
-                  </el-select>
-                </div>
-              </el-col>
-            </el-row>
-          </div>
-          <div class="historyBatchSearch-btns">
-            <el-button type="primary" @click="historyBatchSearch">查询</el-button>
-            <el-button @click="historyBatchSearchReset">重置</el-button>
-          </div>
-        </div>
-
-        <el-table :data="historyBatchTableData">
-          <el-table-column type="expand">
-            <template #default="scope">
-              <div m="4" style="font-size: 16px;">
-                <div m="t-0 b-2" style="margin-bottom: 10px;">最小购买量：{{ scope.row.batchMinQuantity }} {{ scope.row.batchUnit }}</div>
-                <div m="t-0 b-2" style="margin-bottom: 10px;" v-if="scope.row.batchType==='preorder'">价格：{{ scope.row.batchMinPrice }}元 ~ {{ scope.row.batchMaxPrice }} 元</div>
-                <div m="t-0 b-2" style="margin-bottom: 10px;" v-if="scope.row.batchType==='stock'">价格:：{{ scope.row.batchUnitPrice }} 元</div>
-                <div m="t-0 b-2" style="margin-bottom: 10px; display: flex;">
-                  <div>优惠策略：</div>
-                  <div>
-                    <div v-for="(item, index) in scope.row.batchDiscounts" :key="index">
-                      满 {{ item.quantity }} {{ scope.row.batchUnit }} 减 {{ item.discount }} 元
-                    </div>
-                  </div>
-                </div>
-                <div m="t-0 b-2" style="margin-bottom: 10px;">批次备注：{{ scope.row.batchRemark }}</div>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column property="batchNo" label="批次" align="center" />
-          <el-table-column property="batchTypeText" label="批次类型" align="center" />
-          <el-table-column property="time" label="持续时间" align="center" width="280">
-            <template #default="scope">
-              <div>{{ scope.row.batchStartTime }} ~ {{ scope.row.batchEndTime }}</div>
-            </template>
-          </el-table-column>
-          <el-table-column property="totalDates" label="持续时间" align="center">
-            <template #default="scope">
-              <div>{{ scope.row.batchTotalDates }}</div>
-            </template>
-          </el-table-column>
-          <el-table-column property="totalOrdersCount" label="总订单数" align="center" >
-            <template #default="scope">
-              <div>{{ scope.row.totalOrdersCount || 0 }}</div>
-            </template>
-          </el-table-column>
-          <el-table-column property="totalAmount" label="总量" align="center" >
-            <template #default="scope">
-              <div>{{ scope.row.totalAmount || 0.00 }} {{ scope.row.batchUnit }}</div>
-            </template>
-          </el-table-column>
-          <el-table-column property="statusText" label="批次状态" align="center" >
-            <template #default="scope">
-              <div>{{ scope.row.statusText }}</div>
-            </template>
-          </el-table-column>
-          <!-- <el-table-column fixed="right" label="操作" width="110" align="center" >
-            <template #default="scope">
-              <el-button link type="primary" @click="seeHistoryBatchStatistic(scope.row)">查看统计</el-button>
-            </template>
-          </el-table-column> -->
-        </el-table>
-        <div class="pagination-wrapper">
-          <el-pagination
-            class="pagination"
-            v-model:current-page="historyBatchPagination.pageNo"
-            v-model:page-size="historyBatchPagination.pageSize"
-            :page-sizes="[10, 20, 40, 100]"
-            layout="total, sizes, prev, pager, next, jumper"
-            :total="historyBatchPagination.total"
-            @size-change="historyBatchPageSizeChange"
-            @current-change="historyBatchPageNoChange"
-          />
-        </div>
-      </div>
-    </div>
     
     <el-switch
       class="changeIsSelling"
@@ -543,7 +428,7 @@
     <div class="btns">
       <el-button type="primary" class="submitBtn" :loading=isFormSubmiting @click="toSubmit">提 交</el-button>
 
-      <el-button type="primary" class="submitBtn" :loading=isFormSubmiting @click="linshi" style="bottom: 100px;">临时1111</el-button>
+      <!-- <el-button type="primary" class="submitBtn" :loading=isFormSubmiting @click="linshi" style="bottom: 100px;">临时1111</el-button> -->
     </div>
 
     <!-- 开始售卖 填写售卖定价 -->
@@ -613,8 +498,6 @@ import Cookies from 'js-cookie';
 import { ElMessage } from 'element-plus';
 
 import dayjs from 'dayjs'
-import calculateDateDurationByMinutes from '@/utils/calculateDateDurationByMinutes'
-
 
 import {
   _createOrUpdateGoods,
@@ -667,7 +550,6 @@ const formRules = reactive({
   goodsName: [{ required: true, message: '请输入商品名称', trigger: 'blur' },],
   goodsUnit: [{ required: true, message: '请输入商品单位', trigger: 'blur' },],
   goodsCategoryId: [{ required: true, message: '请选择商品分类', trigger: 'blur' },],
-  goodsIsSelling: [{ required: true, message: '请选择是否上架', trigger: 'blur' },],
   goodsRemark: [{ required: false, message: '请输入商品备注', trigger: 'blur' },],
   batchStockTotalAmount: [{ required: true, message: '请输入总量', trigger: 'blur' },],
   
@@ -963,82 +845,6 @@ function getShipProvincesOfLastBatch() {
   })
 }
 
-// 历史批次
-let historyBatchSearchParams = reactive({
-  batchNo: '',
-  time: [],
-  status: null,
-})
-let historyBatchPagination = reactive({
-  pageNo: 1,
-  pageSize: 10,
-  total: 0,
-})
-function historyBatchSearch() {
-  getHistoryBatchesList()
-}
-function historyBatchSearchReset() {
-  Object.assign(historyBatchSearchParams, {
-    batchNo: '',
-    time: [],
-    status: null,
-  })
-  historyBatchPagination.pageNo = 1
-  getHistoryBatchesList()
-}
-let historyBatchTableData = ref([])
-
-function historyBatchPageSizeChange(newPageSize) {
-  historyBatchPagination.pageSize = newPageSize
-  getHistoryBatchesList()
-}
-function historyBatchPageNoChange(newPageNo) {
-  historyBatchPagination.pageNo = newPageNo
-  getHistoryBatchesList()
-}
-
-function getHistoryBatchesList() {
-  _getHistoryBatchesList({
-    id: $route.query.id,
-    pageNo: historyBatchPagination.pageNo,
-    pageSize: historyBatchPagination.pageSize,
-    batchNo: historyBatchSearchParams.batchNo,
-    startTime: historyBatchSearchParams.time[0],
-    endTime: historyBatchSearchParams.time[1],
-    status: historyBatchSearchParams.status,
-  }).then(res => {
-    historyBatchPagination.total = res.data.total
-
-    historyBatchTableData.value = res.data.records.map(item => {
-      let statusText = ''
-      switch (item.status) {
-        case 'completed': statusText='已完成';break;
-        case 'canceled': statusText='已取消';break;
-        case 'deleted': statusText='已删除';break;
-        default: break;
-      }
-      return {
-        batchNo: item.no,
-        batchType: item.type,
-        batchTypeText: item.type==='preorder'?'预订':'现货',
-        batchStartTime: dayjs(item.startTime).format('YYYY-MM-DD HH:mm'),
-        batchEndTime: dayjs(item.endTime).format('YYYY-MM-DD HH:mm'),
-        batchTotalDates: calculateDateDurationByMinutes(item.startTime, item.endTime),
-        batchUnitPrice: item.unitPrice,
-        batchMinPrice: item.minPrice,
-        batchMaxPrice: item.maxPrice,
-        batchMinQuantity: item.minQuantity,
-        batchDiscounts: JSON.parse(item.discounts),
-        batchRemark: item.remark,
-        batchUnit: item.snapshot_goodsUnit,
-        totalOrdersCount: item.totalOrdersCount,
-        totalAmount: item.totalAmount,
-        statusText,
-      }
-    })
-  })
-}
-
 let isFormSubmiting = ref(false)
 function toSubmit() {
   if ($route.query.flag==='edit' && !coverImageUrl.value) {
@@ -1094,20 +900,40 @@ function toSubmit() {
               ElMessage({ message: `${item.name} 首重最大数量 未填写`, type: 'warning', plain: true })
               return;
             }
+            if (item.baseNum === 0) {
+              ElMessage({ message: `${item.name} 首重最大数量 不能为0`, type: 'warning', plain: true })
+              return;
+            }
             if (!item.basePostage) {
               ElMessage({ message: `${item.name} 首重邮费 未填写`, type: 'warning', plain: true })
+              return;
+            }
+            if (item.baseNum === 0) {
+              ElMessage({ message: `${item.name} 首重邮费 不能为0`, type: 'warning', plain: true })
               return;
             }
             if (!item.extraNum) {
               ElMessage({ message: `${item.name} 每续重几件 未填写`, type: 'warning', plain: true })
               return;
             }
+            if (item.baseNum === 0) {
+              ElMessage({ message: `${item.name} 每续重几件 不能为0`, type: 'warning', plain: true })
+              return;
+            }
             if (!item.extraPostage) {
               ElMessage({ message: `${item.name} 续重单位邮费 未填写`, type: 'warning', plain: true })
               return;
             }
+            if (item.baseNum === 0) {
+              ElMessage({ message: `${item.name} 续重单位邮费 不能为0`, type: 'warning', plain: true })
+              return;
+            }
             if (!item.freeShippingNum) {
               ElMessage({ message: `${item.name} 包邮数量 未填写`, type: 'warning', plain: true })
+              return;
+            }
+            if (item.baseNum === 0) {
+              ElMessage({ message: `${item.name} 包邮数量 不能为0`, type: 'warning', plain: true })
               return;
             }
           }
@@ -1247,7 +1073,7 @@ function getGoodsDetailById() { // 获取详情
         batchStockRemainingAmount: Number(res.data.batch_stock_remainingAmount),
       }
 
-      batchDiscounts.value.push(...JSON.parse(res.data.batch_discounts))
+      batchDiscounts.value = res.data.batch_discounts
 
       getBatchTotalInfo({id: $route.query.id}) // 获取当前批次总计
 
@@ -1278,7 +1104,6 @@ function getGoodsDetailById() { // 获取详情
       }
     }) || []
 
-    getHistoryBatchesList()
     getUsableProvince()
   })
 }
@@ -1326,6 +1151,10 @@ function clickGoodsIsSelling() {
     ElMessage({ message: '无当前批次', type: 'warning', plain: true, })
     return false;
   }
+  if (form.batchType==='preorder' && form.batchPreorderFinalPrice) {
+    ElMessage({ message: '售卖阶段的预订批次无法上架', type: 'warning', plain: true, })
+    return false;
+  }
   if (form.batchType==='stock' && form.batchStockRemainingAmount<=0) {
     ElMessage({ message: '剩余量为0，无法上架', type: 'warning', plain: true, })
     return false;
@@ -1345,11 +1174,19 @@ function changeGoodsIsSelling(e) {
   })
 }
 function seeOrdersByBatchNo() {
-  console.log(form.batchNo)
   const url = `${window.location.origin}${$router.resolve({
     path: '/orderList',
     query: {
       batchNo: form.batchNo,
+    }
+  }).href}`
+  window.open(url, '_blank')
+}
+function seeHistoryBatches() {
+  const url = `${window.location.origin}${$router.resolve({
+    path: '/historyBatches',
+    query: {
+      goodsId: $route.query.id,
     }
   }).href}`
   window.open(url, '_blank')
@@ -1377,6 +1214,7 @@ function linshi() {
       border-radius: 6px;
       display: flex;
       align-items: center;
+      position: relative;
       .title-btn {
         margin-left: 10px;
       }
@@ -1545,43 +1383,6 @@ function linshi() {
   }
   .batch-total {
 
-  }
-  .history-batch {
-    margin-top: 32px;
-    .historyBatchSearch-wrapper {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      .historyBatchSearch-content {
-        flex: 1;
-        .historyBatchSearch-item {
-          display: flex;
-          align-items: center;
-          margin-bottom: 20px;
-          .historyBatchSearch-item-label {
-            word-break: keep-all;
-          }
-          .historyBatchSearch-item-input {
-            flex: 1;
-            :deep(div) {
-              box-sizing: border-box !important;
-            }
-          }
-        }
-      }
-      .historyBatchSearch-btns {
-        width: 200px;
-        display: flex;
-        justify-content: center;
-      }
-    }
-  }
-  
-
-  .pagination-wrapper {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 20px;
   }
 }
 .el-input[readonly] .el-input__inner,
