@@ -1,16 +1,15 @@
-、discountAmount_custom 是否保留，现在只有预订的未付款状态才有用
 
-、goods 。。 所有预订和现货相关字段都加上前缀preorder_  stock_
-、batch_history加上cancel_by  complete_by
+、history stock_totalQuantity和totalQuantity重复？
+
+、微信小程序订单 显示 商品快照
+、discountAmount_custom 是否保留，现在只有预订的未付款状态才有用
 
 、数据库字段 amount 数量和金额冲突
 
-、批次统计钱相关
-、web 历史批次 抽出去封装成组件？？ canceled批次显示取消原因 历史批次抽到单独的页面 商品详情页点击查看后打开新标签页
+、订单信息从接口获取
+
 
 、web订单详情 以及 订单操作   web的订单要有人 完结人+
-
-、微信小程序的按钮统一样式换为app.wxss中的solid、blank按钮样式
 
 、如果用户在下单或购买的途中 商品被修改了价格或其他信息 ？   批次开启时不能修改， 需要验证用户下单时批次是否被取消了或其他的
 
@@ -23,6 +22,10 @@
 、引入redius？
 
 nodejs 版本 v20.15.0
+
+
+
+
 
 
 二期：

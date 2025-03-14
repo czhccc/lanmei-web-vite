@@ -33,7 +33,7 @@
                 <div class="historyBatchSearch-item">
                   <div class="historyBatchSearch-item-label">批次状态：</div>
                   <el-select v-model="historyBatchSearchParams.status" style="width: 100%;" placeholder="请选择">
-                    <el-option label="已完成" value="completed" />
+                    <el-option label="已完结" value="completed" />
                     <el-option label="已取消" value="canceled" />
                     <el-option label="已删除" value="deleted" />
                   </el-select>
@@ -54,7 +54,7 @@
                 <div m="t-0 b-2" style="margin-bottom: 10px;" v-if="scope.row.batchType==='preorder'&&scope.row.batchCancelReason">批次取消原因：{{ scope.row.batchCancelReason }} </div>
                 <div m="t-0 b-2" style="margin-bottom: 10px;" v-if="scope.row.batchType==='preorder'">价格区间：￥{{ scope.row.batchPreorderMinPrice }} ~ {{ scope.row.batchPreorderMaxPrice }} </div>
                 <div m="t-0 b-2" style="margin-bottom: 10px;" v-if="scope.row.batchType==='preorder'&&scope.row.batchPreorderFinalPrice">最终单价：￥{{ scope.row.batchPreorderFinalPrice }}</div>
-                <div m="t-0 b-2" style="margin-bottom: 10px;" v-if="scope.row.batchType==='stock'">现货总量:{{ scope.row.batchStockTotalAmount }} {{ scope.row.snapshopGoodsUnit }}</div>
+                <div m="t-0 b-2" style="margin-bottom: 10px;" v-if="scope.row.batchType==='stock'">现货总量:{{ scope.row.batchStockTotalQuantity }} {{ scope.row.snapshopGoodsUnit }}</div>
                 <div m="t-0 b-2" style="margin-bottom: 10px;" v-if="scope.row.batchType==='stock'">单价:￥{{ scope.row.batchStockUnitPrice }} / {{ scope.row.snapshopGoodsUnit }}</div>
                 <div m="t-0 b-2" style="margin-bottom: 10px;">最小购买量：{{ scope.row.batchMinQuantity }} {{ scope.row.snapshopGoodsUnit }}</div>
                 <div m="t-0 b-2" style="margin-bottom: 10px; display: flex;">
@@ -74,9 +74,9 @@
                       <div style="display: flex;">
                         <div>{{ item.name }}：</div>
                         <div>
-                          <div>首重最大数量：{{ item.baseNum }} ，首重邮费：￥{{ item.basePostage }}</div>
-                          <div>每续重数量：{{ item.extraNum }}，额外邮费：￥{{ item.extraPostage }}</div>
-                          <div>包邮数量：{{ item.freeShippingNum }}</div>
+                          <div>首重最大数量：{{ item.baseQuantity }} ，首重邮费：￥{{ item.basePostage }}</div>
+                          <div>每续重数量：{{ item.extraQuantity }}，额外邮费：￥{{ item.extraPostage }}</div>
+                          <div>包邮数量：{{ item.freeShippingQuantity }}</div>
                         </div>
                       </div>
                     </div>
@@ -96,12 +96,13 @@
           </el-table-column>
           <el-table-column property="batchNo" label="批次" align="center"  width="200" />
           <el-table-column property="batchTypeText" label="批次类型" align="center" />
+          <el-table-column property="batchStartBy" label="开始人" align="center" />
           <el-table-column property="time" label="持续时间" align="center" width="280">
             <template #default="scope">
               <div>{{ scope.row.batchStartTime }} ~ {{ scope.row.batchEndTime }}</div>
             </template>
           </el-table-column>
-          <el-table-column property="totalDates" label="持续时间" align="center">
+          <el-table-column property="totalDates" label="持续时间" align="center" width="150">
             <template #default="scope">
               <div>{{ scope.row.batchTotalDates }}</div>
             </template>
@@ -111,9 +112,9 @@
               <div>{{ scope.row.batchTotalOrdersCount || 0 }}</div>
             </template>
           </el-table-column>
-          <el-table-column property="batchTotalAmount" label="总售出量" align="center" >
+          <el-table-column property="batchTotalQuantity" label="总售出量" align="center" >
             <template #default="scope">
-              <div>{{ scope.row.batchTotalAmount || 0.00 }} {{ scope.row.snapshopGoodsUnit }}</div>
+              <div>{{ scope.row.batchTotalQuantity || 0.00 }} {{ scope.row.snapshopGoodsUnit }}</div>
             </template>
           </el-table-column>
           <el-table-column property="batchTotalRevenue" label="总收入" align="center" >
@@ -124,6 +125,12 @@
           <el-table-column property="batchStatusText" label="批次状态" align="center" >
             <template #default="scope">
               <div>{{ scope.row.batchStatusText }}</div>
+            </template>
+          </el-table-column>
+          <el-table-column property="complete_by" label="操作人" align="center" >
+            <template #default="scope">
+              <div v-if="scope.row.batchStatus==='completed'">{{ scope.row.completeBy }}</div>
+              <div v-if="scope.row.batchStatus==='canceled'">{{ scope.row.cancelBy }}</div>
             </template>
           </el-table-column>
           <el-table-column property="remark" label="备注" align="center" >
@@ -234,11 +241,11 @@ function getHistoryBatchesList() {
         batchPreorderMaxPrice: item.preorder_maxPrice,
         batchPreorderFinalPrice: item.preorder_finalPrice,
         batchStockUnitPrice: item.stock_unitPrice,
-        batchStockTotalAmount: item.stock_totalAmount,
+        batchStockTotalQuantity: item.stock_totalQuantity,
         batchMinQuantity: item.minQuantity,
         batchDiscounts: item.discounts,
         batchTotalOrdersCount: item.totalOrdersCount,
-        batchTotalAmount: item.totalAmount,
+        batchTotalQuantity: item.totalQuantity,
         batchTotalRevenue: item.totalRevenue,
         batchShipProvinces: item.shipProvinces,
         batchRemark: item.remark,
@@ -248,6 +255,7 @@ function getHistoryBatchesList() {
         batchStatus: item.status,
         batchStatusText: statusText,
         batchCancelReason: item.cancel_reason,
+        batchStartBy: item.start_by,
       }
     })
   })

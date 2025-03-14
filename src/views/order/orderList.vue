@@ -111,9 +111,9 @@
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column prop="num" label="数量" align="center" >
+        <el-table-column prop="quantity" label="数量" align="center" >
           <template #default="scope">
-            <div>{{ scope.row.num }} {{ scope.row.snapshot_goodsUnit }}</div>
+            <div>{{ scope.row.quantity }} {{ scope.row.snapshot_goodsUnit }}</div>
           </template>
         </el-table-column>
         <el-table-column prop="finalPrice" label="预订/实付 总金额" align="center" >
@@ -273,11 +273,11 @@ function getOrderList() {
 
       let finalPrice = ''
       if (item.batch_type==='preorder') {
-        let minPrice = (Number(item.total_minPrice) + Number(item.postage) - Number(item.discount_amount)).toFixed(2)
-        let maxPrice = (Number(item.total_maxPrice) + Number(item.postage) - Number(item.discount_amount)).toFixed(2)
+        let minPrice = (Number(item.total_minPrice) + Number(item.postage) - Number(item.discount_quantity)).toFixed(2)
+        let maxPrice = (Number(item.total_maxPrice) + Number(item.postage) - Number(item.discount_quantity)).toFixed(2)
         finalPrice = `${minPrice} ~ ${maxPrice}`
       } else {
-        finalPrice = (Number(item.total_price) + Number(item.postage) - Number(item.discount_amount)).toFixed(2)
+        finalPrice = (Number(item.total_price) + Number(item.postage) - Number(item.discount_quantity)).toFixed(2)
       }
 
       return {

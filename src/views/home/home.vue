@@ -493,16 +493,16 @@ const chartsData = [
 ]
 
 const dates = chartsData.map(item => item.date);
-const purchaseAmounts = chartsData.map(item => item.realTotalPurchase);
-const soldOnlineAmounts = chartsData.map(item => item.soldOnline);
-const soldOfflineAmounts = chartsData.map(item => item.soldOffline);
-const remainingAmounts = chartsData.map(item => item.remaining);
+const purchaseQuantity = chartsData.map(item => item.realTotalPurchase);
+const soldOnlineQuantity = chartsData.map(item => item.soldOnline);
+const soldOfflineQuantity = chartsData.map(item => item.soldOffline);
+const remainingQuantity = chartsData.map(item => item.remaining);
 
 // 计算每日的总量
-let totalAmounts = []
+let totalQuantity = []
 chartsData.forEach((item, index) => {
   const total = index === 0 ? item.realTotalPurchase : chartsData[index-1].remaining+item.realTotalPurchase
-  totalAmounts.push(total);
+  totalQuantity.push(total);
 });
 
 
@@ -531,11 +531,11 @@ function initBatchChart() {
       trigger: 'axis',
       formatter: params => {
         const date = params[0].axisValue;
-        const total = totalAmounts[params[0].dataIndex];
-        const realTotalPurchase = purchaseAmounts[params[0].dataIndex];
-        const soldOnline = soldOnlineAmounts[params[0].dataIndex];
-        const soldOffline = soldOfflineAmounts[params[0].dataIndex];
-        const remaining = remainingAmounts[params[0].dataIndex];
+        const total = totalQuantity[params[0].dataIndex];
+        const realTotalPurchase = purchaseQuantity[params[0].dataIndex];
+        const soldOnline = soldOnlineQuantity[params[0].dataIndex];
+        const soldOffline = soldOfflineQuantity[params[0].dataIndex];
+        const remaining = remainingQuantity[params[0].dataIndex];
 
         const colorTotal = params.find(p => p.seriesName === '总量').color;
         const colorRealTotalPurchase = params.find(p => p.seriesName === '采购量').color;
@@ -571,7 +571,7 @@ function initBatchChart() {
       {
         name: '总量',
         type: 'line',
-        data: totalAmounts,
+        data: totalQuantity,
         itemStyle: {
           color: '#5A2BE2'
         },
@@ -579,7 +579,7 @@ function initBatchChart() {
       {
         name: '采购量',
         type: 'bar',
-        data: purchaseAmounts,
+        data: purchaseQuantity,
         itemStyle: {
           color: '#91CC75'
         },
@@ -587,7 +587,7 @@ function initBatchChart() {
       {
         name: '线下售卖量',
         type: 'bar',
-        data: soldOfflineAmounts,
+        data: soldOfflineQuantity,
         stack: '售卖量', // 设置 stack 属性
         itemStyle: {
           color: '#AEEEEE'
@@ -596,7 +596,7 @@ function initBatchChart() {
       {
         name: '线上售卖量',
         type: 'bar',
-        data: soldOnlineAmounts,
+        data: soldOnlineQuantity,
         stack: '售卖量', // 设置 stack 属性
         itemStyle: {
           color: '#EE3B3B'
@@ -605,7 +605,7 @@ function initBatchChart() {
       {
         name: '剩余量',
         type: 'line',
-        data: remainingAmounts,
+        data: remainingQuantity,
         itemStyle: {
           color: '#FF00FF'
         },

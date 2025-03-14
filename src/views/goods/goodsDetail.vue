@@ -190,14 +190,14 @@
             <el-col :span="8" v-if="form.batchType==='preorder'">
               <el-form-item label="价格区间：" required>
                 <div style="display: flex;align-items: center;">
-                  <el-form-item prop="batchMinPrice" style="flex: 1;">
-                    <el-input-number v-model="form.batchMinPrice" :precision="2" placeholder="最低单价" :disabled="Boolean(form.batchNo)"
+                  <el-form-item prop="batchPreorderMinPrice" style="flex: 1;">
+                    <el-input-number v-model="form.batchPreorderMinPrice" :precision="2" placeholder="最低单价" :disabled="Boolean(form.batchNo)"
                     :min="0.01" :max="999999" :controls="false" style="flex: 1;" />
                   </el-form-item>
                   <div style="margin-left: 10px;">元</div>
                   <div style="margin: 0 10px;">~</div>
-                  <el-form-item prop="batchMaxPrice" style="flex: 1;">
-                    <el-input-number v-model="form.batchMaxPrice" :precision="2" placeholder="最高单价" :disabled="Boolean(form.batchNo)"
+                  <el-form-item prop="batchPreorderMaxPrice" style="flex: 1;">
+                    <el-input-number v-model="form.batchPreorderMaxPrice" :precision="2" placeholder="最高单价" :disabled="Boolean(form.batchNo)"
                      :min="0.01" :max="999999" :controls="false" style="flex: 1;" />
                   </el-form-item>
                   <div style="margin-left: 10px;">元</div>
@@ -205,9 +205,9 @@
               </el-form-item>
             </el-col>
             <el-col :span="8" v-if="form.batchType==='stock'">
-              <el-form-item label="单价：" prop="batchUnitPrice">
+              <el-form-item label="单价：" prop="batchStockUnitPrice">
                 <div style="display: flex;align-items: center;width: 100%;">
-                  <el-input-number v-model="form.batchUnitPrice" :precision="2" placeholder="请输入" :disabled="Boolean(form.batchNo)"
+                  <el-input-number v-model="form.batchStockUnitPrice" :precision="2" placeholder="请输入" :disabled="Boolean(form.batchNo)"
                     :min="0.01" :max="999999" :controls="false" style="flex: 1;" />
                   <div style="word-break: keep-all;margin-left: 10px;"> 元 / {{ form.goodsUnit }}</div>
                 </div>
@@ -242,9 +242,9 @@
           </el-row>
           <el-row :gutter="20" style="margin-top: 10px;" v-if="form.batchType==='stock'">
             <el-col :span="8">
-              <el-form-item label="总量：" prop="batchStockTotalAmount">
+              <el-form-item label="总量：" prop="batchStockTotalQuantity">
                 <div style="display: flex;align-items: center;width: 100%;">
-                  <el-input-number v-model="form.batchStockTotalAmount" :disabled="Boolean(form.batchNo)"
+                  <el-input-number v-model="form.batchStockTotalQuantity" :disabled="Boolean(form.batchNo)"
                     :precision="1" placeholder="请输入" :min="0" :max="999999" :controls="false" 
                     style="flex: 1;"
                   />
@@ -283,15 +283,15 @@
                 </div>
                 <div class="batch-postage-content-item-inputs" v-if="item.isChoosed">
                   <div>
-                    <el-input-number class="batch-postage-content-item-input" placeholder="首重最大数量" v-model="item.baseNum" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batchNo)"></el-input-number>
+                    <el-input-number class="batch-postage-content-item-input" placeholder="首重最大数量" v-model="item.baseQuantity" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batchNo)"></el-input-number>
                     <el-input-number class="batch-postage-content-item-input" placeholder="首重邮费" v-model="item.basePostage" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batchNo)"></el-input-number>
                   </div>
                   <div>
-                    <el-input-number class="batch-postage-content-item-input" placeholder="每续重几件" v-model="item.extraNum" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batchNo)"></el-input-number>
+                    <el-input-number class="batch-postage-content-item-input" placeholder="每续重几件" v-model="item.extraQuantity" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batchNo)"></el-input-number>
                     <el-input-number class="batch-postage-content-item-input" placeholder="续重单位邮费" v-model="item.extraPostage" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batchNo)"></el-input-number>
                   </div>
                   <div>
-                    <el-input-number class="batch-postage-content-item-input" placeholder="包邮数量" v-model="item.freeShippingNum" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batchNo)"></el-input-number>
+                    <el-input-number class="batch-postage-content-item-input" placeholder="包邮数量" v-model="item.freeShippingQuantity" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batchNo)"></el-input-number>
                   </div>
                 </div>
               </div>
@@ -318,7 +318,7 @@
                 <div class="batchTotal-item" v-if="form.batchType==='stock'">
                   <div class="batchTotal-item-title">剩余量：</div>
                   <div class="batchTotal-item-content">
-                    <span>{{ form.batchStockRemainingAmount }} {{form.goodsUnit}}</span>
+                    <span>{{ form.batchStockRemainingQuantity }} {{form.goodsUnit}}</span>
                   </div>
                 </div>
               </div>
@@ -331,9 +331,9 @@
                       <span class="batchTotal-item-content-label">订单数：</span>
                       <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.reservedOrdersCount || 0 }}</span>
                     </div>
-                    <div class="batchTotal-item-content-amount">
+                    <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.reservedAmount || 0 }} {{ form.goodsUnit }}</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.reservedQuantity || 0 }} {{ form.goodsUnit }}</span>
                     </div>
                   </div>
                 </div>
@@ -344,9 +344,9 @@
                       <span class="batchTotal-item-content-label">订单数：</span>
                       <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.canceledOrdersCount || 0 }}</span>
                     </div>
-                    <div class="batchTotal-item-content-amount">
+                    <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.canceledAmount || 0 }} {{ form.goodsUnit }}</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.canceledQuantity || 0 }} {{ form.goodsUnit }}</span>
                     </div>
                   </div>
                 </div>
@@ -360,9 +360,9 @@
                       <span class="batchTotal-item-content-label">订单数：</span>
                       <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.unpaidOrdersCount || 0 }}</span>
                     </div>
-                    <div class="batchTotal-item-content-amount">
+                    <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.unpaidAmount || 0 }} {{ form.goodsUnit }}</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.unpaidQuantity || 0 }} {{ form.goodsUnit }}</span>
                     </div>
                   </div>
                 </div>
@@ -373,9 +373,9 @@
                       <span class="batchTotal-item-content-label">订单数：</span>
                       <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.paidOrdersCount || 0 }}</span>
                     </div>
-                    <div class="batchTotal-item-content-amount">
+                    <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.paidAmount || 0 }} {{ form.goodsUnit }}</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.paidQuantity || 0 }} {{ form.goodsUnit }}</span>
                     </div>
                   </div>
                 </div>
@@ -386,9 +386,9 @@
                       <span class="batchTotal-item-content-label">订单数：</span>
                       <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.canceledOrdersCount || 0 }}</span>
                     </div>
-                    <div class="batchTotal-item-content-amount">
+                    <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.completedAmount || 0 }} {{ form.goodsUnit }}</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.completedQuantity || 0 }} {{ form.goodsUnit }}</span>
                     </div>
                   </div>
                 </div>
@@ -399,9 +399,9 @@
                       <span class="batchTotal-item-content-label">订单数：</span>
                       <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.refundedOrdersCount || 0 }}</span>
                     </div>
-                    <div class="batchTotal-item-content-amount">
+                    <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.refundedAmount || 0 }} {{ form.goodsUnit }}</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.refundedQuantity || 0 }} {{ form.goodsUnit }}</span>
                     </div>
                   </div>
                 </div>
@@ -540,31 +540,31 @@ let form = reactive({
   batchType: null,
   batchStartTime: null,
   batchMinQuantity: 1.0,
-  batchMinPrice: 0.01,
-  batchMaxPrice: 0.01,
-  batchUnitPrice: 0.01,
+  batchPreorderMinPrice: 0.01,
+  batchPreorderMaxPrice: 0.01,
+  batchStockUnitPrice: 0.01,
   batchRemark: '',
-  batchStockTotalAmount: 0,
+  batchStockTotalQuantity: 0,
 })
 const formRules = reactive({
   goodsName: [{ required: true, message: '请输入商品名称', trigger: 'blur' },],
   goodsUnit: [{ required: true, message: '请输入商品单位', trigger: 'blur' },],
   goodsCategoryId: [{ required: true, message: '请选择商品分类', trigger: 'blur' },],
   goodsRemark: [{ required: false, message: '请输入商品备注', trigger: 'blur' },],
-  batchStockTotalAmount: [{ required: true, message: '请输入总量', trigger: 'blur' },],
+  batchStockTotalQuantity: [{ required: true, message: '请输入总量', trigger: 'blur' },],
   
 
   batchType: [{ required: true, message: '请选择批次类型', trigger: 'blur' },],
   batchMinQuantity: [{ required: true, message: '请输入最少购买量', trigger: 'blur' },],
-  batchMinPrice: [
+  batchPreorderMinPrice: [
     { required: true, message: '请输入最低单价', trigger: 'blur' },
     { type: 'number', min: 0.01, max: 999999, message: '请输入最低单价', trigger: 'blur' },
   ],
-  batchMaxPrice: [
+  batchPreorderMaxPrice: [
     { required: true, message: '请输入最高单价', trigger: 'blur' },
     { type: 'number', min: 0.01, max: 999999, message: '请输入最高单价', trigger: 'blur' },
   ],
-  batchUnitPrice: [
+  batchStockUnitPrice: [
     { required: true, message: '请输入单价', trigger: 'blur' },
     { type: 'number', min: 0.01, max: 999999, message: '请输入单价', trigger: 'blur' },
   ],
@@ -819,11 +819,11 @@ function getUsableProvince() {
             code: item.code,
             name: item.name,
             isChoosed: false,
-            baseNum: null,
+            baseQuantity: null,
             basePostage: null,
-            extraNum: null,
+            extraQuantity: null,
             extraPostage: null,
-            freeShippingNum: null,
+            freeShippingQuantity: null,
           };
         }
         return null; // 显式返回 null 以避免 undefined
@@ -857,7 +857,7 @@ function toSubmit() {
   }
 
   if (isStartingNewCurrentBatch.value || form.batchNo) {
-    if (form.batchType==='preorder' && form.batchMinPrice===form.batchMaxPrice) {
+    if (form.batchType==='preorder' && form.batchPreorderMinPrice===form.batchPreorderMaxPrice) {
       ElMessage({
         message: '当前批次价格区间相同',
         type: 'warning',
@@ -877,7 +877,7 @@ function toSubmit() {
       }
     }
 
-    if (form.batchType==='stock' && form.batchStockTotalAmount===0) {
+    if (form.batchType==='stock' && form.batchStockTotalQuantity===0) {
       ElMessage({
         message: '请填写总量',
         type: 'warning',
@@ -886,21 +886,21 @@ function toSubmit() {
       return;
     }
 
-    let postageChoosedNum = 0
+    let postageChoosedQuantity = 0
     for (const item of postageRules.value) {
       if (item.isChoosed) {
-        if (item.freeShippingNum === 1) { // 1个就包邮
+        if (item.freeShippingQuantity === 1) { // 1个就包邮
           // 其他就可以不填写
         } else {
-          if (item.baseNum > item.freeShippingNum) {
+          if (item.baseQuantity > item.freeShippingQuantity) {
             ElMessage({ message: `包邮数量须大于等于首重最大数量`, type: 'warning', plain: true })
             return;
           } else {
-            if (!item.baseNum) {
+            if (!item.baseQuantity) {
               ElMessage({ message: `${item.name} 首重最大数量 未填写`, type: 'warning', plain: true })
               return;
             }
-            if (item.baseNum === 0) {
+            if (item.baseQuantity === 0) {
               ElMessage({ message: `${item.name} 首重最大数量 不能为0`, type: 'warning', plain: true })
               return;
             }
@@ -908,15 +908,15 @@ function toSubmit() {
               ElMessage({ message: `${item.name} 首重邮费 未填写`, type: 'warning', plain: true })
               return;
             }
-            if (item.baseNum === 0) {
+            if (item.baseQuantity === 0) {
               ElMessage({ message: `${item.name} 首重邮费 不能为0`, type: 'warning', plain: true })
               return;
             }
-            if (!item.extraNum) {
+            if (!item.extraQuantity) {
               ElMessage({ message: `${item.name} 每续重几件 未填写`, type: 'warning', plain: true })
               return;
             }
-            if (item.baseNum === 0) {
+            if (item.baseQuantity === 0) {
               ElMessage({ message: `${item.name} 每续重几件 不能为0`, type: 'warning', plain: true })
               return;
             }
@@ -924,24 +924,24 @@ function toSubmit() {
               ElMessage({ message: `${item.name} 续重单位邮费 未填写`, type: 'warning', plain: true })
               return;
             }
-            if (item.baseNum === 0) {
+            if (item.baseQuantity === 0) {
               ElMessage({ message: `${item.name} 续重单位邮费 不能为0`, type: 'warning', plain: true })
               return;
             }
-            if (!item.freeShippingNum) {
+            if (!item.freeShippingQuantity) {
               ElMessage({ message: `${item.name} 包邮数量 未填写`, type: 'warning', plain: true })
               return;
             }
-            if (item.baseNum === 0) {
+            if (item.baseQuantity === 0) {
               ElMessage({ message: `${item.name} 包邮数量 不能为0`, type: 'warning', plain: true })
               return;
             }
           }
         }
-        postageChoosedNum += 1
+        postageChoosedQuantity += 1
       }
     }
-    if (postageChoosedNum === 0) {
+    if (postageChoosedQuantity === 0) {
       ElMessage({ message: `请配置邮费`, type: 'warning', plain: true })
       return;
     }
@@ -988,16 +988,16 @@ function toSubmit() {
             batchStartTime: form.batchStartTime,
             batchMinQuantity: form.batchMinQuantity,
             batchRemark: form.batchRemark,
-            batchStockTotalAmount: form.batchStockTotalAmount,
+            batchStockTotalQuantity: form.batchStockTotalQuantity,
             batchDiscounts: batchDiscounts.value,
             batchShipProvinces: postageRules.value.filter(item => item.isChoosed).map(({ isChoosed, ...rest }) => rest),
           }
           if (form.batchType === 'preorder') { // 预订
             batchParams.batchPreorderFinalPrice = form.batchPreorderFinalPrice
-            batchParams.batchMinPrice = form.batchMinPrice
-            batchParams.batchMaxPrice = form.batchMaxPrice
+            batchParams.batchPreorderMinPrice = form.batchPreorderMinPrice
+            batchParams.batchPreorderMaxPrice = form.batchPreorderMaxPrice
           } else if (form.batchType === 'stock') { // 现货
-            batchParams.batchUnitPrice = form.batchUnitPrice
+            batchParams.batchStockUnitPrice = form.batchStockUnitPrice
           }
 
           params = {
@@ -1044,12 +1044,12 @@ function resetForm() {
     batchPreorderFinalPrice: null,
     batchStartTime: null,
     batchMinQuantity: 1.0,
-    batchMinPrice: 0.01,
-    batchMaxPrice: 0.01,
-    batchUnitPrice: 0.01,
+    batchPreorderMinPrice: 0.01,
+    batchPreorderMaxPrice: 0.01,
+    batchStockUnitPrice: 0.01,
     batchShipProvinces: [],
     batchRemark: '',
-    batchStockTotalAmount: 0,
+    batchStockTotalQuantity: 0,
   })
 }
 function getGoodsDetailById() { // 获取详情
@@ -1063,14 +1063,14 @@ function getGoodsDetailById() { // 获取详情
         batchType: res.data.batch_type,
         batchPreorderFinalPrice: res.data.batch_preorder_finalPrice,
         batchStartTime: dayjs(res.data.batch_startTime).format('YYYY-MM-DD HH:mm:ss'),
-        batchUnitPrice: Number(res.data.batch_unitPrice),
-        batchMinPrice: Number(res.data.batch_minPrice),
-        batchMaxPrice: Number(res.data.batch_maxPrice),
+        batchStockUnitPrice: Number(res.data.batch_stock_unitPrice),
+        batchPreorderMinPrice: Number(res.data.batch_preorder_minPrice),
+        batchPreorderMaxPrice: Number(res.data.batch_preorder_maxPrice),
         batchMinQuantity: Number(res.data.batch_minQuantity),
         batchShipProvinces: res.data.batch_shipProvinces,
         batchRemark: res.data.batch_remark,
-        batchStockTotalAmount: Number(res.data.batch_stock_totalAmount),
-        batchStockRemainingAmount: Number(res.data.batch_stock_remainingAmount),
+        batchStockTotalQuantity: Number(res.data.batch_stock_totalQuantity),
+        batchStockRemainingQuantity: Number(res.data.batch_stock_remainingQuantity),
       }
 
       batchDiscounts.value = res.data.batch_discounts
@@ -1155,7 +1155,7 @@ function clickGoodsIsSelling() {
     ElMessage({ message: '售卖阶段的预订批次无法上架', type: 'warning', plain: true, })
     return false;
   }
-  if (form.batchType==='stock' && form.batchStockRemainingAmount<=0) {
+  if (form.batchType==='stock' && form.batchStockRemainingQuantity<=0) {
     ElMessage({ message: '剩余量为0，无法上架', type: 'warning', plain: true, })
     return false;
   }
@@ -1343,7 +1343,7 @@ function linshi() {
           .batchTotal-item-content-order {
 
           }
-          .batchTotal-item-content-amount {
+          .batchTotal-item-content-quantity {
             margin-top: 10px;
           }
           .batchTotal-item-content-label {

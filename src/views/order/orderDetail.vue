@@ -103,10 +103,10 @@
           </el-row>
           <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item label="数量：" prop="num">
+              <el-form-item label="数量：" prop="quantity">
                 <div style="display: flex;width: 100%;">
-                  <div v-if="$route.query.id">{{ form.num }}</div>
-                  <el-input-number v-else v-model="form.num" placeholder="数量" :precision="1" :min="0.1" :max="999999" :controls="false" style="flex: 1;" />
+                  <div v-if="$route.query.id">{{ form.quantity }}</div>
+                  <el-input-number v-else v-model="form.quantity" placeholder="数量" :precision="1" :min="0.1" :max="999999" :controls="false" style="flex: 1;" />
                   <div v-if="form.snapshot_goodsUnit" style="text-align: right;margin-left: 10px;">{{ form.snapshot_goodsUnit || '单位' }}</div>
                 </div>
               </el-form-item>
@@ -126,7 +126,7 @@
                   <el-form-item>
                     <div style="text-align: center;">
                       <div>优惠</div>
-                      <div>￥{{ form.discount_amount }}</div>
+                      <div>￥{{ form.discount_quantity }}</div>
                     </div>
                   </el-form-item>
                   <div style="text-align: center;margin: 0 30px;">+</div>
@@ -281,7 +281,7 @@ let form = reactive({
   goods_id: null,
   batch_no: null,
   batch_type: null,
-  num: 1.0,
+  quantity: 1.0,
   status: null,
   remark_self: null,
   receive_method: 'post',
@@ -290,7 +290,7 @@ let form = reactive({
   receive_region: null,
   receive_address: null,
   remark_customer: null,
-  discount_amount: '0.00',
+  discount_quantity: '0.00',
   postage: '10.00',
   snapshot_coverImage: null,
   snapshot_goodsName: null,
@@ -309,7 +309,7 @@ const formRules = reactive({
   cancel_reason: [{ required: false, message: '请输入取消原因', trigger: 'blur' },],
   remark_self: [{ required: false, message: '请输入己方备注', trigger: 'blur' },],
 
-  num: [
+  quantity: [
     { required: true, message: '请输入商品数量', trigger: 'blur' },
     { type: 'number', min: 0.1, max: 999999, message: '请输入总数量', trigger: 'blur' },
   ],
@@ -406,11 +406,11 @@ function getOrderDetailById(id) {
   _getOrderDetailById({ id: $route.query.id }).then(res => {
     let finalPrice = ''
     if (res.data.batch_type==='preorder') {
-      let minPrice = (Number(res.data.total_minPrice) + Number(res.data.postage) - Number(res.data.discount_amount)).toFixed(2)
-      let maxPrice = (Number(res.data.total_maxPrice) + Number(res.data.postage) - Number(res.data.discount_amount)).toFixed(2)
+      let minPrice = (Number(res.data.total_minPrice) + Number(res.data.postage) - Number(res.data.discount_quantity)).toFixed(2)
+      let maxPrice = (Number(res.data.total_maxPrice) + Number(res.data.postage) - Number(res.data.discount_quantity)).toFixed(2)
       finalPrice = `${minPrice} ~ ${maxPrice}`
     } else {
-      finalPrice = (Number(res.data.total_price) + Number(res.data.postage) - Number(res.data.discount_amount)).toFixed(2)
+      finalPrice = (Number(res.data.total_price) + Number(res.data.postage) - Number(res.data.discount_quantity)).toFixed(2)
     }
     Object.assign(form, {
       id: res.data.id,
@@ -426,11 +426,11 @@ function getOrderDetailById(id) {
       goods_id: res.data.goods_id,
       snapshot_goodsName: res.data.snapshot_goodsName,
       batch_no: res.data.batch_no,
-      num: res.data.num,
+      quantity: res.data.quantity,
       snapshot_goodsUnit: res.data.snapshot_goodsUnit,
 
       totalPrice: res.data.batch_type==='preorder' ? `${res.data.total_minPrice}~${res.data.total_maxPrice}` : res.data.total_price,
-      discount_amount: res.data.discount_amount,
+      discount_quantity: res.data.discount_quantity,
       postage: res.data.postage,
       finalPrice,
       
@@ -486,14 +486,14 @@ function chooseGoodsConfirm(record) {
     goods_id: record.id,
     batch_no: record.batch_no,
     batch_type: record.batch_type,
-    num: 1.0,
+    quantity: 1.0,
     receive_method: 'post',
     receive_name: null,
     receive_phone: null,
     receive_region: null,
     receive_address: null,
     remark_customer: null,
-    discount_amount: '0.00',
+    discount_quantity: '0.00',
     postage: '10.00',
     snapshot_coverImage: record.goods_coverImage,
     snapshot_goodsName: record.goods_name,
@@ -569,7 +569,7 @@ function generateStatusList(e) {
   }
 }
 
-watch(() => form.num, (newValue, oldValue) => {
+watch(() => form.quantity, (newValue, oldValue) => {
   if ($route.query.flag==='add') {
     calculatePrice()
   }
@@ -577,30 +577,30 @@ watch(() => form.num, (newValue, oldValue) => {
 function calculatePrice() {
   // 计算总价格
   if (choosedGoods.batch_type === 'preorder') { // 预订
-    form.total_minPrice = form.num * Number(choosedGoods.batch_minPrice)
-    form.total_maxPrice = form.num * Number(choosedGoods.batch_maxPrice)
+    form.total_minPrice = form.quantity * Number(choosedGoods.batch_preorder_minPrice)
+    form.total_maxPrice = form.quantity * Number(choosedGoods.batch_preorder_maxPrice)
 
     form.totalPrice = `${form.total_minPrice.toFixed(2)} ~ ${form.total_maxPrice.toFixed(2)}`
   } else { // 现货
-    form.totalPrice = (form.num * Number(choosedGoods.batch_unitPrice)).toFixed(2)
+    form.totalPrice = (form.quantity * Number(choosedGoods.batch_stock_unitPrice)).toFixed(2)
 
-    form.total_price = (form.num * Number(choosedGoods.batch_unitPrice)).toFixed(2)
+    form.total_price = (form.quantity * Number(choosedGoods.batch_stock_unitPrice)).toFixed(2)
   }
 
   // 计算优惠
-  let discountAmount = 0;
+  let discountQuantity = 0;
   JSON.parse(choosedGoods.batch_discounts).forEach(item => {
-    if (form.num >= item.quantity) {
-      discountAmount = Math.max(discountAmount, item.discount);
+    if (form.quantity >= item.quantity) {
+      discountQuantity = Math.max(discountQuantity, item.discount);
     }
   })
-  form.discount_amount = discountAmount
+  form.discount_quantity = discountQuantity
 
   // 计算最终价格
   if (choosedGoods.batch_type==='preorder'){
-    form.finalPrice = `${(form.num*Number(choosedGoods.batch_minPrice)+Number(form.postage)-Number(discountAmount)).toFixed(2)} ~ ${(form.num*Number(choosedGoods.batch_maxPrice)+Number(form.postage)-Number(discountAmount)).toFixed(2)}`
+    form.finalPrice = `${(form.quantity*Number(choosedGoods.batch_preorder_minPrice)+Number(form.postage)-Number(discountQuantity)).toFixed(2)} ~ ${(form.quantity*Number(choosedGoods.batch_preorder_maxPrice)+Number(form.postage)-Number(discountQuantity)).toFixed(2)}`
   } else {
-    form.finalPrice = (Number(form.totalPrice) + Number(form.postage) - Number(discountAmount)).toFixed(2)
+    form.finalPrice = (Number(form.totalPrice) + Number(form.postage) - Number(discountQuantity)).toFixed(2)
   }
 }
 
