@@ -95,8 +95,8 @@
             </template>
           </el-table-column>
           <el-table-column property="batchNo" label="批次" align="center"  width="200" />
-          <el-table-column property="batchTypeText" label="批次类型" align="center" />
-          <el-table-column property="batchStartBy" label="开始人" align="center" />
+          <el-table-column property="batchTypeText" label="批次类型" align="center" width="80" />
+          <el-table-column property="batchStartBy" label="开始人" align="center" width="120" />
           <el-table-column property="time" label="持续时间" align="center" width="280">
             <template #default="scope">
               <div>{{ scope.row.batchStartTime }} ~ {{ scope.row.batchEndTime }}</div>
@@ -112,9 +112,9 @@
               <div>{{ scope.row.batchTotalOrdersCount || 0 }}</div>
             </template>
           </el-table-column>
-          <el-table-column property="batchTotalQuantity" label="总售出量" align="center" >
+          <el-table-column property="batchTotalSoldQuantity" label="总售出量" align="center" >
             <template #default="scope">
-              <div>{{ scope.row.batchTotalQuantity || 0.00 }} {{ scope.row.snapshopGoodsUnit }}</div>
+              <div>{{ scope.row.batchTotalSoldQuantity || 0.00 }} {{ scope.row.snapshopGoodsUnit }}</div>
             </template>
           </el-table-column>
           <el-table-column property="batchTotalRevenue" label="总收入" align="center" >
@@ -127,10 +127,10 @@
               <div>{{ scope.row.batchStatusText }}</div>
             </template>
           </el-table-column>
-          <el-table-column property="complete_by" label="操作人" align="center" >
+          <el-table-column property="complete_by" label="操作人" align="center" width="120" >
             <template #default="scope">
-              <div v-if="scope.row.batchStatus==='completed'">{{ scope.row.completeBy }}</div>
-              <div v-if="scope.row.batchStatus==='canceled'">{{ scope.row.cancelBy }}</div>
+              <div v-if="scope.row.batchStatus==='completed'">{{ scope.row.batchCompleteBy }}</div>
+              <div v-if="scope.row.batchStatus==='canceled'">{{ scope.row.batchCancelBy }}</div>
             </template>
           </el-table-column>
           <el-table-column property="remark" label="备注" align="center" >
@@ -245,7 +245,7 @@ function getHistoryBatchesList() {
         batchMinQuantity: item.minQuantity,
         batchDiscounts: item.discounts,
         batchTotalOrdersCount: item.totalOrdersCount,
-        batchTotalQuantity: item.totalQuantity,
+        batchTotalSoldQuantity: item.totalSoldQuantity,
         batchTotalRevenue: item.totalRevenue,
         batchShipProvinces: item.shipProvinces,
         batchRemark: item.remark,
@@ -256,6 +256,8 @@ function getHistoryBatchesList() {
         batchStatusText: statusText,
         batchCancelReason: item.cancel_reason,
         batchStartBy: item.start_by,
+        batchCompleteBy: item.complete_by,
+        batchCancelBy: item.cancel_by,
       }
     })
   })

@@ -44,3 +44,21 @@ export function _getOrderLogsList(data) {
     params: data
   })
 }
+
+// 取消订单
+export function _cancelOrder(data) {
+  return request({
+    url: '/order/cancelOrder',
+    method: 'post',
+    data
+  })
+}
+
+// 完结订单
+export function _completeOrder(data) {
+  return request({
+    url: '/order/completeOrder',
+    method: 'post',
+    data
+  })
+}

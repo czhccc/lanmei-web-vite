@@ -10,7 +10,7 @@
         <div class="title">
           商品快照
           <el-button type="primary" v-if="$route.query.flag==='add'" @click="toChooseGoods">选择商品</el-button>
-          <el-button type="primary" v-else @click="seeGoods">查看商品当前</el-button>
+          <el-button type="primary" v-else @click="seeGoods">查看商品</el-button>
         </div>
         <div class="content" v-if="form.goods_id">
           <el-row :gutter="20">
@@ -22,11 +22,6 @@
             <el-col :span="8">
               <el-form-item label="商品名称：">
                 {{ form.snapshot_goodsName }}
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="商品批次：">
-                {{ form.batch_no }}
               </el-form-item>
             </el-col>
           </el-row>
@@ -49,6 +44,13 @@
               </el-form-item>
             </el-col>
           </el-row>
+          <el-row :gutter="20">
+            <el-col :span="8">
+              <el-form-item label="批次编号：">
+                {{ form.batch_no }}
+              </el-form-item>
+            </el-col>
+          </el-row>
           <!-- <el-row :gutter="20" style="margin-top: 10px" v-if="form.batch_type==='preorder'">
             <el-col :span="8">
               <el-form-item label="付款金额：" prop="realPayPrice">
@@ -63,14 +65,8 @@
       </div>
       <div class="item" v-if="form.goods_id">
         <div class="title">
-          <div style="display: flex;justify-content: space-between;">
+          <div>
             基础信息
-            <el-button 
-              type="danger" class="deleteBtn" 
-              :loading="isDeleting"
-              @click="toDelete" 
-              v-if="$route.query.flag==='edit'&&form.generation_type==='offline'"
-            >删 除</el-button>
           </div>
         </div>
         <div class="content">
@@ -80,24 +76,21 @@
                 {{ form.order_no }}
               </el-form-item>
             </el-col>
-            <el-col :span="8" v-if="$route.query.flag!=='add'">
-              <el-form-item label="生成类型：">
-                {{ form.generation_type==='auto'?'自动生成':'手动添加' }}
-              </el-form-item>
-            </el-col>
-            <el-col :span="8" v-if="form.batch_type">
+            <el-col :span="8">
               <el-form-item label="订单类型：">
                 {{ form.batch_type==='preorder'?'预订':'现货' }}
               </el-form-item>
             </el-col>
+          </el-row>
+          <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item :label="form.generation_type==='auto'?'下单客户：':'创建人：'" v-if="$route.query.flag!=='add'">
-                {{ form.user }}
+              <el-form-item label="下单人：" v-if="$route.query.flag!=='add'">
+                {{ form.create_by }}
               </el-form-item>
             </el-col>
             <el-col :span="8">
               <el-form-item label="下单时间：" v-if="$route.query.flag!=='add'">
-                {{ form.orderCreateTime }}
+                {{ dayjs(form.createTime).format('YYYY-MM-DD HH:mm:ss') }}
               </el-form-item>
             </el-col>
           </el-row>
@@ -111,6 +104,21 @@
                 </div>
               </el-form-item>
             </el-col>
+            <el-col :span="8" v-if="form.batch_type==='preorder'">
+              <el-form-item label="单价区间：">
+                ￥{{ form.preorder_minPrice }} ~ {{ form.preorder_maxPrice }}
+              </el-form-item>
+            </el-col>
+            <el-col :span="8" v-if="form.batch_type==='preorder'">
+              <el-form-item label="最终单价：">
+                {{ form.preorder_finalPrice ? `￥${form.preorder_finalPrice}` : '' }}
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="单价：" v-if="form.batch_type==='stock'">
+                ￥{{ form.stock_unitPrice }}
+              </el-form-item>
+            </el-col>
           </el-row>
           <el-row :gutter="20" style="margin-top: 10px">
             <el-col :span="20">
@@ -118,15 +126,8 @@
                 <div style="display: flex;align-items: center;">
                   <el-form-item>
                     <div style="text-align: center;">
-                      <div>商品金额</div>
-                      <div>￥{{ form.totalPrice }}</div>
-                    </div>
-                  </el-form-item>
-                  <div style="text-align: center;margin: 0 30px;">—</div>
-                  <el-form-item>
-                    <div style="text-align: center;">
-                      <div>优惠</div>
-                      <div>￥{{ form.discount_quantity }}</div>
+                      <div>商品总价</div>
+                      <div>￥{{ form.theGoodsTotalPrice }}</div>
                     </div>
                   </el-form-item>
                   <div style="text-align: center;margin: 0 30px;">+</div>
@@ -136,11 +137,18 @@
                       <div>￥{{ form.postage }}</div>
                     </div>
                   </el-form-item>
+                  <div style="text-align: center;margin: 0 30px;">—</div>
+                  <el-form-item>
+                    <div style="text-align: center;">
+                      <div>优惠</div>
+                      <div>￥{{ form.discountAmount_promotion }}</div>
+                    </div>
+                  </el-form-item>
                   <div style="text-align: center;margin: 0 30px;">=</div>
                   <el-form-item>
                     <div style="text-align: center;">
-                      <div>应付总金额</div>
-                      <div>￥{{ form.finalPrice }}</div>
+                      <div>最终金额</div>
+                      <div>￥{{ form.theFinalAmount }}</div>
                     </div>
                   </el-form-item>
                 </div>
@@ -149,15 +157,32 @@
           </el-row>
           <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item label="订单状态：" prop="status">
-                <el-select v-model="form.status" placeholder="">
-                  <el-option v-for="(item, index) in statusList" :key="index" :label="item.label" :value="item.value" />
-                </el-select>
+              <el-form-item label="订单操作：" prop="status">
+                <el-button type="primary" v-if="form.batch_type==='preorder'&&(form.status==='reserved'||form.status==='unpaid')" @click="cancelOrder">取消预订</el-button>
+                <el-popconfirm title="确定完结订单？" v-if="form.status==='paid'" @confirm="completeOrder">
+                  <template #reference>
+                    <el-button type="primary">完结订单</el-button>
+                  </template>
+                </el-popconfirm>
               </el-form-item>
             </el-col>
-            <el-col :span="8" v-if="form.status==='canceled'">
-              <el-form-item label="客户取消原因：" prop="cancel_reason">
-                {{ form.cancel_reason }}
+            <el-col :span="8">
+              <el-form-item label="订单历史：" prop="status">
+                <el-timeline>
+                  <el-timeline-item
+                    v-for="(item, index) in orderHistories"
+                    :key="index"
+                    :color="item.color"
+                    :timestamp="item.time"
+                     placement="top"
+                  >
+                    <div style="padding: 10px;border: 1px solid #e4e7ed;box-shadow: 0px 12px 32px 4px rgba(0, 0, 0, .04), 0px 8px 20px rgba(0, 0, 0, .08);border-radius: 4px;">
+                      <div style="font-weight: 700;">{{ item.statusText }}</div>
+                      <div v-if="item.content" style="word-break: break-all;">{{ item.content }}</div>
+                      <div v-if="item.by">操作人：{{ item.by }}</div>
+                    </div>
+                  </el-timeline-item>
+                </el-timeline>
               </el-form-item>
             </el-col>
           </el-row>
@@ -185,21 +210,34 @@
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="收货方式：" prop="receive_method">
-                <el-select v-model="form.receive_method" placeholder="">
-                  <el-option label="送货上门" value="delivery" />
-                  <el-option label="邮寄" value="post" />
-                </el-select>
-              </el-form-item>
-            </el-col>
-            <el-col :span="8" v-if="$route.query.flag!=='add'">
-              <el-form-item label="收货省市区：" prop="receive_region">
-                {{ form.receive_region }}
+              <el-form-item label="送货上门：" prop="receive_method">
+                <el-switch v-model="form.receive_isHomeDelivery" active-text="是" inactive-text="否" />
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="收货详细地址：" prop="receive_address">
-                <el-input type="textarea" autosize v-model="form.receive_address" maxlength="200" show-word-limit placeholder="" clearable />
+              <el-form-item label="省：" prop="receive_provinceCode">
+                <el-select v-model="form.receive_provinceCode" placeholder="">
+                  <el-option v-for="(item, index) in provinces" :key="index" :label="item.name" :value="item.code" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="市：" prop="receive_cityCode">
+                <el-select v-model="form.receive_cityCode" placeholder="">
+                  <el-option v-for="(item, index) in cities" :key="index" :label="item.name" :value="item.code" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="区：" prop="receive_districtCode">
+                <el-select v-model="form.receive_districtCode" placeholder="">
+                  <el-option v-for="(item, index) in districts" :key="index" :label="item.name" :value="item.code" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="详细地址：" prop="receive_address">
+                <el-input type="textarea" autosize v-model="form.receive_address" maxlength="50" show-word-limit placeholder="" clearable />
               </el-form-item>
             </el-col>
             <el-col :span="8" v-if="$route.query.flag!=='add'">
@@ -215,6 +253,32 @@
     <div class="btns" v-if="$route.query.flag!=='detail'">
       <el-button type="primary" class="submitBtn" :loading=isSubmiting @click="toSubmit">提 交</el-button>
     </div>
+
+    <!-- 取消所有预订弹出框 -->
+    <el-dialog
+      v-model="isShowCancelOrderDialog"
+      title="确定取消预订？"
+      width="600"
+      align-center
+    >
+      <div class="cancelAllOrderDialog">
+        <el-input
+          v-model="cancelOrderReason"
+          autosize
+          type="textarea"
+          placeholder="请输入取消原因（将展示给客户）"
+          clearable
+          maxlength="100"
+          show-word-limit
+        />
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="isShowCancelAllOrdersDialog = false">取消</el-button>
+          <el-button type="primary" @click="cancelAllOrdersDialogConfirm">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
 
     <el-dialog 
       v-model="isShowChooseGoodsDialog" 
@@ -267,17 +331,22 @@ import { useRoute, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 
 import { _getGoodsList } from '@/network/goods'
-import { _getOrderDetailById, _updateOrder, _createOrder } from '@/network/order' 
+import { 
+  _getOrderDetailById, 
+  _updateOrder, 
+  _createOrder, 
+  _cancelOrder,
+  _completeOrder,
+} from '@/network/order' 
+import { _getAll } from '@/network/ship' 
 
 const $route = useRoute()
 const $router = useRouter()
 
 let formRef = ref(null)
 let isSubmiting = ref(false)
-let isDeleting = ref(false)
 
 let form = reactive({
-  generation_type: 'manual',
   goods_id: null,
   batch_no: null,
   batch_type: null,
@@ -387,66 +456,109 @@ function toSubmit() {
     }
   })
 }
-function toDelete() {
-  ElMessageBox.confirm(
-    '确定删除?',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  ).then(() => {
-    isDeleting.value = true
-  }).catch(() => {
-    
-  })
-}
 
+const orderHistories = ref([])
 function getOrderDetailById(id) {
   _getOrderDetailById({ id: $route.query.id }).then(res => {
-    let finalPrice = ''
+    let theGoodsTotalPrice = null
     if (res.data.batch_type==='preorder') {
-      let minPrice = (Number(res.data.total_minPrice) + Number(res.data.postage) - Number(res.data.discount_quantity)).toFixed(2)
-      let maxPrice = (Number(res.data.total_maxPrice) + Number(res.data.postage) - Number(res.data.discount_quantity)).toFixed(2)
-      finalPrice = `${minPrice} ~ ${maxPrice}`
+      let goodsMinPrice = (Number(res.data.preorder_minPrice) * Number(res.data.quantity)).toFixed(2)
+      let goodsMaxPrice = (Number(res.data.preorder_maxPrice) * Number(res.data.quantity)).toFixed(2)
+      theGoodsTotalPrice = `${goodsMinPrice} ~ ${goodsMaxPrice}`
     } else {
-      finalPrice = (Number(res.data.total_price) + Number(res.data.postage) - Number(res.data.discount_quantity)).toFixed(2)
+      theGoodsTotalPrice = (Number(res.data.stock_unitPrice) * Number(res.data.quantity)).toFixed(2)
     }
+
+    let theFinalAmount = null
+    if (res.data.status === 'reserved') {
+      let finalMinPrice = (Number(res.data.preorder_minPrice) * Number(res.data.quantity) + Number(res.data.postage) - Number(res.data.discountAmount_promotion)).toFixed(2)
+      let finalMaxPrice = (Number(res.data.preorder_maxPrice) * Number(res.data.quantity) + Number(res.data.postage) - Number(res.data.discountAmount_promotion)).toFixed(2)
+      theFinalAmount = `${finalMinPrice} ~ ${finalMaxPrice}`
+    } else {
+      theFinalAmount = res.data.pay_finalAmount
+    }
+    
     Object.assign(form, {
-      id: res.data.id,
-      order_no: res.data.order_no,
-      generation_type: res.data.generation_type,
-      batch_type: res.data.batch_type,
-      user: res.data.user,
-      orderCreateTime: res.data.batch_type==='preorder' ? dayjs(res.data.order_time).format('YYYY-MM-DD HH:mm:ss') : dayjs(res.data.pay_time).format('YYYY-MM-DD HH:mm:ss'),
-      remark_self: res.data.remark_self || '',
-      status: res.data.status,
-      cancel_reason: res.data.cancel_reason,
-      
-      goods_id: res.data.goods_id,
-      snapshot_goodsName: res.data.snapshot_goodsName,
-      batch_no: res.data.batch_no,
-      quantity: res.data.quantity,
-      snapshot_goodsUnit: res.data.snapshot_goodsUnit,
-
-      totalPrice: res.data.batch_type==='preorder' ? `${res.data.total_minPrice}~${res.data.total_maxPrice}` : res.data.total_price,
-      discount_quantity: res.data.discount_quantity,
-      postage: res.data.postage,
-      finalPrice,
-      
-      receive_name: res.data.receive_name,
-      receive_phone: res.data.receive_phone,
-      receive_method: res.data.receive_method,
-      receive_region: res.data.receive_region,
-      receive_address: res.data.receive_address,
-      remark_customer: res.data.remark_customer,
-
-      snapshot_coverImage: res.data.snapshot_coverImage,
-      snapshot_goodsRemark: res.data.snapshot_goodsRemark,
-      snapshot_goodsRichText: res.data.snapshot_goodsRichText,
+      ...res.data,
+      receive_isHomeDelivery: res.data.receive_isHomeDelivery===1 ? true : false,
+      theGoodsTotalPrice,
+      theFinalAmount,
     })
 
-    generateStatusList(res.data.batch_type)
+    let historyArr = []
+    if (res.data.batch_type === 'preorder') {
+      historyArr.push({
+        statusText: '已预订',
+        by: res.data.create_by,
+        time: dayjs(res.data.preorder_time).format('YYYY-MM-DD HH:mm:ss'),
+        color: '#0bbd87',
+      })
+      if (res.data.preorder_startSelling_time) {
+        historyArr.push({
+          statusText: '未付款',
+          content: `批次开始售卖`,
+          by: res.data.preorder_startSelling_by,
+          time: dayjs(res.data.preorder_startSelling_time).format('YYYY-MM-DD HH:mm:ss'),
+          color: '#f19304',
+        })
+      }
+      if (res.data.status === 'canceled') {
+        historyArr.push({
+          statusText: '已取消',
+          content: `${res.data.cancel_reason}`,
+          by: res.data.cancel_by,
+          time: dayjs(res.data.cancel_time).format('YYYY-MM-DD HH:mm:ss'),
+          color: '#F62603',
+        })
+      }
+      if (res.data.status === 'paid') {
+        historyArr.push({
+          statusText: '已付款',
+          time: dayjs(res.data.pay_time).format('YYYY-MM-DD HH:mm:ss'),
+          color: '#0bbd87',
+        })
+      }
+      if (res.data.status === 'completed') {
+        historyArr.push({
+          statusText: '未付款',
+          content: `批次开始售卖`,
+          by: res.data.preorder_startSelling_by,
+          time: dayjs(res.data.preorder_startSelling_time).format('YYYY-MM-DD HH:mm:ss'),
+          color: '#f19304',
+        }, {
+          statusText: '已付款',
+          time: dayjs(res.data.pay_time).format('YYYY-MM-DD HH:mm:ss'),
+          color: '#0bbd87',
+        }, {
+          statusText: '已完结',
+          time: dayjs(res.data.complete_time).format('YYYY-MM-DD HH:mm:ss'),
+          by: res.data.complete_by,
+          color: '#0bbd87',
+        })
+      }
+    } else if (res.data.batch_type === 'stock') {
+      historyArr.push({
+        statusText: '已付款',
+        by: res.data.create_by,
+        time: dayjs(res.data.pay_time).format('YYYY-MM-DD HH:mm:ss'),
+        color: '#0bbd87',
+      })
+      if (res.data.status === 'completed') {
+        historyArr.push({
+          statusText: '已完结',
+          time: dayjs(res.data.complete_time).format('YYYY-MM-DD HH:mm:ss'),
+          by: res.data.complete_by,
+          color: '#0bbd87',
+        })
+      }
+    }
+
+    orderHistories.value = historyArr
+    
+
+    getAllProvinces()
+    getAllCities(res.data.receive_provinceCode)
+    getAllDistricts(res.data.receive_cityCode)
   })
 }
 
@@ -482,7 +594,6 @@ let choosedGoods = null
 function chooseGoodsConfirm(record) {
   choosedGoods = record
   Object.assign(form, {
-    generation_type: 'manual',
     goods_id: record.id,
     batch_no: record.batch_no,
     batch_type: record.batch_type,
@@ -514,8 +625,6 @@ function chooseGoodsConfirm(record) {
   //   })
   // }
   isShowChooseGoodsDialog.value = false
-  generateStatusList(record.batch_type)
-  calculatePrice()
 }
 function chooseGoodsSeeDetail(record) {
   const url = `${window.location.origin}${$router.resolve({
@@ -549,59 +658,69 @@ function seeGoods() {
   })
 }
 
-let statusList = ref([])
-function generateStatusList(e) {
-  if (e === 'preorder') {
-    statusList.value = [
-      {label: '已预订', value: 'reserved'},
-      {label: '未付款', value: 'unpaid'},
-      {label: '已付款', value: 'paid'},
-      {label: '已完成', value: 'completed'},
-      {label: '已取消', value: 'canceled'},
-      {label: '已退款', value: 'refunded'},
-    ]
-  } else {
-    statusList.value = [
-      {label: '已付款', value: 'paid'},
-      {label: '已完成', value: 'completed'},
-      {label: '已退款', value: 'refunded'},
-    ]
-  }
+let provinces = ref([])
+let cities = ref([])
+let districts = ref([])
+function getAllProvinces() {
+  _getAll({
+    level: 'province',
+  }).then(res => {
+    provinces.value = res.data
+  })
+}
+function getAllCities(code) {
+  _getAll({
+    level: 'city',
+    code
+  }).then(res => {
+    cities.value = res.data
+  })
+}
+function getAllDistricts(code) {
+  _getAll({
+    level: 'district',
+    code
+  }).then(res => {
+    districts.value = res.data
+  })
 }
 
-watch(() => form.quantity, (newValue, oldValue) => {
-  if ($route.query.flag==='add') {
-    calculatePrice()
-  }
-});
-function calculatePrice() {
-  // 计算总价格
-  if (choosedGoods.batch_type === 'preorder') { // 预订
-    form.total_minPrice = form.quantity * Number(choosedGoods.batch_preorder_minPrice)
-    form.total_maxPrice = form.quantity * Number(choosedGoods.batch_preorder_maxPrice)
-
-    form.totalPrice = `${form.total_minPrice.toFixed(2)} ~ ${form.total_maxPrice.toFixed(2)}`
-  } else { // 现货
-    form.totalPrice = (form.quantity * Number(choosedGoods.batch_stock_unitPrice)).toFixed(2)
-
-    form.total_price = (form.quantity * Number(choosedGoods.batch_stock_unitPrice)).toFixed(2)
-  }
-
-  // 计算优惠
-  let discountQuantity = 0;
-  JSON.parse(choosedGoods.batch_discounts).forEach(item => {
-    if (form.quantity >= item.quantity) {
-      discountQuantity = Math.max(discountQuantity, item.discount);
+let isShowCancelOrderDialog = ref(false)
+let cancelOrderReason = ref('')
+function cancelOrder() {
+  cancelOrderReason.value = ''
+  isShowCancelOrderDialog.value = true
+}
+function cancelAllOrdersDialogConfirm() {
+  _cancelOrder({
+    orderId: form.id,
+    cancelOrderReason: cancelOrderReason.value,
+  }).then(res => {
+    if (res.code === 200) {
+      isShowCancelOrderDialog.value = false
+      ElMessage({
+        message: '操作成功',
+        type: 'success',
+        plain: true,
+      })
+      getOrderDetailById()
     }
   })
-  form.discount_quantity = discountQuantity
-
-  // 计算最终价格
-  if (choosedGoods.batch_type==='preorder'){
-    form.finalPrice = `${(form.quantity*Number(choosedGoods.batch_preorder_minPrice)+Number(form.postage)-Number(discountQuantity)).toFixed(2)} ~ ${(form.quantity*Number(choosedGoods.batch_preorder_maxPrice)+Number(form.postage)-Number(discountQuantity)).toFixed(2)}`
-  } else {
-    form.finalPrice = (Number(form.totalPrice) + Number(form.postage) - Number(discountQuantity)).toFixed(2)
-  }
+}
+function completeOrder() {
+  _completeOrder({
+    orderId: form.id
+  }).then(res => {
+    if (res.code === 200) {
+      isShowCancelOrderDialog.value = false
+      ElMessage({
+        message: '操作成功',
+        type: 'success',
+        plain: true,
+      })
+      getOrderDetailById()
+    }
+  })
 }
 
 </script>

@@ -13,18 +13,29 @@
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">生成类型：</div>
+              <div class="search-item-label">订单状态：</div>
               <div class="search-item-input">
-                <el-select v-model="searchParams.generation_type" placeholder="请选择" clearable>
-                  <el-option label="客户下单" value="auto" />
-                  <el-option label="手动添加" value="manual" />
+                <el-select v-model="searchParams.status" placeholder="请选择" clearable>
+                  <el-option label="已预订" value="reserved" />
+                  <el-option label="已取消" value="canceled" />
+                  <el-option label="未付款" value="unpaid" />
+                  <el-option label="已付款" value="paid" />
+                  <el-option label="已完结" value="completed" />
                 </el-select>
               </div>
             </div>
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">订单类型：</div>
+              <div class="search-item-label">批次编号：</div>
+              <div class="search-item-input">
+                <el-input placeholder="请输入" clearable v-model="searchParams.batch_no"></el-input>
+              </div>
+            </div>
+          </el-col>
+          <el-col :span="6">
+            <div class="saerch-item">
+              <div class="search-item-label">批次类型：</div>
               <div class="search-item-input">
                 <el-select v-model="searchParams.batch_type" placeholder="请选择" clearable @change="searchBatchTypeChange">
                   <el-option label="预订" value="preorder" />
@@ -45,27 +56,9 @@
           </el-col>
           <el-col :span="6">
             <div class="saerch-item">
-              <div class="search-item-label">商品：</div>
+              <div class="search-item-label">下单人：</div>
               <div class="search-item-input">
-                <el-select v-model="searchParams.goods_id" placeholder="请选择" clearable>
-                  <el-option v-for="(item, index) in goodsList" :key="index" :label="item.goods_name" :value="item.id" />
-                </el-select>
-              </div>
-            </div>
-          </el-col>
-          <el-col :span="6">
-            <div class="saerch-item">
-              <div class="search-item-label">批次编号：</div>
-              <div class="search-item-input">
-                <el-input placeholder="请输入" clearable v-model="searchParams.batch_no"></el-input>
-              </div>
-            </div>
-          </el-col>
-          <el-col :span="6">
-            <div class="saerch-item">
-              <div class="search-item-label">下单客户：</div>
-              <div class="search-item-input">
-                <el-input placeholder="请输入" clearable v-model="searchParams.user"></el-input>
+                <el-input placeholder="请输入" clearable v-model="searchParams.create_by"></el-input>
               </div>
             </div>
           </el-col>
@@ -102,39 +95,51 @@
       <el-table :height="tableHeight" :data="tableData">
         <el-table-column type="index" width="50" />
         <el-table-column prop="order_no" label="订单号" align="center" />
-        <el-table-column prop="generationTypeText" label="生成类型" align="center" />
-        <el-table-column prop="batchTypeText" label="订单类型" align="center" />
-        <el-table-column prop="snapshot_goodsName" label="商品" align="center" >
+        <el-table-column prop="snapshot_goodsName" label="商品" align="center" width="200" >
           <template #default="scope">
-            <el-tooltip :content="'商品编号：'+scope.row.goods_id">
-              <div style="cursor: pointer;" @click="goGoodsDetail(scope.row.goods_id)">{{ scope.row.snapshot_goodsName }}</div>
-            </el-tooltip>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <el-image
+                style="width: 60px; height: 60px;"
+                :src="scope.row.snapshot_coverImage"
+                :preview-src-list="[scope.row.snapshot_coverImage]"
+                fit="cover"
+              />
+              <div style="word-break: keep-all;">{{ scope.row.batch_type==='preorder' ? '预订' : '现货' }}</div>
+            </div>
+            <div>{{ scope.row.snapshot_goodsName }}</div>
+            <div>{{ scope.row.batch_no }}</div>
           </template>
         </el-table-column>
         <el-table-column prop="quantity" label="数量" align="center" >
           <template #default="scope">
             <div>{{ scope.row.quantity }} {{ scope.row.snapshot_goodsUnit }}</div>
+            <div>￥{{ scope.row.theTotalPrice }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="finalPrice" label="预订/实付 总金额" align="center" >
+        <el-table-column prop="create_by" label="下单人" align="center" />
+        <el-table-column prop="createTime" label="下单时间" align="center" width="170" />
+        <el-table-column prop="quantity" label="收货省市区" align="center" >
           <template #default="scope">
-            <el-tooltip v-if="scope.row.batch_type === 'preorder'" :content="'商品金额：'+scope.row.total_minPrice+'~'+scope.row.total_maxPrice+' 元' + ' ' + '邮费：'+scope.row.postage+' 元'">
-              <div style="display: flex;flex-direction: column;align-items: center;">
-                <div>{{ scope.row.finalPrice }} 元</div>
-              </div>
-            </el-tooltip>
-            <el-tooltip v-if="scope.row.batch_type === 'stock'" :content="'商品金额：'+scope.row.total_price+' 元' + ' ' + '邮费：'+scope.row.postage+' 元'">
-              <div style="display: flex;flex-direction: column;align-items: center;">
-                <div>{{ scope.row.finalPrice }} 元</div>
+            <el-tooltip :content="scope.row.receive_address +' '+ scope.row.receive_phone +' '+scope.row.receive_name ">
+              <div>
+                <div>{{ scope.row.receive_province }}</div>
+                <div>{{ scope.row.receive_city }}</div>
+                <div>{{ scope.row.receive_district }}</div>
               </div>
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column prop="user" label="下单客户" align="center" />
-        <el-table-column prop="createTime" label="下单时间" width="170" align="center" />
-        <el-table-column prop="endTime" label="完结时间" width="170" align="center" />
-        <el-table-column prop="statusText" label="订单状态" align="center" />
-        <el-table-column prop="remark_customer" label="客户备注" align="center" />
+
+        <el-table-column prop="statusText" label="订单状态" align="center" width="170" >
+          <template #default="scope">
+            <div>{{ scope.row.statusText }}</div>
+            <div v-if="scope.row.status === 'reserved'">{{ dayjs(scope.row.preorder_time).format('YYYY-MM-DD HH:mm:ss') }}</div>
+            <div v-if="scope.row.status === 'canceled'">{{ dayjs(scope.row.cancel_time).format('YYYY-MM-DD HH:mm:ss') }}</div>
+            <div v-if="scope.row.status === 'paid'">{{ dayjs(scope.row.pay_time).format('YYYY-MM-DD HH:mm:ss') }}</div>
+            <div v-if="scope.row.status === 'completed'">{{ dayjs(scope.row.complete_time).format('YYYY-MM-DD HH:mm:ss') }}</div>
+          </template>
+        </el-table-column>
+
         <el-table-column prop="remark_self" label="己方备注" align="center" />
         <el-table-column fixed="right" label="操作" width="120" align="center" >
           <template #default="scope">
@@ -181,12 +186,11 @@ let loadingInstance = null
 // Table
 let searchParams = reactive({
   order_no: '',
-  generation_type: '',
   batch_type: '',
   status: '',
   goods_id: '',
   batch_no: '',
-  user: '',
+  create_by: '',
   orderCreateTime: [],
 })
 let tableData = ref([])
@@ -210,12 +214,11 @@ function search() {
 function searchReset() {
   Object.assign(searchParams, {
     order_no: '',
-    generation_type: '',
     batch_type: '',
     status: '',
     goods_id: '',
     batch_no: '',
-    user: '',
+    create_by: '',
     orderCreateTime: [],
   })
   pagination.pageNo = 1
@@ -265,31 +268,35 @@ function getOrderList() {
         case 'reserved': statusText='已预订'; break;
         case 'paid': statusText='已付款'; break;
         case 'unpaid': statusText='未付款'; break;
-        case 'completed': statusText='已完成'; break;
+        case 'completed': statusText='已完结'; break;
         case 'canceled': statusText='已取消'; break;
-        case 'refunded': statusText='已退款'; break;
+        // case 'refunded': statusText='已退款'; break;
         default: break;
       }
 
-      let finalPrice = ''
-      if (item.batch_type==='preorder') {
-        let minPrice = (Number(item.total_minPrice) + Number(item.postage) - Number(item.discount_quantity)).toFixed(2)
-        let maxPrice = (Number(item.total_maxPrice) + Number(item.postage) - Number(item.discount_quantity)).toFixed(2)
-        finalPrice = `${minPrice} ~ ${maxPrice}`
-      } else {
-        finalPrice = (Number(item.total_price) + Number(item.postage) - Number(item.discount_quantity)).toFixed(2)
+      let theTotalPrice = 0;
+      if (item.batch_type === 'preorder') {
+        if (item.pay_finalAmount) {
+          theTotalPrice = item.pay_finalAmount
+        } else if (item.preorder_finalPrice) {
+          theTotalPrice = (Number(item.preorder_finalPrice)*Number(item.quantity) + Number(item.postage) - Number(item.discountAmount_promotion)).toFixed(2)
+        } else if (!item.preorder_finalPrice) {
+          let finalMinPrice = (Number(item.preorder_minPrice)*Number(item.quantity) + Number(item.postage) - Number(item.discountAmount_promotion)).toFixed(2)
+          let finalMaxPrice = (Number(item.preorder_maxPrice)*Number(item.quantity) + Number(item.postage) - Number(item.discountAmount_promotion)).toFixed(2)
+          theTotalPrice = `${finalMinPrice} ~ ${finalMaxPrice}`
+        }
+      } else if (item.batch_type === 'stock') {
+        theTotalPrice = item.pay_finalAmount
       }
 
       return {
         ...item,
-        batchTypeText: item.batch_type === 'preorder' ? '预订' : '现货',
         createTime: dayjs(item.createTime).format('YYYY-MM-DD HH:mm:ss'),
-        endTime: item.endTime ? dayjs(item.endTime).format('YYYY-MM-DD HH:mm:ss') : null,
         statusText,
-        finalPrice,
-        generationTypeText: item.generation_type === 'auto' ? '客户下单' : '手动生成'
+        theTotalPrice,
       }
     })
+
     pagination.total = res.data.total
   }).finally(() => {
     loadingInstance.close()
@@ -330,7 +337,7 @@ function searchBatchTypeChange(e) {
       {label: '已预订', value: 'reserved'},
       {label: '未付款', value: 'unpaid'},
       {label: '已付款', value: 'paid'},
-      {label: '已完成', value: 'completed'},
+      {label: '已完结', value: 'completed'},
       {label: '已取消', value: 'canceled'},
       {label: '已退款', value: 'refunded'},
     ]

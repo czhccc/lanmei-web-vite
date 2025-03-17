@@ -380,11 +380,11 @@
                   </div>
                 </div>
                 <div class="batchTotal-item">
-                  <div class="batchTotal-item-title">已完成</div>
+                  <div class="batchTotal-item-title">已完结</div>
                   <div class="batchTotal-item-content">
                     <div class="batchTotal-item-content-order">
                       <span class="batchTotal-item-content-label">订单数：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.canceledOrdersCount || 0 }}</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.completedOrdersCount || 0 }}</span>
                     </div>
                     <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>

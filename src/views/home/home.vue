@@ -499,10 +499,10 @@ const soldOfflineQuantity = chartsData.map(item => item.soldOffline);
 const remainingQuantity = chartsData.map(item => item.remaining);
 
 // 计算每日的总量
-let totalQuantity = []
+let totalSoldQuantity = []
 chartsData.forEach((item, index) => {
   const total = index === 0 ? item.realTotalPurchase : chartsData[index-1].remaining+item.realTotalPurchase
-  totalQuantity.push(total);
+  totalSoldQuantity.push(total);
 });
 
 
@@ -531,7 +531,7 @@ function initBatchChart() {
       trigger: 'axis',
       formatter: params => {
         const date = params[0].axisValue;
-        const total = totalQuantity[params[0].dataIndex];
+        const total = totalSoldQuantity[params[0].dataIndex];
         const realTotalPurchase = purchaseQuantity[params[0].dataIndex];
         const soldOnline = soldOnlineQuantity[params[0].dataIndex];
         const soldOffline = soldOfflineQuantity[params[0].dataIndex];
@@ -571,7 +571,7 @@ function initBatchChart() {
       {
         name: '总量',
         type: 'line',
-        data: totalQuantity,
+        data: totalSoldQuantity,
         itemStyle: {
           color: '#5A2BE2'
         },
