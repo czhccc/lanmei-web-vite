@@ -37,9 +37,9 @@ export function _updateOrder(data) {
 }
 
 // 获取订单日志列表
-export function _getOrderLogsList(data) {
+export function _getOrdersLogsList(data) {
   return request({
-    url: '/order/getOrderLogsList',
+    url: '/order/getOrdersLogsList',
     method: 'get',
     params: data
   })

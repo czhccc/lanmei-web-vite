@@ -211,26 +211,26 @@
             </el-col>
             <el-col :span="8">
               <el-form-item label="送货上门：" prop="receive_method">
-                <el-switch v-model="form.receive_isHomeDelivery" active-text="是" inactive-text="否" />
+                <el-switch v-model="form.receive_isHomeDelivery" active-text="是" inactive-text="否" @change="isHomeDeliveryChange" />
               </el-form-item>
             </el-col>
             <el-col :span="8">
               <el-form-item label="省：" prop="receive_provinceCode">
-                <el-select v-model="form.receive_provinceCode" placeholder="">
+                <el-select v-model="form.receive_provinceCode" placeholder="" @change="e => areaChange(e, 'province')">
                   <el-option v-for="(item, index) in provinces" :key="index" :label="item.name" :value="item.code" />
                 </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="8">
               <el-form-item label="市：" prop="receive_cityCode">
-                <el-select v-model="form.receive_cityCode" placeholder="">
+                <el-select v-model="form.receive_cityCode" placeholder="" @change="e => areaChange(e, 'city')">
                   <el-option v-for="(item, index) in cities" :key="index" :label="item.name" :value="item.code" />
                 </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="8">
               <el-form-item label="区：" prop="receive_districtCode">
-                <el-select v-model="form.receive_districtCode" placeholder="">
+                <el-select v-model="form.receive_districtCode" placeholder="" @change="e => areaChange(e, 'district')">
                   <el-option v-for="(item, index) in districts" :key="index" :label="item.name" :value="item.code" />
                 </el-select>
               </el-form-item>
@@ -424,9 +424,11 @@ function toSubmit() {
             remark_self: form.remark_self,
             receive_name: form.receive_name,
             receive_phone: form.receive_phone,
-            receive_method: form.receive_method,
+            receive_provinceCode: form.receive_provinceCode, 
+            receive_cityCode: form.receive_cityCode, 
+            receive_districtCode: form.receive_districtCode,
             receive_address: form.receive_address,
-            status: form.status,
+            receive_isHomeDelivery: form.receive_isHomeDelivery ? 1 : 0,
           }).then(res => {
             ElMessage({
               message: '更新成功',
@@ -721,6 +723,35 @@ function completeOrder() {
       getOrderDetailById()
     }
   })
+}
+
+function areaChange(code, level) {
+  if (level === 'province') {
+    form.receive_cityCode = null
+    form.receive_districtCode = null
+    getAllCities(code)
+  } else if (level === 'city') {
+    form.receive_districtCode = null
+    getAllDistricts(code)
+  } else if (level === 'district') {
+    let name = districts.value.find(item => item.code === code).name
+    if (name !== '嵊州市') {
+      form.receive_isHomeDelivery = false
+    }
+  }
+}
+function isHomeDeliveryChange(e) {
+  if (e===true) {
+    let name = districts.value.find(item => item.code === form.receive_districtCode).name
+    if (name !== '嵊州市') {
+      ElMessage({
+        message: '仅嵊州市支持送货上门',
+        type: 'warning',
+        plain: true,
+      })
+      form.receive_isHomeDelivery = false
+    }
+  }
 }
 
 </script>

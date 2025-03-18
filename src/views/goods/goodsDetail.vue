@@ -172,6 +172,7 @@
                   <el-radio value="stock">现货</el-radio>
                 </el-radio-group>
                 <span v-if="form.batchType==='preorder'" style="margin-left: 30px;color: #666;">{{ form.batchType==='preorder'&&form.batchPreorderFinalPrice ? '售卖阶段' : '预订阶段' }}</span>
+                <span v-if="form.batchPreorderStartSellingTime" style="color: #666;">售卖开始时间：{{ form.batchPreorderStartSellingTime }} 操作人：{{ form.batchPreorderStartSellingBy }}</span>
               </el-form-item>
             </el-col>
           </el-row>
@@ -1061,16 +1062,18 @@ function getGoodsDetailById() { // 获取详情
       currentBatch = {
         batchNo: res.data.batch_no,
         batchType: res.data.batch_type,
-        batchPreorderFinalPrice: res.data.batch_preorder_finalPrice,
         batchStartTime: dayjs(res.data.batch_startTime).format('YYYY-MM-DD HH:mm:ss'),
-        batchStockUnitPrice: Number(res.data.batch_stock_unitPrice),
+        batchMinQuantity: Number(res.data.batch_minQuantity),
         batchPreorderMinPrice: Number(res.data.batch_preorder_minPrice),
         batchPreorderMaxPrice: Number(res.data.batch_preorder_maxPrice),
-        batchMinQuantity: Number(res.data.batch_minQuantity),
-        batchShipProvinces: res.data.batch_shipProvinces,
-        batchRemark: res.data.batch_remark,
+        batchPreorderStartSellingTime: dayjs(res.data.batch_preorder_startSelling_time).format('YYYY-MM-DD HH:mm:ss'),
+        batchPreorderStartSellingBy: res.data.batch_preorder_startSelling_by,
+        batchPreorderFinalPrice: res.data.batch_preorder_finalPrice,
+        batchStockUnitPrice: Number(res.data.batch_stock_unitPrice),
         batchStockTotalQuantity: Number(res.data.batch_stock_totalQuantity),
         batchStockRemainingQuantity: Number(res.data.batch_stock_remainingQuantity),
+        batchShipProvinces: res.data.batch_shipProvinces,
+        batchRemark: res.data.batch_remark,
       }
 
       batchDiscounts.value = res.data.batch_discounts

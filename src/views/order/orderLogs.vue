@@ -23,7 +23,7 @@
             <div class="saerch-item">
               <div class="search-item-label">操作人：</div>
               <div class="search-item-input">
-                <el-input placeholder="请输入" clearable v-model="searchParams.operator"></el-input>
+                <el-input placeholder="请输入" clearable v-model="searchParams.create_by"></el-input>
               </div>
             </div>
           </el-col>
@@ -53,8 +53,8 @@
 
     <div class="table-wrapper">
       <el-table :height="tableHeight" :data="tableData">
-        <el-table-column prop="id" label="日志id" width="120" align="center" />
-        <el-table-column prop="order_id" label="订单" align="center" >
+        <el-table-column prop="id" label="日志id" align="center" width="100" />
+        <el-table-column prop="order_id" label="订单" align="center" width="280" >
           <template #default="scope">
             <div>
               <div>订单id：{{ scope.row.order_id }}</div>
@@ -65,12 +65,12 @@
         <el-table-column prop="order_id" label="内容" align="center" >
           <template #default="scope">
             <div v-for="(item, index) in scope.row.changes" :key="index">
-              <div>{{ item.key }}：{{ item.before }} → {{ item.after }}</div>
+              <div>{{ item.key }}：{{ item.old }} → {{ item.new }}</div>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="operator" label="操作人" align="center" />
-        <el-table-column prop="createTime" label="操作时间" width="170" align="center" />
+        <el-table-column prop="create_by" label="操作人" align="center" width="140" />
+        <el-table-column prop="createTime" label="操作时间" align="center" width="170" />
         <el-table-column fixed="right" label="操作" width="120" align="center" >
           <template #default="scope">
             <el-button link type="primary" @click="getTooltipRenderMode(scope.row)">查看订单</el-button>
@@ -102,7 +102,7 @@ import { useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 
 import { 
-  _getOrderLogsList, 
+  _getOrdersLogsList, 
 } from '@/network/order'
 
 const $router = useRouter()
@@ -112,7 +112,7 @@ let loadingInstance = null
 let searchParams = reactive({
   order_id: '',
   order_no: '',
-  operator: '',
+  create_by: '',
   createTime: [],
 })
 let tableData = ref([])
@@ -124,25 +124,25 @@ let pagination = reactive({
 })
 
 function search() {
-  getOrderLogsList()
+  getOrdersLogsList()
 }
 function searchReset() {
   Object.assign(searchParams, {
     order_id: '',
     order_no: '',
-    operator: '',
+    create_by: '',
     createTime: [],
   })
   pagination.pageNo = 1
-  getOrderLogsList()
+  getOrdersLogsList()
 }
 function tablePageSizeChange(newPageSize) {
   pagination.pageSize = newPageSize
-  getOrderLogsList()
+  getOrdersLogsList()
 }
 function tablePageNoChange(newPageNo) {
   pagination.pageNo = newPageNo
-  getOrderLogsList()
+  getOrdersLogsList()
 }
 function tableEdit(record) {
   $router.push({
@@ -154,7 +154,7 @@ function tableEdit(record) {
   })
 }
 
-function getOrderLogsList() {
+function getOrdersLogsList() {
   loadingInstance = ElLoading.service({text: '加载中...'})
   let params = {
     pageNo: pagination.pageNo,
@@ -165,7 +165,7 @@ function getOrderLogsList() {
     params.startTime = `${searchParams.createTime[0]} 00:00:00`
     params.endTime = `${searchParams.createTime[1]} 23:59:59`
   }
-  _getOrderLogsList(params).then(res => {
+  _getOrdersLogsList(params).then(res => {
     tableData.value = res.data.records.map(item => {
       let changes = {}
       Object.keys(item.changes).forEach(key => {
@@ -187,17 +187,18 @@ function getOrderLogsList() {
 }
 
 function getTooltipRenderMode(record) {
-  $router.push({
+  const url = `${window.location.origin}${$router.resolve({
     path: '/orderDetail',
     query: {
       id: record.order_id,
       flag: 'edit'
     }
-  })
+  }).href}`
+  window.open(url, '_blank')
 }
 
 onMounted(() => {
-  getOrderLogsList()
+  getOrdersLogsList()
   calculateTableHeight()
 })
 
