@@ -69,7 +69,7 @@
       <div class="form-content">
         <el-form ref="formRef" :model="form" :rules="formRules" label-width="auto" :disabled="formTitle==='详情'">
           <el-form-item label="手机号" prop="phone">
-            <el-input v-model="form.phone" placeholder="请输入" maxlength="20" clearable />
+            <el-input v-model="form.phone" placeholder="请输入" maxlength="20" clearable :disabled="formTitle==='编辑'" />
           </el-form-item>
           <el-form-item label="姓名" prop="name">
             <el-input v-model="form.name" placeholder="请输入" maxlength="20" clearable />
@@ -129,7 +129,7 @@ let form = reactive({
 })
 const formRules = reactive({
   phone: [{ required: true, message: '请输入手机号', trigger: 'blur' },],
-  password: [{ required: false, message: '请输入密码', trigger: 'blur' },],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' },],
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' },],
   role: [{ required: true, message: '请选择角色', trigger: 'blur' },],
 })

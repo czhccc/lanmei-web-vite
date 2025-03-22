@@ -12,7 +12,7 @@
         <div class="tree-level2" v-for="(iten, indey) in item.children" :key="indey">
           <div class="input-wrapper">
             <input class="level2Input" v-model="iten.name" type="text" maxlength="10" placeholder="请填写二级分类名称">
-            <div>{{ iten.goodsCount }}</div>
+            <div class="goodsCount" v-if="iten.goodsCount">当前商品数：{{ iten.goodsCount }}</div>
             <div class="btns">
               <el-button type="danger" round class="deleteBtn" v-if="iten.goodsCount===0" @click="deleteNode(index, indey)">删除</el-button>
             </div>
@@ -146,7 +146,10 @@ onMounted(() => {
     .input-wrapper {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      .goodsCount {
+        word-break: keep-all;
+        width: 120px;
+      }
       .btns {
         display: flex;
         align-items: center;

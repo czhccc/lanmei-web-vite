@@ -131,7 +131,7 @@
       </div>
 
       <!-- 当前批次 -->
-      <div class="item">
+      <div class="item" v-if="$route.query.flag==='edit'">
         <div class="title">
           批次
           <div>
@@ -1066,7 +1066,7 @@ function getGoodsDetailById() { // 获取详情
         batchMinQuantity: Number(res.data.batch_minQuantity),
         batchPreorderMinPrice: Number(res.data.batch_preorder_minPrice),
         batchPreorderMaxPrice: Number(res.data.batch_preorder_maxPrice),
-        batchPreorderStartSellingTime: dayjs(res.data.batch_preorder_startSelling_time).format('YYYY-MM-DD HH:mm:ss'),
+        batchPreorderStartSellingTime: res.data.batch_preorder_startSelling_time && dayjs(res.data.batch_preorder_startSelling_time).format('YYYY-MM-DD HH:mm:ss'),
         batchPreorderStartSellingBy: res.data.batch_preorder_startSelling_by,
         batchPreorderFinalPrice: res.data.batch_preorder_finalPrice,
         batchStockUnitPrice: Number(res.data.batch_stock_unitPrice),
