@@ -80,6 +80,21 @@ const routes = [
     name: 'ShipArea',
     component: () => import('../views/ship/shipArea.vue'),
   },
+  {
+    path: '/recommend',
+    name: 'Recommend',
+    component: () => import('../views/recommend/recommend.vue'),
+  },
+  {
+    path: '/newsList',
+    name: 'NewsList',
+    component: () => import('../views/news/newsList.vue'),
+  },
+  {
+    path: '/newsDetail',
+    name: 'NewsDetail',
+    component: () => import('../views/news/newsDetail.vue'),
+  },
 ];
 
 const router = createRouter({

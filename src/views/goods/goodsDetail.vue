@@ -492,7 +492,7 @@ import { ref, reactive, onMounted, shallowRef, onBeforeUnmount, nextTick } from 
 import { useRoute, useRouter } from 'vue-router'
 
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
-import '@wangeditor/editor/dist/css/style.css' // 引入 css
+import '@wangeditor/editor/dist/css/style.css'
 
 import Sortable from 'sortablejs';
 import Cookies from 'js-cookie';
@@ -1164,16 +1164,23 @@ function clickGoodsIsSelling() {
   }
   return true
 }
-function changeGoodsIsSelling(e) {
+function changeGoodsIsSelling(newValue) {
   _changeGoodsIsSelling({
     id: form.goodsId,
-    value: e ? 1 : 0
+    value: newValue ? 1 : 0
   }).then(res => {
     ElMessage({
-      message: e ? '已上架' : '已下架',
+      message: newValue ? '已上架' : '已下架',
       type: 'success',
       plain: true,
     })
+  }).catch(error => {
+    ElMessage({
+      message: '操作失败',
+      type: 'error',
+      plain: true,
+    })
+    form.goodsIsSelling = !newValue
   })
 }
 function seeOrdersByBatchNo() {
