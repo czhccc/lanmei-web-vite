@@ -1103,7 +1103,6 @@ function getGoodsDetailById() { // 获取详情
     swiperList.value = res.data.swiperList.map(item => {
       return {
         url: item.url,
-        type: item.fileType,
       }
     }) || []
 

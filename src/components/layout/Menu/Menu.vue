@@ -3,6 +3,7 @@
     <el-menu
       default-active="1"
       class="el-menu-vertical-demo"
+      :default-openeds="openKeys"
     >
       <template v-for="(item, index) in routesList" :key="index">
         <el-menu-item v-if="!item.children" :index="item.name" @click="changeRoute(item.path)">
@@ -96,6 +97,8 @@ import { useRouter } from 'vue-router';
       ]
     },
   ])
+
+  const openKeys = ref(routesList.value.filter(item => item.children).map(item => item.name));
 
   function changeRoute(path) {
     router.push(path)

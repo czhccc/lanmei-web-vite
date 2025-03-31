@@ -158,12 +158,21 @@
           <el-row :gutter="20">
             <el-col :span="8">
               <el-form-item label="订单操作：" prop="status">
-                <el-button type="primary" v-if="form.batch_type==='preorder'&&(form.status==='reserved'||form.status==='unpaid')" @click="cancelOrder">取消预订</el-button>
-                <el-popconfirm title="确定完结订单？" v-if="form.status==='paid'" @confirm="completeOrder">
-                  <template #reference>
-                    <el-button type="primary">完结订单</el-button>
-                  </template>
-                </el-popconfirm>
+                <div>
+                  <div style="margin-bottom: 10px;" v-if="form.batch_type==='preorder'&&(form.status==='reserved'||form.status==='unpaid')">
+                    <el-button type="primary" @click="cancelOrder">取消预订</el-button>
+                  </div>
+                  <div style="margin-bottom: 10px;" v-if="form.status==='paid'">
+                    <el-button type="primary" @click="shipOrder">发货</el-button>
+                  </div>
+                  <div style="margin-bottom: 10px;" v-if="form.status==='shipped'||form.status==='paid'">
+                    <el-popconfirm title="确定完结订单？" @confirm="completeOrder">
+                      <template #reference>
+                        <el-button type="warning">完结订单</el-button>
+                      </template>
+                    </el-popconfirm>
+                  </div>
+                </div>
               </el-form-item>
             </el-col>
             <el-col :span="8">
@@ -280,6 +289,29 @@
       </template>
     </el-dialog>
 
+    <!-- 发货订单弹出框 -->
+    <el-dialog
+      v-model="isShowShipOrderDialog"
+      title="发货"
+      width="600"
+      align-center
+    >
+      <div class="shipOrderOrderDialog">
+        <el-input
+          v-model="shipOrderTrackingNumber"
+          placeholder="请输入快递单号"
+          clearable
+          maxlength="30"
+        />
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="isShowShipOrderDialog = false">取消</el-button>
+          <el-button type="primary" @click="shipOrderDialogConfirm">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
     <el-dialog 
       v-model="isShowChooseGoodsDialog" 
       title="选择商品" 
@@ -336,6 +368,7 @@ import {
   _updateOrder, 
   _createOrder, 
   _cancelOrder,
+  _shipOrder,
   _completeOrder,
 } from '@/network/order' 
 import { _getAll } from '@/network/ship' 
@@ -460,7 +493,7 @@ function toSubmit() {
 }
 
 const orderHistories = ref([])
-function getOrderDetailById(id) {
+function getOrderDetailById() {
   _getOrderDetailById({ id: $route.query.id }).then(res => {
     let theGoodsTotalPrice = null
     if (res.data.batch_type==='preorder') {
@@ -520,6 +553,15 @@ function getOrderDetailById(id) {
           color: '#0bbd87',
         })
       }
+      if (res.data.status === 'shipped') {
+        historyArr.push({
+          statusText: '已发货',
+          content: `快递单号：${res.data.ship_trackingNumber}`,
+          by: res.data.ship_by,
+          time: dayjs(res.data.ship_time).format('YYYY-MM-DD HH:mm:ss'),
+          color: '#0bbd87',
+        })
+      }
       if (res.data.status === 'completed') {
         historyArr.push({
           statusText: '未付款',
@@ -532,6 +574,12 @@ function getOrderDetailById(id) {
           time: dayjs(res.data.pay_time).format('YYYY-MM-DD HH:mm:ss'),
           color: '#0bbd87',
         }, {
+          statusText: '已发货',
+          content: `快递单号：${res.data.ship_trackingNumber}`,
+          by: res.data.ship_by,
+          time: dayjs(res.data.ship_time).format('YYYY-MM-DD HH:mm:ss'),
+          color: '#0bbd87',
+        },{
           statusText: '已完结',
           time: dayjs(res.data.complete_time).format('YYYY-MM-DD HH:mm:ss'),
           by: res.data.complete_by,
@@ -545,6 +593,15 @@ function getOrderDetailById(id) {
         time: dayjs(res.data.pay_time).format('YYYY-MM-DD HH:mm:ss'),
         color: '#0bbd87',
       })
+      if (res.data.status === 'shipped') {
+        historyArr.push({
+          statusText: '已发货',
+          content: `快递单号：${res.data.ship_trackingNumber}`,
+          by: res.data.ship_by,
+          time: dayjs(res.data.ship_time).format('YYYY-MM-DD HH:mm:ss'),
+          color: '#0bbd87',
+        })
+      }
       if (res.data.status === 'completed') {
         historyArr.push({
           statusText: '已完结',
@@ -709,6 +766,40 @@ function cancelAllOrdersDialogConfirm() {
     }
   })
 }
+
+let isShowShipOrderDialog = ref(false)
+let shipOrderTrackingNumber = ref('')
+function shipOrder() {
+  shipOrderTrackingNumber.value = ''
+  isShowShipOrderDialog.value = true
+}
+function shipOrderDialogConfirm() {
+  if (!shipOrderTrackingNumber.value) {
+    ElMessage({
+      message: '请输入快递单号',
+      type: 'warning',
+      plain: true,
+    })
+    return
+  }
+
+  _shipOrder({
+    orderId: form.id,
+    trackingNumber: shipOrderTrackingNumber.value,
+  }).then(res => {
+    if (res.code === 200) {
+      isShowShipOrderDialog.value = false
+      ElMessage({
+        message: '发货成功',
+        type: 'success',
+        plain: true,
+      })
+      getOrderDetailById()
+    }
+  })
+}
+
+
 function completeOrder() {
   _completeOrder({
     orderId: form.id

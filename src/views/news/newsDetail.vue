@@ -201,6 +201,8 @@ function toSubmit() {
 
           isSubmiting.value = false
         }, 1000)
+      }).finally(() => {
+        isSubmiting.value = false
       })
     }
     
