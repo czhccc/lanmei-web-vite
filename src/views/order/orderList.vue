@@ -89,7 +89,7 @@
     </div>
 
     <div class="options">
-      <el-button type="primary" @click="tableAdd">新增</el-button>
+      <!-- <el-button type="primary" @click="tableAdd">新增</el-button> -->
     </div>
 
     <div class="table-wrapper">
@@ -206,9 +206,9 @@ let pagination = reactive({
 
 const calculateTableHeight = () => {
   const viewportHeight = window.innerHeight;
-  const searchWrapperHeight = document.querySelector('.search-wrapper').offsetHeight;
-  const optionsWrapperHeight = document.querySelector('.options').offsetHeight;
-  const paginationWrapperHeight = document.querySelector('.pagination-wrapper').offsetHeight;
+  const searchWrapperHeight = document.querySelector('.search-wrapper')?.offsetHeight || 0;
+  const optionsWrapperHeight = document.querySelector('.options')?.offsetHeight || 0;
+  const paginationWrapperHeight = document.querySelector('.pagination-wrapper')?.offsetHeight || 0;
   tableHeight.value = viewportHeight - searchWrapperHeight - optionsWrapperHeight - paginationWrapperHeight - 120;
 };
 function search() {

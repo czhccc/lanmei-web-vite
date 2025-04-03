@@ -11,23 +11,23 @@
         <div class="content">
           <el-row :gutter="20">
             <el-col :span="8" v-if="$route.query.flag==='edit'">
-              <el-form-item label="商品编号："> {{ form.goodsId }} </el-form-item>
+              <el-form-item label="商品编号："> {{ form.goods_id }} </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="商品名称：" prop="goodsName">
-                <el-input v-model="form.goodsName" placeholder="请输入" maxlength="50" clearable :disabled="Boolean(form.batchNo)" />
+              <el-form-item label="商品名称：" prop="goods_name">
+                <el-input v-model="form.goods_name" placeholder="请输入" maxlength="50" clearable :disabled="Boolean(form.batch_no)" />
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="商品单位：" prop="goodsUnit">
-                <el-input v-model="form.goodsUnit" placeholder="请输入" maxlength="50" clearable :disabled="Boolean(form.batchNo)" />
+              <el-form-item label="商品单位：" prop="goods_unit">
+                <el-input v-model="form.goods_unit" placeholder="请输入" maxlength="50" clearable :disabled="Boolean(form.batch_no)" />
               </el-form-item>
             </el-col>
           </el-row>
           <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item label="商品分类：" prop="goodsCategoryId">
-                <el-select v-model="form.goodsCategoryId" style="width: 100%;" placeholder="请选择" :disabled="Boolean(form.batchNo)">
+              <el-form-item label="商品分类：" prop="goods_categoryId">
+                <el-select v-model="form.goods_categoryId" style="width: 100%;" placeholder="请选择" :disabled="Boolean(form.batch_no)">
                   <el-option-group v-for="parent in categoryList" :key="parent.id" :label="parent.name" >
                     <el-option v-for="category in parent.children" :key="category.id" :label="category.name" :value="category.id" />
                   </el-option-group>
@@ -35,8 +35,8 @@
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="商品备注：" prop="goodsRemark">
-                <el-input type="textarea" autosize v-model="form.goodsRemark" maxlength="200" show-word-limit placeholder="请输入" clearable :disabled="Boolean(form.batchNo)" />
+              <el-form-item label="商品备注：" prop="goods_remark">
+                <el-input type="textarea" autosize v-model="form.goods_remark" maxlength="200" show-word-limit placeholder="请输入" clearable :disabled="Boolean(form.batch_no)" />
               </el-form-item>
             </el-col>
           </el-row>
@@ -48,7 +48,7 @@
           <div class="introduction-item">
             <div class="introduction-title">封面图</div>
             <div class="introduction-item-content">
-              <el-button type="primary" @click="triggerFileInput('goods_coverImage')" class="custom-button" v-if="!Boolean(form.batchNo)">上传封面图</el-button>
+              <el-button type="primary" @click="triggerFileInput('goods_coverImage')" class="custom-button" v-if="!Boolean(form.batch_no)">上传封面图</el-button>
               <input 
                 type="file" 
                 ref="coverImageFileInput" 
@@ -71,7 +71,7 @@
           <div class="introduction-item" style="margin-top: 30px;">
             <div class="introduction-title">轮播图</div>
             <div class="introduction-item-content">
-              <el-button type="primary" @click="triggerFileInput('goods_swiper')" class="custom-button" v-if="!Boolean(form.batchNo)">上传轮播图</el-button>
+              <el-button type="primary" @click="triggerFileInput('goods_swiper')" class="custom-button" v-if="!Boolean(form.batch_no)">上传轮播图</el-button>
               <input 
                 type="file" 
                 ref="swiperFileInput" 
@@ -91,7 +91,7 @@
                       class="swiperList-preview-image"
                     />
                     <div class="swiperList-preview-options">
-                      <span @click="fileRemove(index)" v-if="!Boolean(form.batchNo)">
+                      <span @click="fileRemove(index)" v-if="!Boolean(form.batch_no)">
                         <el-icon><i-ep-Delete /></el-icon>
                       </span>
                     </div>
@@ -99,7 +99,7 @@
                   <div class="swiperList-preview-video" v-if="file.type==='video'">
                     <video :src="file.url" controls width="200" height="200"></video>
                     <div class="swiperList-preview-options">
-                      <span @click="fileRemove(index)" v-if="!Boolean(form.batchNo)">
+                      <span @click="fileRemove(index)" v-if="!Boolean(form.batch_no)">
                         <el-icon><i-ep-Delete /></el-icon>
                       </span>
                     </div>
@@ -112,18 +112,21 @@
             <div class="introduction-title">商品详情</div>
             <div class="introduction-item-content">
               <div class="richText-wrapper">
-                <Toolbar
-                  :editor="richTextEditorRef"
-                  :defaultConfig="richTextEditorToolbarConfig"
-                  :mode="richTextEditorMode"
-                />
-                <Editor
-                  style="height: 500px; overflow-y: hidden;"
-                  v-model="goodsRichText"
-                  :defaultConfig="richTextEditorConfig"
-                  :mode="richTextEditorMode"
-                  @onCreated="richTextEditorHandleCreated"
-                />
+                <div class="richText-editor">
+                  <Toolbar
+                    :editor="richTextEditorRef"
+                    :defaultConfig="richTextEditorToolbarConfig"
+                    :mode="richTextEditorMode"
+                  />
+                  <Editor
+                    style="height: 500px; overflow-y: hidden;"
+                    v-model="goods_richText"
+                    :defaultConfig="richTextEditorConfig"
+                    :mode="richTextEditorMode"
+                    @onCreated="richTextEditorHandleCreated"
+                  />
+                </div>
+                <div class="richText-preview" v-html="goods_richText"></div>
               </div>
             </div>
           </div>
@@ -135,18 +138,18 @@
         <div class="title">
           批次
           <div>
-            <el-button class="title-btn" :type="isStartingNewCurrentBatch?'warning':'success'" @click="startNewBatch" v-if="!form.batchNo">{{ isStartingNewCurrentBatch ? '取消新批次' : '开启新批次' }}</el-button>
+            <el-button class="title-btn" :type="isStartingNewCurrentBatch?'warning':'success'" @click="startNewBatch" v-if="!form.batch_no">{{ isStartingNewCurrentBatch ? '取消新批次' : '开启新批次' }}</el-button>
 
-            <div v-if="form.batchNo">
-              <el-button class="title-btn" type="primary" v-if="form.batchType==='preorder'&&!form.batchPreorderFinalPrice&&currentBatchTotalInfo.totalOrdersCount>0" @click="showPreorderBatchIsReadyToSellDialog">开始售卖</el-button>
+            <div v-if="form.batch_no">
+              <el-button class="title-btn" type="primary" v-if="form.batch_type==='preorder'&&!form.batch_preorder_FinalPrice&&currentBatchTotalInfo.totalOrdersCount>0" @click="showPreorderBatchIsReadyToSellDialog">开始售卖</el-button>
 
-              <el-popconfirm title="确认结束当前批次？" confirm-button-text="确定" cancel-button-text="取消" v-if="currentBatchTotalInfo.totalOrdersCount>0&&(form.batchPreorderFinalPrice||(form.batchType==='stock'))" @confirm="endCurrentBatch">
+              <el-popconfirm title="确认结束当前批次？" confirm-button-text="确定" cancel-button-text="取消" v-if="currentBatchTotalInfo.totalOrdersCount>0&&(form.batch_preorder_FinalPrice||(form.batch_type==='stock'))" @confirm="endCurrentBatch">
                 <template #reference>
                   <el-button class="title-btn" type="warning">结束当前批次</el-button>
                 </template>
               </el-popconfirm>
 
-              <el-button class="title-btn" type="danger" @click="cancelCurrentBatchAllOrder" v-if="form.batchType==='preorder'&&!form.batchPreorderFinalPrice&&currentBatchTotalInfo.totalOrdersCount>0">取消所有预订</el-button>
+              <el-button class="title-btn" type="danger" @click="cancelCurrentBatchAllOrder" v-if="form.batch_type==='preorder'&&!form.batch_preorder_FinalPrice&&currentBatchTotalInfo.totalOrdersCount>0">取消所有预订</el-button>
 
               <el-popconfirm title="确认删除当前批次？" confirm-button-text="确定" cancel-button-text="取消" v-if="currentBatchTotalInfo.totalOrdersCount===0" @confirm="deleteCurrentBatch">
                 <template #reference>
@@ -160,57 +163,56 @@
           </div>
 
         </div>
-        <div class="content" v-if="form.batchNo || isStartingNewCurrentBatch">
+        <div class="content" v-if="form.batch_no || isStartingNewCurrentBatch">
           <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item label="批次编号：">{{ form.batchNo || '自动生成' }}</el-form-item>
+              <el-form-item label="批次编号：">{{ form.batch_no || '自动生成' }}</el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="批次类型：" prop="batchType">
-                <el-radio-group v-model="form.batchType" :disabled="Boolean(form.batchNo)">
+              <el-form-item label="批次类型：" prop="batch_type">
+                <el-radio-group v-model="form.batch_type" :disabled="Boolean(form.batch_no)">
                   <el-radio value="preorder">预订</el-radio>
                   <el-radio value="stock">现货</el-radio>
                 </el-radio-group>
-                <span v-if="form.batchType==='preorder'" style="margin-left: 30px;color: #666;">{{ form.batchType==='preorder'&&form.batchPreorderFinalPrice ? '售卖阶段' : '预订阶段' }}</span>
+                <span v-if="form.batch_type==='preorder'" style="margin-left: 30px;color: #666;">{{ form.batch_type==='preorder'&&form.batch_preorder_FinalPrice ? '售卖阶段' : '预订阶段' }}</span>
                 <span v-if="form.batchPreorderStartSellingTime" style="color: #666;">售卖开始时间：{{ form.batchPreorderStartSellingTime }} 操作人：{{ form.batchPreorderStartSellingBy }}</span>
               </el-form-item>
             </el-col>
           </el-row>
           <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item label="最少购买量：" prop="batchMinQuantity">
+              <el-form-item label="最少购买量：" prop="batch_minQuantity">
                 <div style="display: flex;align-items: center;width: 100%;">
-                  <el-input-number v-model="form.batchMinQuantity" :disabled="Boolean(form.batchNo)"
+                  <el-input-number v-model="form.batch_minQuantity" :disabled="Boolean(form.batch_no)"
                     :precision="1" placeholder="请输入" :min="0.01" :max="999999" :controls="false" 
                     style="flex: 1;"
                   />
-                  <div style="word-break: keep-all;margin-left: 10px;">{{ form.goodsUnit }}</div>
+                  <div style="word-break: keep-all;margin-left: 10px;">{{ form.goods_unit }}</div>
                 </div>
               </el-form-item>
             </el-col>
-            <el-col :span="8" v-if="form.batchType==='preorder'">
+            <el-col :span="8" v-if="form.batch_type==='preorder'">
               <el-form-item label="价格区间：" required>
                 <div style="display: flex;align-items: center;">
-                  <el-form-item prop="batchPreorderMinPrice" style="flex: 1;">
-                    <el-input-number v-model="form.batchPreorderMinPrice" :precision="2" placeholder="最低单价" :disabled="Boolean(form.batchNo)"
+                  <el-form-item prop="batch_preorder_minPrice" style="flex: 1;">
+                    <el-input-number v-model="form.batch_preorder_minPrice" :precision="2" placeholder="最低单价" :disabled="Boolean(form.batch_no)"
                     :min="0.01" :max="999999" :controls="false" style="flex: 1;" />
                   </el-form-item>
                   <div style="margin-left: 10px;">元</div>
                   <div style="margin: 0 10px;">~</div>
-                  <el-form-item prop="batchPreorderMaxPrice" style="flex: 1;">
-                    <el-input-number v-model="form.batchPreorderMaxPrice" :precision="2" placeholder="最高单价" :disabled="Boolean(form.batchNo)"
+                  <el-form-item prop="batch_preorder_maxPrice" style="flex: 1;">
+                    <el-input-number v-model="form.batch_preorder_maxPrice" :precision="2" placeholder="最高单价" :disabled="Boolean(form.batch_no)"
                      :min="0.01" :max="999999" :controls="false" style="flex: 1;" />
                   </el-form-item>
-                  <div style="margin-left: 10px;">元</div>
                 </div>
               </el-form-item>
             </el-col>
-            <el-col :span="8" v-if="form.batchType==='stock'">
-              <el-form-item label="单价：" prop="batchStockUnitPrice">
+            <el-col :span="8" v-if="form.batch_type==='stock'">
+              <el-form-item label="单价：" prop="batch_stock_unitPrice">
                 <div style="display: flex;align-items: center;width: 100%;">
-                  <el-input-number v-model="form.batchStockUnitPrice" :precision="2" placeholder="请输入" :disabled="Boolean(form.batchNo)"
+                  <el-input-number v-model="form.batch_stock_unitPrice" :precision="2" placeholder="请输入" :disabled="Boolean(form.batch_no)"
                     :min="0.01" :max="999999" :controls="false" style="flex: 1;" />
-                  <div style="word-break: keep-all;margin-left: 10px;"> 元 / {{ form.goodsUnit }}</div>
+                  <div style="word-break: keep-all;margin-left: 10px;"> 元 / {{ form.goods_unit }}</div>
                 </div>
               </el-form-item>
             </el-col>
@@ -218,47 +220,69 @@
           <el-row :gutter="20" style="margin-top: 10px;">
             <el-col :span="8">
               <el-form-item label="满减优惠：">
-                <div v-for="(item, index) in batchDiscounts" :key="index" style="display: flex;align-items: center;">
+                <div v-for="(item, index) in discountsPromotion" :key="index" style="display: flex;align-items: center;margin-bottom: 10px;">
                   <div style="margin-right: 10px;">满</div>
-                  <el-input-number v-model="item.quantity" :precision="1" placeholder="数量" :disabled="Boolean(form.batchNo)"
-                  :min="0.1" :max="999999" :controls="false" style="width: 100%;" />
-                  <div style="word-break: keep-all;margin-left: 10px;">{{ form.goodsUnit }}</div>
-                  <div style="margin: 10px;">减</div>
-                  <el-input-number v-model="item.discount" :precision="2" placeholder="优惠金额" :disabled="Boolean(form.batchNo)"
-                   :min="0.01" :max="999999" :controls="false" style="width: 100%;" />
-                  <div style="margin-left: 10px;">元</div>
-                  <el-button type="danger" size="small" style="margin-left: 10px;" @click="deleteDiscountItem(index)" v-if="!Boolean(form.batchNo)">删除</el-button>
+                  <el-input-number v-model="item.quantity" :precision="1" placeholder="数量" :disabled="Boolean(form.batch_no)"
+                  :min="0.1" :max="999999" :controls="false" style="width: 100%;" >
+                    <template #suffix>
+                      <span>{{ form.goods_unit }}</span>
+                    </template>
+                  </el-input-number>
+                  <div style="margin: 0 10px;">减</div>
+                  <el-input-number v-model="item.discount" :precision="2" placeholder="优惠金额" :disabled="Boolean(form.batch_no)"
+                   :min="0.01" :max="999999" :controls="false" style="width: 100%;" >
+                    <template #prefix>
+                      <span>￥</span>
+                    </template>
+                  </el-input-number>
+                  <el-button type="danger" size="small" style="margin-left: 10px;" @click="deleteDiscountItem(index)" v-if="!Boolean(form.batch_no)">删除</el-button>
                 </div>
-                <div v-if="batchDiscounts.length === 0">无</div>
-                <el-button style="width: 100%;" v-if="!Boolean(form.batchNo)" @click="addDiscountItem">新增</el-button>
+                <div v-if="discountsPromotion.length === 0">无</div>
+                <el-button style="width: 100%;" v-if="!Boolean(form.batch_no)" @click="addDiscountItem">新增</el-button>
+              </el-form-item>
+            </el-col>
+            <el-col :span="10">
+              <el-form-item label="额外选项：">
+                <div v-for="(item, index) in extraOptions" :key="index" style="width: 100%;display: flex;align-items: center;justify-content: space-between;margin-bottom: 10px;">
+                  <el-input v-model="item.content" placeholder="选项内容" maxlength="20" :disabled="Boolean(form.batch_no)" style="flex: 1;" />
+                  <el-input-number v-model="item.amount" :precision="2" placeholder="费用" :disabled="Boolean(form.batch_no)"
+                   :min="0.01" :max="999999" :controls="false" style="width: 130px;margin-left: 10px;" >
+                    <template #prefix>
+                      <span>￥</span>
+                    </template>
+                  </el-input-number>
+                  <el-button type="danger" size="small" style="margin-left: 10px;" @click="deleteExtraOptionItem(index)" v-if="!Boolean(form.batch_no)">删除</el-button>
+                </div>
+                <div v-if="extraOptions.length === 0">无</div>
+                <el-button style="width: 100%;" v-if="!Boolean(form.batch_no)" @click="addExtraOptionItem">新增</el-button>
               </el-form-item>
             </el-col>
           </el-row>
           <el-row :gutter="20" style="margin-top: 10px;">
             <el-col :span="8">
-              <el-form-item label="批次备注：" prop="batchRemark">
-                <el-input type="textarea" autosize v-model="form.batchRemark" :disabled="Boolean(form.batchNo)" maxlength="200" show-word-limit placeholder="请输入" clearable />
+              <el-form-item label="批次备注：" prop="batch_remark">
+                <el-input type="textarea" autosize v-model="form.batch_remark" :disabled="Boolean(form.batch_no)" maxlength="200" show-word-limit placeholder="请输入" clearable />
               </el-form-item>
             </el-col>
           </el-row>
-          <el-row :gutter="20" style="margin-top: 10px;" v-if="form.batchType==='stock'">
+          <el-row :gutter="20" style="margin-top: 10px;" v-if="form.batch_type==='stock'">
             <el-col :span="8">
-              <el-form-item label="总量：" prop="batchStockTotalQuantity">
+              <el-form-item label="总量：" prop="batch_stock_totalQuantity">
                 <div style="display: flex;align-items: center;width: 100%;">
-                  <el-input-number v-model="form.batchStockTotalQuantity" :disabled="Boolean(form.batchNo)"
+                  <el-input-number v-model="form.batch_stock_totalQuantity" :disabled="Boolean(form.batch_no)"
                     :precision="1" placeholder="请输入" :min="0" :max="999999" :controls="false" 
                     style="flex: 1;"
                   />
-                  <div style="word-break: keep-all;margin-left: 10px;">{{ form.goodsUnit }}</div>
+                  <div style="word-break: keep-all;margin-left: 10px;">{{ form.goods_unit }}</div>
                 </div>
               </el-form-item>
             </el-col>
           </el-row>
-          <el-row :gutter="20" style="margin-top: 10px;" v-if="form.batchNo">
+          <el-row :gutter="20" style="margin-top: 10px;" v-if="form.batch_no">
             <el-col :span="8">
               <el-form-item label="开始时间：">
                 <div style="display: flex;align-items: center;width: 100%;">
-                  <div style="margin-left: 10px;">{{ form.batchStartTime }}</div>
+                  <div style="margin-left: 10px;">{{ form.batch_startTime }}</div>
                 </div>
               </el-form-item>
             </el-col>
@@ -271,35 +295,35 @@
                 <span>配置邮费</span>
               </div>
             </el-divider>
-            <div v-if="!Boolean(form.batchNo)">
+            <div v-if="!Boolean(form.batch_no)">
               <el-button type="primary" size="small" @click="getShipProvincesOfLastBatch">继承上一批次邮费配置</el-button>
             </div>
-            <div v-if="!Boolean(form.batchNo)&&unusableButChoosedProvince.length>0" style="color: red;margin-top: 10px;font-size: 14px;">
+            <div v-if="!Boolean(form.batch_no)&&unusableButChoosedProvince.length>0" style="color: red;margin-top: 10px;font-size: 14px;">
               {{ unusableButChoosedProvince.join('、') }} 已被禁用，请确认
             </div>
             <div class="batch-postage-content">
               <div class="batch-postage-content-item" v-for="(item, index) in postageRules" :key="index">
                 <div>
-                  <el-checkbox v-model="item.isChoosed" :label="item.name" size="large" :disabled="Boolean(form.batchNo)" />
+                  <el-checkbox v-model="item.isChoosed" :label="item.name" size="large" :disabled="Boolean(form.batch_no)" />
                 </div>
                 <div class="batch-postage-content-item-inputs" v-if="item.isChoosed">
                   <div>
-                    <el-input-number class="batch-postage-content-item-input" placeholder="首重最大数量" v-model="item.baseQuantity" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batchNo)"></el-input-number>
-                    <el-input-number class="batch-postage-content-item-input" placeholder="首重邮费" v-model="item.basePostage" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batchNo)"></el-input-number>
+                    <el-input-number class="batch-postage-content-item-input" placeholder="首重最大数量" v-model="item.baseQuantity" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batch_no)"></el-input-number>
+                    <el-input-number class="batch-postage-content-item-input" placeholder="首重邮费" v-model="item.basePostage" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batch_no)"></el-input-number>
                   </div>
                   <div>
-                    <el-input-number class="batch-postage-content-item-input" placeholder="每续重几件" v-model="item.extraQuantity" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batchNo)"></el-input-number>
-                    <el-input-number class="batch-postage-content-item-input" placeholder="续重单位邮费" v-model="item.extraPostage" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batchNo)"></el-input-number>
+                    <el-input-number class="batch-postage-content-item-input" placeholder="每续重几件" v-model="item.extraQuantity" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batch_no)"></el-input-number>
+                    <el-input-number class="batch-postage-content-item-input" placeholder="续重单位邮费" v-model="item.extraPostage" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batch_no)"></el-input-number>
                   </div>
                   <div>
-                    <el-input-number class="batch-postage-content-item-input" placeholder="包邮数量" v-model="item.freeShippingQuantity" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batchNo)"></el-input-number>
+                    <el-input-number class="batch-postage-content-item-input" placeholder="包邮数量" v-model="item.freeShippingQuantity" :min="0.1" :max="99999" :precision="1" :controls="false" :disabled="Boolean(form.batch_no)"></el-input-number>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="batch-total" v-if="form.batchNo">
+          <div class="batch-total" v-if="form.batch_no">
             <el-divider content-position="left">
               <div style="font-weight: 700;display: flex;align-items: center;">
                 <el-icon><i-ep-TrendCharts /></el-icon>
@@ -316,15 +340,15 @@
                     <el-button type="primary"  style="margin-left: 30px;" v-if="currentBatchTotalInfo.totalOrdersCount>0" @click="seeOrdersByBatchNo">查看订单</el-button>
                   </div>
                 </div>
-                <div class="batchTotal-item" v-if="form.batchType==='stock'">
+                <div class="batchTotal-item" v-if="form.batch_type==='stock'">
                   <div class="batchTotal-item-title">剩余量：</div>
                   <div class="batchTotal-item-content">
-                    <span>{{ form.batchStockRemainingQuantity }} {{form.goodsUnit}}</span>
+                    <span>{{ form.batchStockRemainingQuantity }} {{form.goods_unit}}</span>
                   </div>
                 </div>
               </div>
 
-              <div class="batchTotal-row batchTotal-row2" v-if="form.batchType==='preorder'">
+              <div class="batchTotal-row batchTotal-row2" v-if="form.batch_type==='preorder'">
                 <div class="batchTotal-item">
                   <div class="batchTotal-item-title">已预订</div>
                   <div class="batchTotal-item-content">
@@ -334,7 +358,7 @@
                     </div>
                     <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.reservedQuantity || 0 }} {{ form.goodsUnit }}</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.reservedQuantity || 0 }} {{ form.goods_unit }}</span>
                     </div>
                   </div>
                 </div>
@@ -347,14 +371,14 @@
                     </div>
                     <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.canceledQuantity || 0 }} {{ form.goodsUnit }}</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.canceledQuantity || 0 }} {{ form.goods_unit }}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div class="batchTotal-row batchTotal-row2" v-if="form.batchPreorderFinalPrice||form.batchType==='stock'">
-                <div class="batchTotal-item" v-if="form.batchType==='preorder'">
+              <div class="batchTotal-row batchTotal-row2" v-if="form.batch_preorder_FinalPrice||form.batch_type==='stock'">
+                <div class="batchTotal-item" v-if="form.batch_type==='preorder'">
                   <div class="batchTotal-item-title">未付款</div>
                   <div class="batchTotal-item-content">
                     <div class="batchTotal-item-content-order">
@@ -363,7 +387,7 @@
                     </div>
                     <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.unpaidQuantity || 0 }} {{ form.goodsUnit }}</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.unpaidQuantity || 0 }} {{ form.goods_unit }}</span>
                     </div>
                   </div>
                 </div>
@@ -376,7 +400,7 @@
                     </div>
                     <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.paidQuantity || 0 }} {{ form.goodsUnit }}</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.paidQuantity || 0 }} {{ form.goods_unit }}</span>
                     </div>
                   </div>
                 </div>
@@ -389,7 +413,7 @@
                     </div>
                     <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.completedQuantity || 0 }} {{ form.goodsUnit }}</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.completedQuantity || 0 }} {{ form.goods_unit }}</span>
                     </div>
                   </div>
                 </div>
@@ -402,7 +426,7 @@
                     </div>
                     <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.refundedQuantity || 0 }} {{ form.goodsUnit }}</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.refundedQuantity || 0 }} {{ form.goods_unit }}</span>
                     </div>
                   </div>
                 </div>
@@ -416,8 +440,8 @@
     
     <el-switch
       class="changeIsSelling"
-      :disabled="!Boolean(form.batchNo)"
-      v-model="form.goodsIsSelling"
+      :disabled="!Boolean(form.batch_no)"
+      v-model="form.goods_isSelling"
       active-text="上架"
       inactive-text="下架"
       inline-prompt
@@ -428,8 +452,6 @@
 
     <div class="btns">
       <el-button type="primary" class="submitBtn" :loading=isFormSubmiting @click="toSubmit">提 交</el-button>
-
-      <!-- <el-button type="primary" class="submitBtn" :loading=isFormSubmiting @click="linshi" style="bottom: 100px;">临时1111</el-button> -->
     </div>
 
     <!-- 开始售卖 填写售卖定价 -->
@@ -530,46 +552,46 @@ const $router = useRouter()
 
 let formRef = ref(null)
 let form = reactive({
-  goodsId: null,
-  goodsName: null,
-  goodsUnit: null,
-  goodsCategoryId: null,
-  goodsIsSelling: false,
-  goodsRemark: null,
+  goods_id: null,
+  goods_name: null,
+  goods_unit: null,
+  goods_categoryId: null,
+  goods_isSelling: false,
+  goods_remark: null,
 
-  batchNo: '',
-  batchType: null,
-  batchStartTime: null,
-  batchMinQuantity: 1.0,
-  batchPreorderMinPrice: 0.01,
-  batchPreorderMaxPrice: 0.01,
-  batchStockUnitPrice: 0.01,
-  batchRemark: '',
-  batchStockTotalQuantity: 0,
+  batch_no: '',
+  batch_type: null,
+  batch_startTime: null,
+  batch_minQuantity: 1.0,
+  batch_preorder_minPrice: 0.01,
+  batch_preorder_maxPrice: 0.01,
+  batch_stock_unitPrice: 0.01,
+  batch_remark: '',
+  batch_stock_totalQuantity: 0,
 })
 const formRules = reactive({
-  goodsName: [{ required: true, message: '请输入商品名称', trigger: 'blur' },],
-  goodsUnit: [{ required: true, message: '请输入商品单位', trigger: 'blur' },],
-  goodsCategoryId: [{ required: true, message: '请选择商品分类', trigger: 'blur' },],
-  goodsRemark: [{ required: false, message: '请输入商品备注', trigger: 'blur' },],
-  batchStockTotalQuantity: [{ required: true, message: '请输入总量', trigger: 'blur' },],
+  goods_name: [{ required: true, message: '请输入商品名称', trigger: 'blur' },],
+  goods_unit: [{ required: true, message: '请输入商品单位', trigger: 'blur' },],
+  goods_categoryId: [{ required: true, message: '请选择商品分类', trigger: 'blur' },],
+  goods_remark: [{ required: false, message: '请输入商品备注', trigger: 'blur' },],
+  batch_stock_totalQuantity: [{ required: true, message: '请输入总量', trigger: 'blur' },],
   
 
-  batchType: [{ required: true, message: '请选择批次类型', trigger: 'blur' },],
-  batchMinQuantity: [{ required: true, message: '请输入最少购买量', trigger: 'blur' },],
-  batchPreorderMinPrice: [
+  batch_type: [{ required: true, message: '请选择批次类型', trigger: 'blur' },],
+  batch_minQuantity: [{ required: true, message: '请输入最少购买量', trigger: 'blur' },],
+  batch_preorder_minPrice: [
     { required: true, message: '请输入最低单价', trigger: 'blur' },
     { type: 'number', min: 0.01, max: 999999, message: '请输入最低单价', trigger: 'blur' },
   ],
-  batchPreorderMaxPrice: [
+  batch_preorder_maxPrice: [
     { required: true, message: '请输入最高单价', trigger: 'blur' },
     { type: 'number', min: 0.01, max: 999999, message: '请输入最高单价', trigger: 'blur' },
   ],
-  batchStockUnitPrice: [
+  batch_stock_unitPrice: [
     { required: true, message: '请输入单价', trigger: 'blur' },
     { type: 'number', min: 0.01, max: 999999, message: '请输入单价', trigger: 'blur' },
   ],
-  batchRemark: [{ required: false, message: '请输入批次备注', trigger: 'blur' },],
+  batch_remark: [{ required: false, message: '请输入批次备注', trigger: 'blur' },],
 })
 
 let coverImageUrl = ref(null)
@@ -654,9 +676,9 @@ const richTextEditorRef = shallowRef()
 
 // 内容 HTML
 const richTextEditorMode = 'default' // default or simple
-const goodsRichText = ref('<p>暂无更多介绍</p>')
+const goods_richText = ref('<p>暂无更多介绍</p>')
 const richTextEditorToolbarConfig = reactive({
-  readOnly: Boolean(form.batchNo)
+  readOnly: Boolean(form.batch_no)
 })
 const richTextEditorConfig = { 
   placeholder: '请输入内容...',
@@ -697,7 +719,7 @@ function startNewBatch() {
 
 function endCurrentBatch() {
   _endCurrentBatch({
-    goodsId: form.goodsId
+    goodsId: form.goods_id
   }).then(res => {
     ElMessage({
       message: res.message,
@@ -728,7 +750,7 @@ function confirmPreorderBatchIsReadyToSell() {
     return;
   }
 
-  _preorderBatchIsReadyToSell({ goodsId: form.goodsId, finalPrice: preorderFinalPrice.value }).then(res => {
+  _preorderBatchIsReadyToSell({ goodsId: form.goods_id, finalPrice: preorderFinalPrice.value }).then(res => {
     if (res.code === 200) {
       ElMessage({
         message: '操作成功',
@@ -760,7 +782,7 @@ function cancelAllOrdersDialogConfirm() {
     return;
   }
   _cancelAllOrdersInCurrentBatch({
-    id: form.goodsId,
+    id: form.goods_id,
     cancelReason: cancelAllOrdersReason.value
   }).then(res => {
     if (res.code === 200) {
@@ -788,12 +810,20 @@ function deleteCurrentBatch() { // 删除当前批次
   })
 }
 
-let batchDiscounts = ref([])
+let discountsPromotion = ref([])
 function deleteDiscountItem(index) {
-  batchDiscounts.value.splice(index, 1)
+  discountsPromotion.value.splice(index, 1)
 }
 function addDiscountItem() {
-  batchDiscounts.value.push({quantity: null, discount: null})
+  discountsPromotion.value.push({quantity: null, discount: null})
+}
+
+let extraOptions = ref([])
+function deleteExtraOptionItem(index) {
+  extraOptions.value.splice(index, 1)
+}
+function addExtraOptionItem() {
+  extraOptions.value.push({content: null, amount: null})
 }
 
 // 邮费 postage
@@ -806,8 +836,8 @@ function getUsableProvince() {
     if (res.code === 200) {
       // 所有 -> 选中rules -> 去除不可用     顺序不能乱，不然选中的rules显示不全
       postageRules.value = res.data.map(item => {
-        if (form.batchShipProvinces) {
-          let itemOfRules = form.batchShipProvinces.find(el => el.code === item.code);
+        if (form.batch_shipProvinces) {
+          let itemOfRules = form.batch_shipProvinces.find(el => el.code === item.code);
           if (itemOfRules) {
             if (!item.usable) {
               unusableButChoosedProvince.value.push(item.name)
@@ -857,8 +887,8 @@ function toSubmit() {
     return;
   }
 
-  if (isStartingNewCurrentBatch.value || form.batchNo) {
-    if (form.batchType==='preorder' && form.batchPreorderMinPrice===form.batchPreorderMaxPrice) {
+  if (isStartingNewCurrentBatch.value || form.batch_no) {
+    if (form.batch_type==='preorder' && form.batch_preorder_minPrice===form.batch_preorder_maxPrice) {
       ElMessage({
         message: '当前批次价格区间相同',
         type: 'warning',
@@ -867,18 +897,99 @@ function toSubmit() {
       return;
     }
 
-    for (const item of batchDiscounts.value) { // 检查优惠策略
-      if (!item.quantity || !item.discount) {
-        ElMessage({
-          message: '优惠策略未填写完整',
-          type: 'warning',
-          plain: true,
-        })
-        return;
+    if (discountsPromotion?.length > 0) {
+      const quantitySet = new Set();
+
+      for (const item of discountsPromotion.value) {
+        if (item.quantity===null || item.quantity===undefined) {
+          ElMessage({
+            message: '优惠策略 数量 未填写完整',
+            type: 'warning',
+            plain: true,
+          });
+          return;
+        }
+        if (item.quantity < 0) {
+          ElMessage({
+            message: '优惠策略 优惠金额 须大于等于 0',
+            type: 'warning',
+            plain: true,
+          });
+          return;
+        }
+        if (item.discount===null || item.discount===undefined) {
+          ElMessage({
+            message: '优惠策略 优惠金额 未填写完整',
+            type: 'warning',
+            plain: true,
+          });
+          return;
+        }
+        if (item.discount <= 0) {
+          ElMessage({
+            message: '优惠策略 优惠金额 须大于 0',
+            type: 'warning',
+            plain: true,
+          });
+          return;
+        }
+
+        if (quantitySet.has(item.quantity)) {
+          ElMessage({
+            message: `优惠策略 数量 "${item.quantity}" 重复`,
+            type: 'warning',
+            plain: true,
+          });
+          return;
+        }
+
+        quantitySet.add(item.quantity);
       }
     }
 
-    if (form.batchType==='stock' && form.batchStockTotalQuantity===0) {
+    if (extraOptions?.length > 0) { 
+      const contentSet = new Set();
+
+      for (const item of extraOptions.value) {
+        if (item.content===null || item.content===undefined || item.content.trim()==='') {
+          ElMessage({
+            message: `额外选项 内容 未填写完整`,
+            type: 'warning',
+            plain: true,
+          });
+          return;
+        }
+        if (item.amount===null || item.amount===undefined) {
+          ElMessage({
+            message: `额外选项 金额 未填写完整'`,
+            type: 'warning',
+            plain: true,
+          });
+          return;
+        }
+        if (item.amount < 0) {
+          ElMessage({
+            message: '额外选项 金额 须大于等于 0',
+            type: 'warning',
+            plain: true,
+          });
+          return;
+        }
+
+        if (contentSet.has(item.content)) {
+          ElMessage({
+            message: `额外选项 选项内容 "${item.content}" 重复`,
+            type: 'warning',
+            plain: true,
+          });
+          return;
+        }
+    
+        contentSet.add(item.content);
+      }
+    }
+
+    if (form.batch_type==='stock' && form.batch_stock_totalQuantity===0) {
       ElMessage({
         message: '请填写总量',
         type: 'warning',
@@ -890,53 +1001,29 @@ function toSubmit() {
     let postageChoosedQuantity = 0
     for (const item of postageRules.value) {
       if (item.isChoosed) {
-        if (item.freeShippingQuantity === 1) { // 1个就包邮
-          // 其他就可以不填写
-        } else {
-          if (item.baseQuantity > item.freeShippingQuantity) {
-            ElMessage({ message: `包邮数量须大于等于首重最大数量`, type: 'warning', plain: true })
+        if (item.freeShippingQuantity === 1) continue; // 1个就包邮
+
+        if (item.baseQuantity > item.freeShippingQuantity) {
+          ElMessage({ message: `包邮数量须大于等于首重最大数量`, type: 'warning', plain: true })
+          return;
+        }
+
+        const validations = [
+          { field: 'baseQuantity', content: '首重最大数量' },
+          { field: 'basePostage', content: '首重邮费' },
+          { field: 'extraQuantity', content: '每续重几件' },
+          { field: 'extraPostage', content: '续重单位邮费' },
+          { field: 'freeShippingQuantity', content: '包邮数量' }
+        ];
+        for (const { field, content } of validations) {
+          const value = item[field];
+          if (value===undefined || value===null) {
+            ElMessage({ message: `${item.name} ${content} 未填写`, type: 'warning', plain: true })
             return;
-          } else {
-            if (!item.baseQuantity) {
-              ElMessage({ message: `${item.name} 首重最大数量 未填写`, type: 'warning', plain: true })
-              return;
-            }
-            if (item.baseQuantity === 0) {
-              ElMessage({ message: `${item.name} 首重最大数量 不能为0`, type: 'warning', plain: true })
-              return;
-            }
-            if (!item.basePostage) {
-              ElMessage({ message: `${item.name} 首重邮费 未填写`, type: 'warning', plain: true })
-              return;
-            }
-            if (item.baseQuantity === 0) {
-              ElMessage({ message: `${item.name} 首重邮费 不能为0`, type: 'warning', plain: true })
-              return;
-            }
-            if (!item.extraQuantity) {
-              ElMessage({ message: `${item.name} 每续重几件 未填写`, type: 'warning', plain: true })
-              return;
-            }
-            if (item.baseQuantity === 0) {
-              ElMessage({ message: `${item.name} 每续重几件 不能为0`, type: 'warning', plain: true })
-              return;
-            }
-            if (!item.extraPostage) {
-              ElMessage({ message: `${item.name} 续重单位邮费 未填写`, type: 'warning', plain: true })
-              return;
-            }
-            if (item.baseQuantity === 0) {
-              ElMessage({ message: `${item.name} 续重单位邮费 不能为0`, type: 'warning', plain: true })
-              return;
-            }
-            if (!item.freeShippingQuantity) {
-              ElMessage({ message: `${item.name} 包邮数量 未填写`, type: 'warning', plain: true })
-              return;
-            }
-            if (item.baseQuantity === 0) {
-              ElMessage({ message: `${item.name} 包邮数量 不能为0`, type: 'warning', plain: true })
-              return;
-            }
+          }
+          if (value === 0) {
+            ElMessage({ message: `${item.name} ${content} 不能为0`, type: 'warning', plain: true })
+            return;
           }
         }
         postageChoosedQuantity += 1
@@ -963,15 +1050,13 @@ function toSubmit() {
 
         let params = {
           // 商品基础信息
-          goodsId: form.goodsId,
-          goodsName: form.goodsName,
-          goodsUnit: form.goodsUnit,
-          goodsCategoryId: form.goodsCategoryId,
-          goodsIsSelling: form.goodsIsSelling ? 1 : 0,
-          goodsRemark: form.goodsRemark,
-
-          // 富文本
-          goodsRichText: goodsRichText.value,
+          goodsId: form.goods_id,
+          goodsName: form.goods_name,
+          goodsUnit: form.goods_unit,
+          goodsCategoryId: form.goods_categoryId,
+          goodsIsSelling: form.goods_isSelling ? 1 : 0,
+          goodsRemark: form.goods_remark,
+          goodsRichText: goods_richText.value,
         }
 
         if (coverImageUrl.value) {
@@ -982,23 +1067,24 @@ function toSubmit() {
           params.swiperList = swiperList.value
         }
 
-        if ($route.query.flag==='edit' && (form.batchNo || isStartingNewCurrentBatch.value)) {
+        if ($route.query.flag==='edit' && (form.batch_no || isStartingNewCurrentBatch.value)) {
           let batchParams = {
-            batchNo: form.batchNo,
-            batchType: form.batchType,
-            batchStartTime: form.batchStartTime,
-            batchMinQuantity: form.batchMinQuantity,
-            batchRemark: form.batchRemark,
-            batchStockTotalQuantity: form.batchStockTotalQuantity,
-            batchDiscounts: batchDiscounts.value,
+            batchNo: form.batch_no,
+            batchType: form.batch_type,
+            batchStartTime: form.batch_startTime,
+            batchMinQuantity: form.batch_minQuantity,
+            batchRemark: form.batch_remark,
+            batchStockTotalQuantity: form.batch_stock_totalQuantity,
+            batchDiscountsPromotion: discountsPromotion.value,
+            batchExtraOptions: extraOptions.value,
             batchShipProvinces: postageRules.value.filter(item => item.isChoosed).map(({ isChoosed, ...rest }) => rest),
           }
-          if (form.batchType === 'preorder') { // 预订
-            batchParams.batchPreorderFinalPrice = form.batchPreorderFinalPrice
-            batchParams.batchPreorderMinPrice = form.batchPreorderMinPrice
-            batchParams.batchPreorderMaxPrice = form.batchPreorderMaxPrice
-          } else if (form.batchType === 'stock') { // 现货
-            batchParams.batchStockUnitPrice = form.batchStockUnitPrice
+          if (form.batch_type === 'preorder') { // 预订
+            batchParams.batchPreorderFinalPrice = form.batch_preorder_FinalPrice
+            batchParams.batchPreorderMinPrice = form.batch_preorder_minPrice
+            batchParams.batchPreorderMaxPrice = form.batch_preorder_maxPrice
+          } else if (form.batch_type === 'stock') { // 现货
+            batchParams.batchStockUnitPrice = form.batch_stock_unitPrice
           }
 
           params = {
@@ -1030,27 +1116,28 @@ function toSubmit() {
 }
 
 function resetForm() {
-  batchDiscounts.value = []
+  discountsPromotion.value = []
+  extraOptions.value = []
   
   Object.assign(form, {
-    goodsId: null,
-    goodsName: null,
-    goodsUnit: null,
-    goodsCategoryId: null,
-    goodsIsSelling: false,
-    goodsRemark: null,
+    goods_id: null,
+    goods_name: null,
+    goods_unit: null,
+    goods_categoryId: null,
+    goods_isSelling: false,
+    goods_remark: null,
     
-    batchNo: '',
-    batchType: null,
-    batchPreorderFinalPrice: null,
-    batchStartTime: null,
-    batchMinQuantity: 1.0,
-    batchPreorderMinPrice: 0.01,
-    batchPreorderMaxPrice: 0.01,
-    batchStockUnitPrice: 0.01,
-    batchShipProvinces: [],
-    batchRemark: '',
-    batchStockTotalQuantity: 0,
+    batch_no: '',
+    batch_type: null,
+    batch_preorder_FinalPrice: null,
+    batch_startTime: null,
+    batch_minQuantity: 1.0,
+    batch_preorder_minPrice: 0.01,
+    batch_preorder_maxPrice: 0.01,
+    batch_stock_unitPrice: 0.01,
+    batch_shipProvinces: [],
+    batch_remark: '',
+    batch_stock_totalQuantity: 0,
   })
 }
 function getGoodsDetailById() { // 获取详情
@@ -1060,23 +1147,25 @@ function getGoodsDetailById() { // 获取详情
     let currentBatch = {}
     if (res.data.batch_no) {
       currentBatch = {
-        batchNo: res.data.batch_no,
-        batchType: res.data.batch_type,
-        batchStartTime: dayjs(res.data.batch_startTime).format('YYYY-MM-DD HH:mm:ss'),
-        batchMinQuantity: Number(res.data.batch_minQuantity),
-        batchPreorderMinPrice: Number(res.data.batch_preorder_minPrice),
-        batchPreorderMaxPrice: Number(res.data.batch_preorder_maxPrice),
+        batch_no: res.data.batch_no,
+        batch_type: res.data.batch_type,
+        batch_startTime: dayjs(res.data.batch_startTime).format('YYYY-MM-DD HH:mm:ss'),
+        batch_minQuantity: Number(res.data.batch_minQuantity),
+        batch_preorder_minPrice: Number(res.data.batch_preorder_minPrice),
+        batch_preorder_maxPrice: Number(res.data.batch_preorder_maxPrice),
         batchPreorderStartSellingTime: res.data.batch_preorder_startSelling_time && dayjs(res.data.batch_preorder_startSelling_time).format('YYYY-MM-DD HH:mm:ss'),
         batchPreorderStartSellingBy: res.data.batch_preorder_startSelling_by,
-        batchPreorderFinalPrice: res.data.batch_preorder_finalPrice,
-        batchStockUnitPrice: Number(res.data.batch_stock_unitPrice),
-        batchStockTotalQuantity: Number(res.data.batch_stock_totalQuantity),
+        batch_preorder_FinalPrice: res.data.batch_preorder_finalPrice,
+        batch_stock_unitPrice: Number(res.data.batch_stock_unitPrice),
+        batch_stock_totalQuantity: Number(res.data.batch_stock_totalQuantity),
         batchStockRemainingQuantity: Number(res.data.batch_stock_remainingQuantity),
-        batchShipProvinces: res.data.batch_shipProvinces,
-        batchRemark: res.data.batch_remark,
+        batch_shipProvinces: res.data.batch_shipProvinces,
+        batch_remark: res.data.batch_remark,
       }
 
-      batchDiscounts.value = res.data.batch_discounts
+      discountsPromotion.value = res.data.batch_discounts_promotion
+
+      extraOptions.value = res.data.batch_extraOptions || []
 
       getBatchTotalInfo({id: $route.query.id}) // 获取当前批次总计
 
@@ -1090,15 +1179,15 @@ function getGoodsDetailById() { // 获取详情
 
     Object.assign(form, {}) // 结束当前批次时清空
     Object.assign(form, {
-      goodsId: res.data.id,
-      goodsName: res.data.goods_name,
-      goodsUnit: res.data.goods_unit,
-      goodsCategoryId: res.data.goods_categoryId,
-      goodsIsSelling: res.data.goods_isSelling===1 ? true : false,
-      goodsRemark: res.data.goods_remark,
+      goods_id: res.data.id,
+      goods_name: res.data.goods_name,
+      goods_unit: res.data.goods_unit,
+      goods_categoryId: res.data.goods_categoryId,
+      goods_isSelling: res.data.goods_isSelling===1 ? true : false,
+      goods_remark: res.data.goods_remark,
       ...currentBatch,
     })
-    goodsRichText.value = res.data.goods_richText
+    goods_richText.value = res.data.goods_richText
     coverImageUrl.value = res.data.goods_coverImage || null
     swiperList.value = res.data.swiperList.map(item => {
       return {
@@ -1132,7 +1221,7 @@ onMounted(() => {
       onEnd: fileSortableEnd,
     });
 
-    getGoodsDetailById() // 获取详情信息
+    getGoodsDetailById()
   }
 
 })
@@ -1149,15 +1238,15 @@ onBeforeUnmount(() => {
 })
 
 function clickGoodsIsSelling() {
-  if (!form.goodsIsSelling && !form.batchNo) {
+  if (!form.goods_isSelling && !form.batch_no) {
     ElMessage({ message: '无当前批次', type: 'warning', plain: true, })
     return false;
   }
-  if (form.batchType==='preorder' && form.batchPreorderFinalPrice) {
+  if (form.batch_type==='preorder' && form.batch_preorder_FinalPrice) {
     ElMessage({ message: '售卖阶段的预订批次无法上架', type: 'warning', plain: true, })
     return false;
   }
-  if (form.batchType==='stock' && form.batchStockRemainingQuantity<=0) {
+  if (form.batch_type==='stock' && form.batchStockRemainingQuantity<=0) {
     ElMessage({ message: '剩余量为0，无法上架', type: 'warning', plain: true, })
     return false;
   }
@@ -1165,7 +1254,7 @@ function clickGoodsIsSelling() {
 }
 function changeGoodsIsSelling(newValue) {
   _changeGoodsIsSelling({
-    id: form.goodsId,
+    id: form.goods_id,
     value: newValue ? 1 : 0
   }).then(res => {
     ElMessage({
@@ -1179,14 +1268,14 @@ function changeGoodsIsSelling(newValue) {
       type: 'error',
       plain: true,
     })
-    form.goodsIsSelling = !newValue
+    form.goods_isSelling = !newValue
   })
 }
 function seeOrdersByBatchNo() {
   const url = `${window.location.origin}${$router.resolve({
     path: '/orderList',
     query: {
-      batchNo: form.batchNo,
+      batchNo: form.batch_no,
     }
   }).href}`
   window.open(url, '_blank')
@@ -1201,16 +1290,12 @@ function seeHistoryBatches() {
   window.open(url, '_blank')
 }
 
-
-function linshi() {
-  console.log(Boolean(form.batchNo));
-}
-
 </script>
 
 <style lang="less" scoped>
 .goodsDetail {
   padding-bottom: 60px;
+  padding-right: 80px;
   .item {
     .title {
       height: 60px;
@@ -1294,8 +1379,24 @@ function linshi() {
               }
             }
           }
-          .richText-wrapper {
+        }
+        .richText-wrapper {
+          display: flex;
+          align-items: flex-start;
+          .richText-editor {
+            width: 65%;
             border: 1px solid gray;
+          }
+          .richText-preview {
+            margin-left: 100px;
+            flex: 1;
+            border: 1px solid gray;
+            box-sizing: border-box;
+            padding: 10px;
+          }
+          ::v-deep(.richText-preview img) {
+            max-width: 100%;
+            height: auto;
           }
         }
       }

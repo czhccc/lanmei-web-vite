@@ -40,7 +40,7 @@
           <el-row :gutter="20">
             <el-col :span="8">
               <el-form-item label="商品详情：">
-                <div v-html="form.snapshot_goodsRichText"></div>
+                <div class="goodsRichText" v-html="form.snapshot_goodsRichText"></div>
               </el-form-item>
             </el-col>
           </el-row>
@@ -157,25 +157,6 @@
           </el-row>
           <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item label="订单操作：" prop="status">
-                <div>
-                  <div style="margin-bottom: 10px;" v-if="form.batch_type==='preorder'&&(form.status==='reserved'||form.status==='unpaid')">
-                    <el-button type="primary" @click="cancelOrder">取消预订</el-button>
-                  </div>
-                  <div style="margin-bottom: 10px;" v-if="form.status==='paid'">
-                    <el-button type="primary" @click="shipOrder">发货</el-button>
-                  </div>
-                  <div style="margin-bottom: 10px;" v-if="form.status==='shipped'||form.status==='paid'">
-                    <el-popconfirm title="确定完结订单？" @confirm="completeOrder">
-                      <template #reference>
-                        <el-button type="warning">完结订单</el-button>
-                      </template>
-                    </el-popconfirm>
-                  </div>
-                </div>
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
               <el-form-item label="订单历史：" prop="status">
                 <el-timeline>
                   <el-timeline-item
@@ -194,6 +175,25 @@
                 </el-timeline>
               </el-form-item>
             </el-col>
+            <el-col :span="8" v-if="form.status!=='canceled'&&form.status!=='completed'&&form.status!=='refunded'">
+              <el-form-item label="订单操作：" prop="status">
+                <div>
+                  <div style="margin-bottom: 10px;" v-if="form.batch_type==='preorder'&&(form.status==='reserved'||form.status==='unpaid')">
+                    <el-button type="primary" @click="cancelOrder">取消预订</el-button>
+                  </div>
+                  <div style="margin-bottom: 10px;" v-if="form.status==='paid'">
+                    <el-button type="primary" @click="shipOrder" v-if="!form.receive_isHomeDelivery">发货</el-button>
+                  </div>
+                  <div style="margin-bottom: 10px;" v-if="form.status==='shipped'||form.status==='paid'">
+                    <el-popconfirm title="确定完结订单？" @confirm="completeOrder">
+                      <template #reference>
+                        <el-button type="warning">完结订单</el-button>
+                      </template>
+                    </el-popconfirm>
+                  </div>
+                </div>
+              </el-form-item>
+            </el-col>
           </el-row>
           <el-row :gutter="20">
             <el-col :span="8">
@@ -210,43 +210,43 @@
           <el-row :gutter="20">
             <el-col :span="8">
               <el-form-item label="收货人姓名：" prop="receive_name">
-                <el-input v-model="form.receive_name" placeholder="" maxlength="20" clearable />
+                <el-input v-model="form.receive_name" placeholder="" maxlength="20" clearable :disabled="!isCanEdit" />
               </el-form-item>
             </el-col>
             <el-col :span="8">
               <el-form-item label="收货人手机号：" prop="receive_phone">
-                <el-input v-model="form.receive_phone" placeholder="" maxlength="20" clearable />
+                <el-input v-model="form.receive_phone" placeholder="" maxlength="20" clearable :disabled="!isCanEdit" />
               </el-form-item>
             </el-col>
             <el-col :span="8">
               <el-form-item label="送货上门：" prop="receive_method">
-                <el-switch v-model="form.receive_isHomeDelivery" active-text="是" inactive-text="否" @change="isHomeDeliveryChange" />
+                <el-switch v-model="form.receive_isHomeDelivery" active-text="是" inactive-text="否" @change="isHomeDeliveryChange" :disabled="!isCanEdit" />
               </el-form-item>
             </el-col>
             <el-col :span="8">
               <el-form-item label="省：" prop="receive_provinceCode">
-                <el-select v-model="form.receive_provinceCode" placeholder="" @change="e => areaChange(e, 'province')">
+                <el-select v-model="form.receive_provinceCode" placeholder="" @change="e => areaChange(e, 'province')" :disabled="!isCanEdit">
                   <el-option v-for="(item, index) in provinces" :key="index" :label="item.name" :value="item.code" />
                 </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="8">
               <el-form-item label="市：" prop="receive_cityCode">
-                <el-select v-model="form.receive_cityCode" placeholder="" @change="e => areaChange(e, 'city')">
+                <el-select v-model="form.receive_cityCode" placeholder="" @change="e => areaChange(e, 'city')" :disabled="!isCanEdit">
                   <el-option v-for="(item, index) in cities" :key="index" :label="item.name" :value="item.code" />
                 </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="8">
               <el-form-item label="区：" prop="receive_districtCode">
-                <el-select v-model="form.receive_districtCode" placeholder="" @change="e => areaChange(e, 'district')">
+                <el-select v-model="form.receive_districtCode" placeholder="" @change="e => areaChange(e, 'district')" :disabled="!isCanEdit">
                   <el-option v-for="(item, index) in districts" :key="index" :label="item.name" :value="item.code" />
                 </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="8">
               <el-form-item label="详细地址：" prop="receive_address">
-                <el-input type="textarea" autosize v-model="form.receive_address" maxlength="50" show-word-limit placeholder="" clearable />
+                <el-input type="textarea" autosize v-model="form.receive_address" maxlength="50" show-word-limit placeholder="" clearable :disabled="!isCanEdit" />
               </el-form-item>
             </el-col>
             <el-col :span="8" v-if="$route.query.flag!=='add'">
@@ -378,6 +378,7 @@ const $router = useRouter()
 
 let formRef = ref(null)
 let isSubmiting = ref(false)
+let isCanEdit = ref(true)
 
 let form = reactive({
   goods_id: null,
@@ -505,7 +506,7 @@ function getOrderDetailById() {
     }
 
     let theFinalAmount = null
-    if (res.data.status === 'reserved') {
+    if (res.data.status==='reserved' || res.data.status==='canceled') {
       let finalMinPrice = (Number(res.data.preorder_minPrice) * Number(res.data.quantity) + Number(res.data.postage) - Number(res.data.discountAmount_promotion)).toFixed(2)
       let finalMaxPrice = (Number(res.data.preorder_maxPrice) * Number(res.data.quantity) + Number(res.data.postage) - Number(res.data.discountAmount_promotion)).toFixed(2)
       theFinalAmount = `${finalMinPrice} ~ ${finalMaxPrice}`
@@ -519,6 +520,13 @@ function getOrderDetailById() {
       theGoodsTotalPrice,
       theFinalAmount,
     })
+
+    // 能否编辑
+    if (res.data.status === 'canceled' || res.data.status === 'completed' || res.data.status === 'refunded') {
+      isCanEdit.value = false     
+    } else {
+      isCanEdit.value = true
+    }
 
     let historyArr = []
     if (res.data.batch_type === 'preorder') {
@@ -540,18 +548,27 @@ function getOrderDetailById() {
       if (res.data.status === 'canceled') {
         historyArr.push({
           statusText: '已取消',
-          content: `${res.data.cancel_reason}`,
+          content: `取消原因：${res.data.cancel_reason}`,
           by: res.data.cancel_by,
           time: dayjs(res.data.cancel_time).format('YYYY-MM-DD HH:mm:ss'),
           color: '#F62603',
         })
       }
-      if (res.data.status === 'paid') {
+      if (res.data.pay_time) {
         historyArr.push({
-          statusText: '已付款',
+          statusText: `已付款`,
+          content: `￥${res.data.pay_finalAmount}`,
           time: dayjs(res.data.pay_time).format('YYYY-MM-DD HH:mm:ss'),
           color: '#0bbd87',
         })
+        if (res.data.receive_isHomeDelivery) {
+          historyArr.push({
+            statusText: '',
+            time: '',
+            content: '待送货上门',
+            color: '#f19304',
+          })
+        }
       }
       if (res.data.status === 'shipped') {
         historyArr.push({
@@ -564,22 +581,6 @@ function getOrderDetailById() {
       }
       if (res.data.status === 'completed') {
         historyArr.push({
-          statusText: '未付款',
-          content: `批次开始售卖`,
-          by: res.data.preorder_startSelling_by,
-          time: dayjs(res.data.preorder_startSelling_time).format('YYYY-MM-DD HH:mm:ss'),
-          color: '#f19304',
-        }, {
-          statusText: '已付款',
-          time: dayjs(res.data.pay_time).format('YYYY-MM-DD HH:mm:ss'),
-          color: '#0bbd87',
-        }, {
-          statusText: '已发货',
-          content: `快递单号：${res.data.ship_trackingNumber}`,
-          by: res.data.ship_by,
-          time: dayjs(res.data.ship_time).format('YYYY-MM-DD HH:mm:ss'),
-          color: '#0bbd87',
-        },{
           statusText: '已完结',
           time: dayjs(res.data.complete_time).format('YYYY-MM-DD HH:mm:ss'),
           by: res.data.complete_by,
@@ -593,6 +594,14 @@ function getOrderDetailById() {
         time: dayjs(res.data.pay_time).format('YYYY-MM-DD HH:mm:ss'),
         color: '#0bbd87',
       })
+      if (res.data.receive_isHomeDelivery) {
+        historyArr.push({
+          statusText: '',
+          time: '',
+          content: '待送货上门',
+          color: '#f19304',
+        })
+      }
       if (res.data.status === 'shipped') {
         historyArr.push({
           statusText: '已发货',
@@ -670,7 +679,7 @@ function chooseGoodsConfirm(record) {
     snapshot_goodsUnit: record.goods_unit,
     snapshot_goodsRemark: record.goods_remark,
     snapshot_goodsRichText: record.goods_richText,
-    snapshot_discounts: JSON.stringify(record.batch_discounts),
+    snapshot_discounts: JSON.stringify(record.batch_discounts_promotion),
   })
   // if (record.batch_type === 'preorder') {
   //   Object.assign(form, {
@@ -862,12 +871,9 @@ function isHomeDeliveryChange(e) {
     .content {
       padding: 20px 40px;
       box-sizing: border-box;
-      .content-item {
-        margin-bottom: 30px;
-        .content-left {
-          font-weight: 700;
-          font-size: 30px;
-        }
+      ::v-deep(.goodsRichText img) {
+        max-width: 100%;
+        height: auto;
       }
     }
   }

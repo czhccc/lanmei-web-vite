@@ -243,7 +243,7 @@ function getHistoryBatchesList() {
         batchStockUnitPrice: item.stock_unitPrice,
         batchStockTotalQuantity: item.stock_totalQuantity,
         batchMinQuantity: item.minQuantity,
-        batchDiscounts: item.discounts,
+        batchDiscounts: item.discounts_promotion,
         batchTotalOrdersCount: item.totalOrdersCount,
         batchTotalSoldQuantity: item.totalSoldQuantity,
         batchTotalRevenue: item.totalRevenue,

@@ -41,6 +41,7 @@
 
     <div class="btns">
       <el-button type="primary" class="submitBtn" :loading=isSubmiting @click="toSubmit">提 交</el-button>
+      <!-- <el-button type="danger" class="deleteBtn" :loading=isSubmiting @click="toDelete" v-if="$route.query.id">删 除</el-button> -->
       <el-button type="danger" class="deleteBtn" :loading=isSubmiting @click="toDelete">删 除</el-button>
       <el-switch 
         v-if="$route.query.id"
@@ -279,9 +280,9 @@ function toChangePin(value) {
   height: 100%;
   display: flex;
   align-items: flex-start;
-  padding-right: 70px;
+  padding-right: 100px;
   .main {
-    width: 60%;
+    width: 65%;
     height: 100%;
     .title {
       display: flex;

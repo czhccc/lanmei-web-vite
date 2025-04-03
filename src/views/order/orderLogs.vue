@@ -204,8 +204,9 @@ onMounted(() => {
 
 const calculateTableHeight = () => {
   const viewportHeight = window.innerHeight;
-  const searchWrapperHeight = document.querySelector('.search-wrapper').offsetHeight;
-  const paginationWrapperHeight = document.querySelector('.pagination-wrapper').offsetHeight;
+  const searchWrapperHeight = document.querySelector('.search-wrapper')?.offsetHeight || 0;
+  const optionsWrapperHeight = document.querySelector('.options')?.offsetHeight || 0;
+  const paginationWrapperHeight = document.querySelector('.pagination-wrapper')?.offsetHeight || 0;
   tableHeight.value = viewportHeight - searchWrapperHeight - paginationWrapperHeight - 120;
 };
 </script>
