@@ -66,6 +66,7 @@
     <div class="table-wrapper">
       <el-table :height="tableHeight" :data="tableData">
         <el-table-column type="index" width="50" />
+        <el-table-column prop="id" label="id" align="center" />
         <el-table-column prop="title" label="标题" align="center" />
         <el-table-column prop="isShow" label="是否展示" align="center" >
           <template #default="scope">

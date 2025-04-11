@@ -12,7 +12,7 @@ export function _updateCategory(data) {
 // 更新
 export function _getCategory(data) {
   return request({
-    url: '/category',
+    url: '/category/list',
     method: 'get',
     params: data
   });
