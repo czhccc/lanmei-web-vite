@@ -104,7 +104,7 @@ function submit() {
     isSubmiting.value = true
 
     _updateCategory({
-      treeData: treeData.value
+      categoryList: treeData.value
     }).then(res => {
       ElMessage({
         message: '提交成功',
