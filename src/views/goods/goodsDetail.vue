@@ -321,6 +321,16 @@
                 </div>
               </div>
             </div>
+            <div class="canHomeDelivery">
+              <span class="canHomeDelivery-text">嵊州市内可送货上门：</span>
+              <el-switch
+                v-model="canHomeDelivery"
+                :disabled="Boolean(form.batch_no)"
+                inline-prompt
+                active-text="是"
+                inactive-text="否"
+              />
+            </div>
           </div>
 
           <div class="batch-total" v-if="form.batch_no">
@@ -836,8 +846,8 @@ function getUsableProvince() {
     if (res.code === 200) {
       // 所有 -> 选中rules -> 去除不可用     顺序不能乱，不然选中的rules显示不全
       postageRules.value = res.data.map(item => {
-        if (form.batch_shipProvinces) {
-          let itemOfRules = form.batch_shipProvinces.find(el => el.code === item.code);
+        if (form.batch_ship_provinces) {
+          let itemOfRules = form.batch_ship_provinces.find(el => el.code === item.code);
           if (itemOfRules) {
             if (!item.usable) {
               unusableButChoosedProvince.value.push(item.name)
@@ -875,6 +885,9 @@ function getShipProvincesOfLastBatch() {
     }
   })
 }
+
+let canHomeDelivery = ref(false)
+
 
 let isFormSubmiting = ref(false)
 function toSubmit() {
@@ -1078,6 +1091,7 @@ function toSubmit() {
             batchDiscountsPromotion: discountsPromotion.value,
             batchExtraOptions: extraOptions.value,
             batchShipProvinces: postageRules.value.filter(item => item.isChoosed).map(({ isChoosed, ...rest }) => rest),
+            batchShipCanHomeDelivery: canHomeDelivery.value ? 1 : 0,
           }
           if (form.batch_type === 'preorder') { // 预订
             batchParams.batchPreorderFinalPrice = form.batch_preorder_FinalPrice
@@ -1135,7 +1149,7 @@ function resetForm() {
     batch_preorder_minPrice: 0.01,
     batch_preorder_maxPrice: 0.01,
     batch_stock_unitPrice: 0.01,
-    batch_shipProvinces: [],
+    batch_ship_provinces: [],
     batch_remark: '',
     batch_stock_totalQuantity: 0,
   })
@@ -1159,7 +1173,8 @@ function getGoodsDetailById() { // 获取详情
         batch_stock_unitPrice: Number(res.data.batch_stock_unitPrice),
         batch_stock_totalQuantity: Number(res.data.batch_stock_totalQuantity),
         batchStockRemainingQuantity: Number(res.data.batch_stock_remainingQuantity),
-        batch_shipProvinces: res.data.batch_shipProvinces,
+        batch_ship_provinces: res.data.batch_ship_provinces,
+        batch_ship_canHomeDelivery: res.data.canHomeDelivery===1 ? true : false,
         batch_remark: res.data.batch_remark,
       }
 
@@ -1488,6 +1503,11 @@ function seeHistoryBatches() {
             }
           }
         }
+      }
+    }
+    .canHomeDelivery {
+      .canHomeDelivery-text {
+        font-size: 14px;
       }
     }
   }
