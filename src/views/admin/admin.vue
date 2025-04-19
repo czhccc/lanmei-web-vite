@@ -103,7 +103,7 @@ import {
   _getAdminList,
   _createOrUpdateAdmin,
   _deleteAdmin
-} from '@/network/account'
+} from '@/network/admin'
 
 // Table
 let searchParams = reactive({

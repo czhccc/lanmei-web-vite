@@ -71,9 +71,9 @@ const routes = [
     component: () => import('../views/notify/notify.vue'),
   },
   {
-    path: '/account',
-    name: 'Account',
-    component: () => import('../views/account/account.vue'),
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('../views/admin/admin.vue'),
   },
   {
     path: '/shipArea',
@@ -94,6 +94,11 @@ const routes = [
     path: '/newsDetail',
     name: 'NewsDetail',
     component: () => import('../views/news/newsDetail.vue'),
+  },
+  {
+    path: '/systemLogs',
+    name: 'SystemLogs',
+    component: () => import('../views/systemLogs/systemLogs.vue'),
   },
 ];
 

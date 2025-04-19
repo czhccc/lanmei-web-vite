@@ -60,7 +60,7 @@ service.interceptors.response.use(
     // 关闭 Loading
     if (loadingInstance) loadingInstance.close();
 
-    if (error.response.data.code === 401) {
+    if (error.response.data.code === 'INVALID_TOKEN') {
       router.replace('/login');
     }
 

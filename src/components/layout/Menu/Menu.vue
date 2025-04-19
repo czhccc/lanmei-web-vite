@@ -64,8 +64,12 @@ import { useRouter } from 'vue-router';
       ]
     },
     {
-      name: '账号管理',
+      name: '关于我们',
       path: '/configureSeller',
+    },
+    {
+      name: '管理员管理',
+      path: '/admin',
     },
     {
       name: '小程序',
@@ -95,6 +99,10 @@ import { useRouter } from 'vue-router';
           path: '/shipArea',
         },
       ]
+    },
+    {
+      name: '系统日志',
+      path: '/systemLogs',
     },
   ])
 
