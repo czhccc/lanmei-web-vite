@@ -88,7 +88,7 @@
 
 
 import { ref, reactive, shallowRef, onMounted, onBeforeUnmount } from 'vue'
-import Cookies from 'js-cookie';
+
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import '@wangeditor/editor/dist/css/style.css' // 引入 css
 import {

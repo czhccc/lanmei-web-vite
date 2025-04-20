@@ -13,7 +13,8 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-import Cookies from 'js-cookie';
+
+import { _logout } from '../../network/login'
 
 const router = useRouter();
 
@@ -26,8 +27,11 @@ function loginOut() {
       type: 'warning',
     }
   ).then(() => {
-    Cookies.remove('token')
-    router.replace('/login')
+    _logout().then(res => {
+      localStorage.removeItem('menuList')
+      
+      router.replace('/login')
+    })
   })
 }
 

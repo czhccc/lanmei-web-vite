@@ -1,5 +1,4 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
 import { ElLoading, ElMessage } from 'element-plus'; // 使用 Element Plus 的 Loading 和 Message
 import router from '@/router'; // 根据需要引入路由
 
@@ -17,12 +16,6 @@ service.interceptors.request.use(
   config => {
     // 请求开始时，显示 Loading
     loadingInstance = ElLoading.service({text: '加载中...'})
-
-    // 自动携带 token（假设 token 存储在 localStorage 中）
-    const token = Cookies.get('token');
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`; // 根据实际需要调整 token 的携带方式
-    }
 
     return config;
   },

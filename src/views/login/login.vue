@@ -31,10 +31,14 @@
 
 <script setup>
 import { onMounted, onBeforeUnmount, ref } from 'vue';
-import Cookies from 'js-cookie';
+
 import {
   _login
 } from '../../network/login'
+
+import { useMenuStore } from '../../store/menu'
+
+const menuStore = useMenuStore()
 
 const box = ref(null);
 const resizeBox = () => {
@@ -83,12 +87,11 @@ function login() {
     phone: phone.value,
     password: password.value,
   }).then(res => {
-    Cookies.set('token', res.data.token)
+    // Cookies.set('token', res.data.token)
     $router.replace('/home')
-  })
 
-  
-  // router.replace('/home')
+    menuStore.getMenuList() // 获取路由
+  })
 }
 
 </script>

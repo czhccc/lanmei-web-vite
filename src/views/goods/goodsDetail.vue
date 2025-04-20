@@ -527,7 +527,7 @@ import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import '@wangeditor/editor/dist/css/style.css'
 
 import Sortable from 'sortablejs';
-import Cookies from 'js-cookie';
+
 import { ElMessage } from 'element-plus';
 
 import dayjs from 'dayjs'
