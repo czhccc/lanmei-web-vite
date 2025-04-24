@@ -104,8 +104,9 @@
 </template>
 
 <script setup>
-import { ElMessage } from 'element-plus';
 import { onMounted, reactive, ref, nextTick } from 'vue';
+
+import { PlainMessage } from '../../utils/plainMessage'
 
 import dayjs from 'dayjs'
 
@@ -199,11 +200,7 @@ function submitResponse() {
       commentId: commentId,
       response: responseInputValue.value,
     }).then(res => {
-      ElMessage({
-        message: res.message,
-        type: 'success',
-        plain: true,
-      })
+      PlainMessage.success(res.message)
 
       getCommentDetailById()
       getList()

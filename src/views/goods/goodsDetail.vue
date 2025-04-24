@@ -174,7 +174,7 @@
                   <el-radio value="preorder">预订</el-radio>
                   <el-radio value="stock">现货</el-radio>
                 </el-radio-group>
-                <span v-if="form.batch_type==='preorder'" style="margin-left: 30px;color: #666;">{{ form.batch_type==='preorder'&&form.batch_preorder_FinalPrice ? '售卖阶段' : '预订阶段' }}</span>
+                <span v-if="form.batch_type==='preorder'" style="margin-left: 30px;color: #666;">{{ form.batch_type==='preorder'&&form.batch_preorder_FinalPrice ? '售卖阶段' : '预购阶段' }}</span>
                 <span v-if="form.batchPreorderStartSellingTime" style="color: #666;">售卖开始时间：{{ form.batchPreorderStartSellingTime }} 操作人：{{ form.batchPreorderStartSellingBy }}</span>
               </el-form-item>
             </el-col>
@@ -344,7 +344,7 @@
             <div class="batchTotal">
               <div class="batchTotal-row">
                 <div class="batchTotal-item">
-                  <div class="batchTotal-item-title">全部订单数：</div>
+                  <div class="batchTotal-item-title">总订单数：</div>
                   <div class="batchTotal-item-content">
                     <span>{{ currentBatchTotalInfo.totalOrdersCount || 0 }}</span>
                     <el-button type="primary"  style="margin-left: 30px;" v-if="currentBatchTotalInfo.totalOrdersCount>0" @click="seeOrdersByBatchNo">查看订单</el-button>
@@ -353,7 +353,7 @@
                 <div class="batchTotal-item" v-if="form.batch_type==='stock'">
                   <div class="batchTotal-item-title">剩余量：</div>
                   <div class="batchTotal-item-content">
-                    <span>{{ form.batchStockRemainingQuantity }} {{form.goods_unit}}</span>
+                    <span>{{ formatNumber(currentBatchTotalInfo.remainingQuantity) }} {{form.goods_unit}}</span>
                   </div>
                 </div>
               </div>
@@ -411,6 +411,19 @@
                     <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
                       <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.paidQuantity || 0 }} {{ form.goods_unit }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="batchTotal-item">
+                  <div class="batchTotal-item-title">已发货</div>
+                  <div class="batchTotal-item-content">
+                    <div class="batchTotal-item-content-order">
+                      <span class="batchTotal-item-content-label">订单数：</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.shippedOrdersCount || 0 }}</span>
+                    </div>
+                    <div class="batchTotal-item-content-quantity">
+                      <span class="batchTotal-item-content-label">总量：</span>
+                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.shippedQuantity || 0 }} {{ form.goods_unit }}</span>
                     </div>
                   </div>
                 </div>
@@ -528,7 +541,7 @@ import '@wangeditor/editor/dist/css/style.css'
 
 import Sortable from 'sortablejs';
 
-import { ElMessage } from 'element-plus';
+import { PlainMessage } from '../../utils/plainMessage'
 
 import dayjs from 'dayjs'
 
@@ -542,6 +555,7 @@ import {
   _deleteCurrentBatch,
   _cancelAllOrdersInCurrentBatch,
   _preorderBatchIsReadyToSell,
+  // _getGoodsStockRemainingQuantityFromRedis,
 } from '@/network/goods'
 import {
   _getCategory
@@ -553,6 +567,9 @@ import {
   _getAll,
   _getShipProvincesOfLastBatch,
 } from '@/network/ship'
+
+import formatNumber from '../../utils/formatNumber'
+
 
 const fileSortableList = ref(null);
 let fileSortableInstance = null;
@@ -731,11 +748,7 @@ function endCurrentBatch() {
   _endCurrentBatch({
     goodsId: form.goods_id
   }).then(res => {
-    ElMessage({
-      message: res.message,
-      type: 'success',
-      plain: true,
-    })
+    PlainMessage.success(res.message)
 
     getGoodsDetailById()
     richTextEditorRef.value.enable()
@@ -752,21 +765,13 @@ function showPreorderBatchIsReadyToSellDialog() {
 }
 function confirmPreorderBatchIsReadyToSell() {
   if (!preorderFinalPrice.value) {
-    ElMessage({
-      message: '请输入最终定价',
-      type: 'warning',
-      plain: true,
-    })
+    PlainMessage.success('请输入最终定价')
     return;
   }
 
   _preorderBatchIsReadyToSell({ goodsId: form.goods_id, finalPrice: preorderFinalPrice.value }).then(res => {
     if (res.code === 200) {
-      ElMessage({
-        message: '操作成功',
-        type: 'success',
-        plain: true,
-      })
+      PlainMessage.success('操作成功')
 
       isShowPreorderBatchIsReadyToSellDialog.value = false
 
@@ -784,11 +789,7 @@ function cancelCurrentBatchAllOrder() {
 }
 function cancelAllOrdersDialogConfirm() {
   if (!cancelAllOrdersReason.value.trim()) {
-    ElMessage({
-      message: '请输入取消原因',
-      type: 'warning',
-      plain: true,
-    })
+    PlainMessage.success('请输入取消原因')
     return;
   }
   _cancelAllOrdersInCurrentBatch({
@@ -796,11 +797,7 @@ function cancelAllOrdersDialogConfirm() {
     cancelReason: cancelAllOrdersReason.value
   }).then(res => {
     if (res.code === 200) {
-      ElMessage({
-        message: '操作成功',
-        type: 'success',
-        plain: true,
-      })
+      PlainMessage.success('操作成功')
       isShowCancelAllOrdersDialog.value = false
       getGoodsDetailById()
     }
@@ -808,11 +805,7 @@ function cancelAllOrdersDialogConfirm() {
 }
 function deleteCurrentBatch() { // 删除当前批次
   _deleteCurrentBatch({id: $route.query.id}).then(res => {
-    ElMessage({
-      message: '操作成功',
-      type: 'success',
-      plain: true,
-    })
+    PlainMessage.success('操作成功')
 
     getGoodsDetailById()
     richTextEditorRef.value.enable()
@@ -880,7 +873,7 @@ function getShipProvincesOfLastBatch() {
         postageRules.value = res.data.finalResult
         unusableButChoosedProvince = res.data.unusableButChoosedProvince
       } else {
-        ElMessage({ message: res.message, type: 'warning', plain: true })
+        PlainMessage.success(res.message)
       }
     }
   })
@@ -892,21 +885,13 @@ let canHomeDelivery = ref(false)
 let isFormSubmiting = ref(false)
 function toSubmit() {
   if ($route.query.flag==='edit' && !coverImageUrl.value) {
-    ElMessage({
-      message: '请上传封面图',
-      type: 'warning',
-      plain: true,
-    });
+    PlainMessage.success('请上传封面图')
     return;
   }
 
   if (isStartingNewCurrentBatch.value || form.batch_no) {
     if (form.batch_type==='preorder' && form.batch_preorder_minPrice===form.batch_preorder_maxPrice) {
-      ElMessage({
-        message: '当前批次价格区间相同',
-        type: 'warning',
-        plain: true,
-      })
+      PlainMessage.success('当前批次价格区间相同')
       return;
     }
 
@@ -915,44 +900,24 @@ function toSubmit() {
 
       for (const item of discountsPromotion.value) {
         if (item.quantity===null || item.quantity===undefined) {
-          ElMessage({
-            message: '优惠策略 数量 未填写完整',
-            type: 'warning',
-            plain: true,
-          });
+          PlainMessage.success('优惠策略 数量 未填写完整')
           return;
         }
         if (item.quantity < 0) {
-          ElMessage({
-            message: '优惠策略 优惠金额 须大于等于 0',
-            type: 'warning',
-            plain: true,
-          });
+          PlainMessage.success('优惠策略 优惠金额 须大于等于 0')
           return;
         }
         if (item.discount===null || item.discount===undefined) {
-          ElMessage({
-            message: '优惠策略 优惠金额 未填写完整',
-            type: 'warning',
-            plain: true,
-          });
+          PlainMessage.success('优惠策略 优惠金额 未填写完整')
           return;
         }
         if (item.discount <= 0) {
-          ElMessage({
-            message: '优惠策略 优惠金额 须大于 0',
-            type: 'warning',
-            plain: true,
-          });
+          PlainMessage.success('优惠策略 优惠金额 须大于 0')
           return;
         }
 
         if (quantitySet.has(item.quantity)) {
-          ElMessage({
-            message: `优惠策略 数量 "${item.quantity}" 重复`,
-            type: 'warning',
-            plain: true,
-          });
+          PlainMessage.success(`优惠策略 数量 "${item.quantity}" 重复`)
           return;
         }
 
@@ -965,36 +930,20 @@ function toSubmit() {
 
       for (const item of extraOptions.value) {
         if (item.content===null || item.content===undefined || item.content.trim()==='') {
-          ElMessage({
-            message: `额外选项 内容 未填写完整`,
-            type: 'warning',
-            plain: true,
-          });
+          PlainMessage.success('额外选项 内容 未填写完整')
           return;
         }
         if (item.amount===null || item.amount===undefined) {
-          ElMessage({
-            message: `额外选项 金额 未填写完整'`,
-            type: 'warning',
-            plain: true,
-          });
+          PlainMessage.success('额外选项 金额 未填写完整')
           return;
         }
         if (item.amount < 0) {
-          ElMessage({
-            message: '额外选项 金额 须大于等于 0',
-            type: 'warning',
-            plain: true,
-          });
+          PlainMessage.success('额外选项 金额 须大于等于 0')
           return;
         }
 
         if (contentSet.has(item.content)) {
-          ElMessage({
-            message: `额外选项 选项内容 "${item.content}" 重复`,
-            type: 'warning',
-            plain: true,
-          });
+          PlainMessage.success(`额外选项 选项内容 "${item.content}" 重复`)
           return;
         }
     
@@ -1003,11 +952,7 @@ function toSubmit() {
     }
 
     if (form.batch_type==='stock' && form.batch_stock_totalQuantity===0) {
-      ElMessage({
-        message: '请填写总量',
-        type: 'warning',
-        plain: true,
-      })
+      PlainMessage.success('请填写总量')
       return;
     }
 
@@ -1017,7 +962,7 @@ function toSubmit() {
         if (item.freeShippingQuantity === 1) continue; // 1个就包邮
 
         if (item.baseQuantity > item.freeShippingQuantity) {
-          ElMessage({ message: `包邮数量须大于等于首重最大数量`, type: 'warning', plain: true })
+          PlainMessage.success('包邮数量须大于等于首重最大数量')
           return;
         }
 
@@ -1031,11 +976,11 @@ function toSubmit() {
         for (const { field, content } of validations) {
           const value = item[field];
           if (value===undefined || value===null) {
-            ElMessage({ message: `${item.name} ${content} 未填写`, type: 'warning', plain: true })
+            PlainMessage.success(`${item.name} ${content} 未填写`)
             return;
           }
           if (value === 0) {
-            ElMessage({ message: `${item.name} ${content} 不能为0`, type: 'warning', plain: true })
+            PlainMessage.success(`${item.name} ${content} 不能为0`)
             return;
           }
         }
@@ -1043,7 +988,7 @@ function toSubmit() {
       }
     }
     if (postageChoosedQuantity === 0) {
-      ElMessage({ message: `请配置邮费`, type: 'warning', plain: true })
+      PlainMessage.success(`请配置邮费`)
       return;
     }
   }
@@ -1108,11 +1053,7 @@ function toSubmit() {
         }
 
         _createOrUpdateGoods(params).then(res => {
-          ElMessage({
-            message: res.message,
-            type: 'success',
-            plain: true,
-          })
+          PlainMessage.success(res.message)
 
           if (!$route.query.id) { // 新增
             setTimeout(() => {
@@ -1211,8 +1152,19 @@ function getGoodsDetailById() { // 获取详情
     }) || []
 
     getUsableProvince()
+
+    if (res.data.batch_type === 'stock') {
+      getGoodsStockRemainingQuantityFromRedis()
+    }
   })
 }
+
+// let stockRemainingQuantity = ref(null)
+// function getGoodsStockRemainingQuantityFromRedis() {
+//   _getGoodsStockRemainingQuantityFromRedis({ id: $route.query.id }).then(res => {
+//     stockRemainingQuantity.value = res.data.remainingQuantity
+//   })
+// }
 
 let categoryList = ref([])
 function getCategoryList() {
@@ -1254,15 +1206,15 @@ onBeforeUnmount(() => {
 
 function clickGoodsIsSelling() {
   if (!form.goods_isSelling && !form.batch_no) {
-    ElMessage({ message: '无当前批次', type: 'warning', plain: true, })
+    PlainMessage.success(`无当前批次`)
     return false;
   }
   if (form.batch_type==='preorder' && form.batch_preorder_FinalPrice) {
-    ElMessage({ message: '售卖阶段的预订批次无法上架', type: 'warning', plain: true, })
+    PlainMessage.success(`售卖阶段的预订批次无法上架`)
     return false;
   }
   if (form.batch_type==='stock' && form.batchStockRemainingQuantity<=0) {
-    ElMessage({ message: '剩余量为0，无法上架', type: 'warning', plain: true, })
+    PlainMessage.success(`剩余量为0，无法上架`)
     return false;
   }
   return true
@@ -1272,17 +1224,9 @@ function changeGoodsIsSelling(newValue) {
     id: form.goods_id,
     value: newValue ? 1 : 0
   }).then(res => {
-    ElMessage({
-      message: newValue ? '已上架' : '已下架',
-      type: 'success',
-      plain: true,
-    })
+    PlainMessage.success(newValue ? '已上架' : '已下架')
   }).catch(error => {
-    ElMessage({
-      message: '操作失败',
-      type: 'error',
-      plain: true,
-    })
+    PlainMessage.error(`操作失败`)
     form.goods_isSelling = !newValue
   })
 }

@@ -95,7 +95,7 @@
     <div class="table-wrapper">
       <el-table :height="tableHeight" :data="tableData">
         <el-table-column type="index" width="50" />
-        <el-table-column prop="order_no" label="订单号" align="center" />
+        <el-table-column prop="order_no" label="订单号" align="center" width="220" />
         <el-table-column prop="snapshot_goodsName" label="商品" align="center" width="200" >
           <template #default="scope">
             <div style="display: flex; justify-content: space-between; align-items: center;">

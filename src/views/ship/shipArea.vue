@@ -7,7 +7,7 @@
         :data="allData"
         highlight-current
       >
-        <template #default="{ node, data }">
+        <template #default="{ data }">
           <div class="custom-tree-node" style="display: flex;align-items: center;">
             <div style="width: 200px;">{{ data.name }} {{ data.code }}</div>
             <el-switch
@@ -29,13 +29,14 @@
 </template>
 
 <script setup>
-import { ElMessage } from 'element-plus';
 import { onMounted, reactive, ref } from 'vue';
 
 import {
   _getAll,
   _changeUsable,
 } from '@/network/ship'
+
+import { PlainMessage } from '../../utils/message'
 
 let allData = ref(null)
 
@@ -73,11 +74,7 @@ function changeUsable(value, code) {
     value: value?1:0
   }).then(res => {
     if (res.code === 200) {
-      ElMessage({
-        message: '操作成功',
-        type: 'success',
-        plain: true,
-      })
+      PlainMessage.success('操作成功')
     }
   })
 }

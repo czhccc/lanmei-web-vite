@@ -63,7 +63,6 @@
 </template>
 
 <script setup>
-import { ElMessage } from 'element-plus';
 import { onMounted, reactive, ref, nextTick } from 'vue';
 
 import dayjs from 'dayjs'
@@ -72,6 +71,8 @@ import {
   _getNotificationList,
   _notify
 } from '@/network/notify'
+
+import { PlainMessage } from '../../utils/message'
 
 // Table
 let tableData = ref([])
@@ -121,13 +122,10 @@ function notifyConfirm() {
     _notify({
       content: notifyInputValue.value,
     }).then(res => {
-      ElMessage({
-        message: res.message,
-        type: 'success',
-        plain: true,
-      })
+      PlainMessage.success(res.message)
 
       getList()
+      
       isShowNotifyModal.value = false
       notifyInputValue.value = null
     }).finally(() => {

@@ -77,7 +77,6 @@
 </template>
 
 <script setup>
-import { ElMessage } from 'element-plus';
 import { computed, onMounted, reactive, ref } from 'vue';
 
 import {
@@ -90,6 +89,8 @@ import {
   _getRecommendList,
   _editRecommendList,
 } from '@/network/recommend'
+
+import { PlainMessage } from '../../utils/message'
 
 let canChoosedGoods = ref([])
 let choosedGoods = ref([])
@@ -162,11 +163,7 @@ function toSubmit() {
       choosedGoods.value = []
       getSellingGoodsList()
 
-      ElMessage({
-        message: '操作成功',
-        type: 'success',
-        plain: true,
-      })
+      PlainMessage.success('操作成功')
     }).finally(() => {
       isSubmiting.value = false
     })

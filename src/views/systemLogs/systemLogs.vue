@@ -138,8 +138,8 @@
 </template>
 
 <script setup>
-import { ElMessage } from 'element-plus';
 import { onMounted, reactive, ref, computed } from 'vue';
+
 import dayjs from 'dayjs';
 
 import {
@@ -147,6 +147,8 @@ import {
   _deleteSystemLogs,
   _deleteSystemLogsByTime
 } from '@/network/systemLogs'
+
+import { PlainMessage } from '../../utils/message'
 
 // Table
 let searchParams = reactive({
@@ -234,22 +236,14 @@ function showDetail(detail) {
 
 function toDelete() {
   if (selectedRows.value.length === 0) {
-    ElMessage({
-      message: '请选择记录',
-      type: 'warning',
-      plain: true,
-    });
+    PlainMessage.success('请选择记录')
     return
   }
 
   _deleteSystemLogs({ 
     ids: selectedRows.value.map(item => item.id),
   }).then(res => {
-    ElMessage({
-      message: res.message,
-      type: 'success',
-      plain: true,
-    })
+    PlainMessage.success(res.message)
     getList()
   })
 }
@@ -262,11 +256,7 @@ function toDeleteByTimeRange() {
 }
 function deleteDialogConfirm() {
   if (!deleteTimeRange.value || deleteTimeRange.value.length !== 2) {
-    ElMessage({
-      message: '请选择时间范围',
-      type: 'warning',
-      plain: true
-    });
+    PlainMessage.success('请选择时间范围')
     return
   }
 
@@ -275,11 +265,7 @@ function deleteDialogConfirm() {
     endTime: `${deleteTimeRange.value[1]} 23:59:59`,
   }
   _deleteSystemLogsByTime(params).then(res => {
-    ElMessage({
-      message: res.message,
-      type: 'success',
-      plain: true,
-    })
+    PlainMessage.success(res.message)
     deleteDialogVisible.value = false
     getList()
   })

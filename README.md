@@ -1,14 +1,24 @@
-、后台管理系统 页面权限 有的页面只有我能进 
+、goodsSelling:59:preorder_reservedQuantity
+、goodsSelling:59:stock_remainingQuantity
+、goodsSelling:59:ordersCount
 
-、商品列表的显示的字段
+、商品下架时清空对应
+
+、预订批次变为配送阶段后redis中要清空数据，此时的统计从数据库中查？
 
 商品库存不足直接下架？
 购买页用接口获取、商品库存放redis中（包含后续的下架、清理redis库存等）
+、商品列表  预订、现货  当前数量 当前订单数量 也从redis中取？
+、redis发生错误的时候，这些数据怎么办
+        考虑删除数据库中的remainingQuantity字段
+        每日凌晨用数据库订单表校正Redis数据
+
+
 
 
 、后台管理系统的账号安全？3次输错密码就锁定？我自己的账号用邮箱验证安全？   防止管理员注册接口被随便调用？邮箱发临时code？
 
-
+、普通管理员账号输错3次锁定？我自己的号 手机号验证码？邮箱验证码？
 
 、改为云存储
 

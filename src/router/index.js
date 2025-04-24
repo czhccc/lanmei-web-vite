@@ -17,6 +17,11 @@ const router = createRouter({
       path: '/login', 
       name: '登录页',
       component: () => import('../views/login/login.vue') 
+    },
+    {
+      path: '/:pathMatch(.*)*',  // 404 路由，必须放最后
+      name: 'NotFound',
+      component: () => import('../views/error/404.vue'),
     }
   ]
 })

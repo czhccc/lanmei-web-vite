@@ -18,6 +18,15 @@ export function _getGoodsDetailById(data) {
   })
 }
 
+// 获取现货批次库存
+export function _getGoodsStockRemainingQuantityFromRedis(data) {
+  return request({
+    url: '/goods/getGoodsStockRemainingQuantityFromRedis',
+    method: 'get',
+    params: data
+  })
+}
+
 // 获取商品列表
 export function _getGoodsList(data) {
   return request({

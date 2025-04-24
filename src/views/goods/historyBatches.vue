@@ -171,7 +171,6 @@ import {
 
 import dayjs from 'dayjs'
 import calculateDateDurationByMinutes from '@/utils/calculateDateDurationByMinutes'
-import { ElMessage } from 'element-plus';
 
 const $route = useRoute()
 const $router = useRouter()
@@ -229,7 +228,6 @@ function getHistoryBatchesList() {
         case 'deleted': statusText='删除';break;
         default: break;
       }
-      console.log(item.shipProvinces);
       return {
         batchNo: item.no,
         batchType: item.type,

@@ -65,49 +65,53 @@
     <div class="options">
       <el-button type="primary" @click="tableAdd">新增</el-button>
     </div>
-
+    
     <div class="table-wrapper">
       <el-table :height="tableHeight" :data="tableData">
-        <el-table-column prop="goodsNo" label="商品编号" align="center" />
-        <el-table-column prop="goodsName" label="商品名称" align="center" />
-        <el-table-column prop="goodsUnit" label="商品单位" align="center" />
-        <el-table-column prop="goodsCategoryId" label="商品分类" align="center" >
+        <el-table-column prop="id" label="商品编号" align="center" width="80" />
+        <el-table-column prop="goods_name" label="商品名称" align="center" />
+        <el-table-column prop="goods_categoryId" label="分类~单位" align="center" width="200" >
           <template #default="scope">
-            <div>{{ translateCategoryId(scope.row.goodsCategoryId) }}</div>
+            <div>{{ translateCategoryId(scope.row.goods_categoryId) }} ~ {{ scope.row.goods_unit }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="goodsCategoryId" label="封面图" align="center" >
+        <el-table-column prop="goods_coverImage" label="封面图" align="center" width="140" >
           <template #default="scope">
             <el-image
-              v-if="scope.row.goodsCoverImg"
+              v-if="scope.row.goods_coverImage"
               fit="scale-down"
-              :src="scope.row.goodsCoverImg"
-              :preview-src-list="[scope.row.goodsCoverImg]"
+              :src="scope.row.goods_coverImage"
+              :preview-src-list="[scope.row.goods_coverImage]"
               hide-on-click-modal
               class="listCoverImg"
               preview-teleported
+              style="width: 100px; height: 100px;"
             />
             <div v-else></div>
           </template>
         </el-table-column>
-        <el-table-column prop="batchTypeText" label="当前批次类型" align="center" />
-        <el-table-column prop="totalpreOrderQuantity" label="总预订量" align="center" >
+        <el-table-column prop="batchTypeText" label="批次类型" align="center" width="120"/>
+        <el-table-column prop="totalOrdersCount" label="总订单数" align="center" width="90"/>
+        <el-table-column prop="totalOrdersCount" label="总订单数" align="center" >
           <template #default="scope">
-            <div>{{ scope.row.totalPreorderQuantity }} {{ scope.row.unit }}</div>
+            <div v-if="scope.row.batch_type==='preorder' && !scope.row.batch_preorder_finalPrice">{{ scope.row.totalOrdersCount }}（已取消: {{ scope.row.batch_preorder_canceledOrdersCount }}）</div>
+            <div v-if="scope.row.batch_type==='preorder' && scope.row.batch_preorder_finalPrice">111111</div>
+            <div v-if="scope.row.batch_type==='stock'">{{ scope.row.totalOrdersCount }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="totalSaleQuantity" label="售卖进度" align="center" >
+        <el-table-column prop="batch_preorder_reservedQuantity" label="总预订量" align="center" >
           <template #default="scope">
-            <div>{{ 111 }} {{ scope.row.unit }}</div>
+            <div v-if="scope.row.batch_type==='preorder' && !scope.row.batch_preorder_finalPrice">{{ formatNumber(scope.row.batch_preorder_reservedQuantity) }} {{ scope.row.goods_unit }}</div>
+            <div v-if="scope.row.batch_type==='preorder' && scope.row.batch_preorder_finalPrice">{{ formatNumber(scope.row.batchPreorderTotalReservedQuantity) }} {{ scope.row.goods_unit }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="totalpreOrderQuantity" label="剩余量" align="center" >
+        <el-table-column prop="batch_stock_remainingQuantity" label="售卖进度" align="center" >
           <template #default="scope">
-            <div>{{ 111 }} {{ scope.row.unit }}</div>
+            <div v-if="scope.row.batch_type==='stock'">{{ formatNumber(scope.row.batch_stock_remainingQuantity) }} / {{ formatNumber(scope.row.batch_stock_totalQuantity) }} {{ scope.row.goods_unit }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="goodsRemark" label="备注" align="center" />
-        <el-table-column prop="goodsIsSelling" label="是否上架" align="center" >
+        <el-table-column prop="goods_remark" label="备注" align="center" />
+        <el-table-column prop="goodsIsSelling" label="是否上架" align="center" width="80" >
           <template #default="scope">
             <el-switch
               disabled
@@ -115,11 +119,10 @@
               active-text="上架"
               inactive-text="下架"
               inline-prompt
-              size="large"
             />
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="操作" width="120" align="center" >
+        <el-table-column fixed="right" label="操作" align="center" width="120" >
           <template #default="scope">
             <el-button link type="primary" @click="tableEdit(scope.row)">查看</el-button>
           </template>
@@ -153,6 +156,8 @@ import {
 import {
   _getCategory
 } from '@/network/category'
+
+import formatNumber from '../../utils/formatNumber'
 
 const $router = useRouter()
 
@@ -215,7 +220,7 @@ function tableEdit(record) {
     path: '/goodsDetail',
     query: {
       flag: 'edit',
-      id: record.goodsNo,
+      id: record.id,
     }
   })
 }
@@ -230,16 +235,18 @@ function getList() {
     pagination.total = res.data.total
 
     tableData.value = res.data.records.map(item => {
+      let batchTypeText = ''
+      if (item.batch_type && item.batch_type==='preorder') {
+        batchTypeText = item.batch_preorder_finalPrice ? '预订 - 售卖' : '预订 - 预购'
+      } else if (item.batch_type && item.batch_type === 'stock') {
+        batchTypeText = '现货'
+      }
+
+
       return {
-        goodsNo: item.id,
-        goodsName: item.goods_name,
-        goodsUnit: item.goods_unit,
-        goodsCategoryId: item.goods_categoryId,
-        goodsCoverImg: item.goods_coverImage,
-        goodsRemark: item.goods_remark,
+        ...item,
         goodsIsSelling: item.goods_isSelling===1 ? true : false,
-        batchType: item.batch_type,
-        batchTypeText: item.batch_type ? (item.batch_type==='stock'?'现货':'预订') : ''
+        batchTypeText,
       }
     })
   })

@@ -74,8 +74,6 @@
 import { onMounted, reactive, ref, shallowRef } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
 
-import { ElMessage } from 'element-plus';
-
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import '@wangeditor/editor/dist/css/style.css'
 
@@ -90,6 +88,8 @@ import {
   _showNews,
   _pinNews,
 } from '../../network/news'
+
+import { PlainMessage } from '../../utils/message'
 
 const $route = useRoute()
 const $router = useRouter()
@@ -152,11 +152,7 @@ onMounted(() => {
 let isSubmiting = ref(false)
 function toSubmit() {
   if (!title.value) {
-    ElMessage({
-      message: '请输入标题',
-      type: 'warning',
-      plain: true,
-    })
+    PlainMessage.warning('请输入标题')
     return
   }
 
@@ -178,11 +174,7 @@ function toSubmit() {
       }).then(res => {
         getNewsDetail()
 
-        ElMessage({
-          message: '编辑成功',
-          type: 'success',
-          plain: true,
-        })
+        PlainMessage.success('编辑成功')
       }).finally(() => {
         isSubmiting.value = false
       })
@@ -191,11 +183,7 @@ function toSubmit() {
         title: title.value,
         content: richTextContent.value,
       }).then(res => {
-        ElMessage({
-          message: '新增成功',
-          type: 'success',
-          plain: true,
-        })
+        PlainMessage.success('新增成功')
 
         setTimeout(() => {
           window.location.href = `${window.location.href.split('?')[0]}?id=${res.data.insertId}`;
@@ -223,11 +211,7 @@ function toDelete() {
     _deleteNews({
       id: $route.query.id,
     }).then(res => {
-      ElMessage({
-        message: '删除成功',
-        type: 'success',
-        plain: true,
-      })
+      PlainMessage.success('删除成功')
       $router.push('/newsList')
     }).finally(() => {
       isSubmiting.value = false
@@ -242,11 +226,7 @@ function toChangeShow(value) {
     id: $route.query.id,
     value: value ? 1 : 0,
   }).then(res => {
-    ElMessage({
-      message: '操作成功',
-      type: 'success',
-      plain: true,
-    })
+    PlainMessage.success('操作成功')
   }).catch(err => {
     isShow.value = !value
   }).finally(() => {
@@ -261,11 +241,7 @@ function toChangePin(value) {
     id: $route.query.id,
     value: value ? 1 : 0,
   }).then(res => {
-    ElMessage({
-      message: '操作成功',
-      type: 'success',
-      plain: true,
-    })
+    PlainMessage.success('操作成功')
   }).catch(err => {
     isPin.value = !value
   }).finally(() => {
