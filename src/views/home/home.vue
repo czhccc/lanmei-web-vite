@@ -471,25 +471,6 @@ function chooseBatch(item, isCurrent) {
 const batchChartContainer = ref(null);
 const chartsData = [
   { date: '2024-07-01', realTotalPurchase: 100, soldOnline: 7, soldOffline: 3, remaining: 90 },
-  { date: '2024-07-02', realTotalPurchase: 5, soldOnline: 10, soldOffline: 5, remaining: 80 },
-  { date: '2024-07-03', realTotalPurchase: 0, soldOnline: 3, soldOffline: 2, remaining: 75 },
-  { date: '2024-07-04', realTotalPurchase: 10, soldOnline: 7, soldOffline: 8, remaining: 70 },
-  { date: '2024-07-05', realTotalPurchase: 0, soldOnline: 7, soldOffline: 3, remaining: 60 },
-  { date: '2024-07-06', realTotalPurchase: 0, soldOnline: 2, soldOffline: 3, remaining: 55 },
-  { date: '2024-07-07', realTotalPurchase: 5, soldOnline: 7, soldOffline: 3, remaining: 50 },
-  { date: '2024-07-08', realTotalPurchase: 0, soldOnline: 2, soldOffline: 3, remaining: 45 },
-  { date: '2024-07-09', realTotalPurchase: 0, soldOnline: 3, soldOffline: 2, remaining: 40 },
-  { date: '2024-07-10', realTotalPurchase: 0, soldOnline: 4, soldOffline: 1, remaining: 35 },
-  { date: '2024-07-11', realTotalPurchase: 0, soldOnline: 4, soldOffline: 1, remaining: 30 },
-  { date: '2024-07-12', realTotalPurchase: 20, soldOnline: 20, soldOffline: 5, remaining: 25 },
-  { date: '2024-07-13', realTotalPurchase: 0, soldOnline: 3, soldOffline: 2, remaining: 20 },
-  { date: '2024-07-14', realTotalPurchase: 0, soldOnline: 3, soldOffline: 2, remaining: 15 },
-  { date: '2024-07-15', realTotalPurchase: 0, soldOnline: 4, soldOffline: 1, remaining: 10 },
-  { date: '2024-07-16', realTotalPurchase: 0, soldOnline: 4, soldOffline: 1, remaining: 5 },
-  { date: '2024-07-17', realTotalPurchase: 50, soldOnline: 9, soldOffline: 6, remaining: 40 },
-  { date: '2024-07-18', realTotalPurchase: 0, soldOnline: 1, soldOffline: 4, remaining: 35 },
-  { date: '2024-07-19', realTotalPurchase: 0, soldOnline: 7, soldOffline: 3, remaining: 25 },
-  { date: '2024-07-20', realTotalPurchase: 10, soldOnline: 10, soldOffline: 10, remaining: 15 }
 ]
 
 const dates = chartsData.map(item => item.date);

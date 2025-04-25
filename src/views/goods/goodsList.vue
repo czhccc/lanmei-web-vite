@@ -91,15 +91,17 @@
           </template>
         </el-table-column>
         <el-table-column prop="batchTypeText" label="批次类型" align="center" width="120"/>
-        <el-table-column prop="totalOrdersCount" label="总订单数" align="center" width="90"/>
-        <el-table-column prop="totalOrdersCount" label="总订单数" align="center" >
+        <el-table-column prop="totalOrdersCount" label="总订单数" align="center" width="130">
           <template #default="scope">
-            <div v-if="scope.row.batch_type==='preorder' && !scope.row.batch_preorder_finalPrice">{{ scope.row.totalOrdersCount }}（已取消: {{ scope.row.batch_preorder_canceledOrdersCount }}）</div>
+            <div v-if="scope.row.batch_type==='preorder' && !scope.row.batch_preorder_finalPrice">
+              <div>{{ scope.row.totalOrdersCount }}</div>
+              <div>含已取消: {{ scope.row.batch_preorder_canceledOrdersCount }}</div>
+            </div>
             <div v-if="scope.row.batch_type==='preorder' && scope.row.batch_preorder_finalPrice">111111</div>
             <div v-if="scope.row.batch_type==='stock'">{{ scope.row.totalOrdersCount }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="batch_preorder_reservedQuantity" label="总预订量" align="center" >
+        <el-table-column prop="batch_preorder_reservedQuantity" label="已预订量" align="center" >
           <template #default="scope">
             <div v-if="scope.row.batch_type==='preorder' && !scope.row.batch_preorder_finalPrice">{{ formatNumber(scope.row.batch_preorder_reservedQuantity) }} {{ scope.row.goods_unit }}</div>
             <div v-if="scope.row.batch_type==='preorder' && scope.row.batch_preorder_finalPrice">{{ formatNumber(scope.row.batchPreorderTotalReservedQuantity) }} {{ scope.row.goods_unit }}</div>

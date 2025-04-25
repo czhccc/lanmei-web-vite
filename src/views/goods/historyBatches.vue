@@ -9,7 +9,7 @@
                 <div class="historyBatchSearch-item">
                   <div class="historyBatchSearch-item-label">批次编号：</div>
                   <div class="historyBatchSearch-item-input">
-                    <el-input placeholder="请输入" clearable v-model="historyBatchSearchParams.batchNo"></el-input>
+                    <el-input placeholder="请输入" clearable v-model="historyBatchSearchParams.no"></el-input>
                   </div>
                 </div>
               </el-col>
@@ -50,26 +50,26 @@
         <el-table :data="historyBatchTableData">
           <el-table-column type="expand">
             <template #default="scope">
-              <div m="4" style="font-size: 16px;">
-                <div m="t-0 b-2" style="margin-bottom: 10px;" v-if="scope.row.batchType==='preorder'&&scope.row.batchCancelReason">批次取消原因：{{ scope.row.batchCancelReason }} </div>
-                <div m="t-0 b-2" style="margin-bottom: 10px;" v-if="scope.row.batchType==='preorder'">价格区间：￥{{ scope.row.batchPreorderMinPrice }} ~ {{ scope.row.batchPreorderMaxPrice }} </div>
-                <div m="t-0 b-2" style="margin-bottom: 10px;" v-if="scope.row.batchType==='preorder'&&scope.row.batchPreorderFinalPrice">最终单价：￥{{ scope.row.batchPreorderFinalPrice }}</div>
-                <div m="t-0 b-2" style="margin-bottom: 10px;" v-if="scope.row.batchType==='stock'">现货总量:{{ scope.row.batchStockTotalQuantity }} {{ scope.row.snapshopGoodsUnit }}</div>
-                <div m="t-0 b-2" style="margin-bottom: 10px;" v-if="scope.row.batchType==='stock'">单价:￥{{ scope.row.batchStockUnitPrice }} / {{ scope.row.snapshopGoodsUnit }}</div>
-                <div m="t-0 b-2" style="margin-bottom: 10px;">最小购买量：{{ scope.row.batchMinQuantity }} {{ scope.row.snapshopGoodsUnit }}</div>
-                <div m="t-0 b-2" style="margin-bottom: 10px; display: flex;">
+              <div m="4" class="detail" style="font-size: 16px;">
+                <div m="t-0 b-2" class="detail-item" v-if="scope.row.type==='preorder'&&scope.row.cancel_reason">批次取消原因：{{ scope.row.cancel_reason }} </div>
+                <div m="t-0 b-2" class="detail-item" v-if="scope.row.type==='preorder'">价格区间：￥{{ scope.row.preorder_minPrice }} ~ {{ scope.row.preorder_maxPrice }} </div>
+                <div m="t-0 b-2" class="detail-item" v-if="scope.row.type==='preorder'&&scope.row.preorder_finalPrice">最终单价：￥{{ scope.row.preorder_finalPrice }}</div>
+                <div m="t-0 b-2" class="detail-item" v-if="scope.row.type==='stock'">现货总量:{{ scope.row.stock_totalQuantity }} {{ scope.row.snapshot_goodsUnit }}</div>
+                <div m="t-0 b-2" class="detail-item" v-if="scope.row.type==='stock'">单价:￥{{ scope.row.stock_unitPrice }} / {{ scope.row.snapshot_goodsUnit }}</div>
+                <div m="t-0 b-2" class="detail-item">最小购买量：{{ scope.row.minQuantity }} {{ scope.row.snapshot_goodsUnit }}</div>
+                <div m="t-0 b-2" class="detail-item discounts">
                   <div>优惠策略：</div>
-                  <div v-if="scope.row.batchDiscounts.length > 0">
-                    <div v-for="(item, index) in scope.row.batchDiscounts" :key="index">
+                  <div v-if="scope.row.discounts_promotion.length > 0">
+                    <div v-for="(item, index) in scope.row.discounts_promotion" :key="index">
                       满 {{ item.quantity }} {{ scope.row.batchUnit }} 减 {{ item.discount }} 元
                     </div>
                   </div>
                   <div v-else>无</div>
                 </div>
-                <div m="t-0 b-2" class="postage" style="margin-bottom: 10px; display: flex;">
+                <div m="t-0 b-2" class="detail-item postage">
                   <div>邮费：</div>
-                  <div style="display: flex;">
-                    <div class="postage-item" v-for="(item, index) in scope.row.batchShipProvinces" :key="index">
+                  <div class="postage-content">
+                    <div class="postage-item" v-for="(item, index) in scope.row.shipProvinces" :key="index">
                       <div>{{ index+1 }}、</div>
                       <div style="display: flex;">
                         <div>{{ item.name }}：</div>
@@ -82,44 +82,44 @@
                     </div>
                   </div>
                 </div>
-                <div m="t-0 b-2" style="margin-bottom: 10px;">批次备注：{{ scope.row.batchRemark }}</div>
-                <div m="t-0 b-2" style="margin-bottom: 10px; display: flex;">
+                <div m="t-0 b-2" class="detail-item">批次备注：{{ scope.row.remark }}</div>
+                <div m="t-0 b-2" class="detail-item snapshot">
                   <div>快照：</div>
-                  <div>
-                    <div>商品名称：{{ scope.row.snapshopGoodsName }}</div>
-                    <div>商品单位：{{ scope.row.snapshopGoodsUnit }}</div>
-                    <div>商品备注：{{ scope.row.snapshopGoodsRemark }}</div>
+                  <div class="snapshot-content">
+                    <div class="snapshot-item">商品名称：{{ scope.row.snapshot_goodsName }}</div>
+                    <div class="snapshot-item">商品单位：{{ scope.row.snapshot_goodsUnit }}</div>
+                    <div class="snapshot-item">商品备注：{{ scope.row.snapshot_goodsRemark }}</div>
                   </div>
                 </div>
               </div>
             </template>
           </el-table-column>
-          <el-table-column property="batchNo" label="批次" align="center"  width="200" />
-          <el-table-column property="batchTypeText" label="批次类型" align="center" width="80" />
-          <el-table-column property="batchStartBy" label="开始人" align="center" width="120" />
+          <el-table-column property="no" label="批次" align="center"  width="200" />
+          <el-table-column property="typeText" label="批次类型" align="center" width="80" />
+          <el-table-column property="start_by" label="开始人" align="center" width="120" />
           <el-table-column property="time" label="持续时间" align="center" width="280">
             <template #default="scope">
-              <div>{{ scope.row.batchStartTime }} ~ {{ scope.row.batchEndTime }}</div>
+              <div>{{ scope.row.startTime }} ~ {{ scope.row.endTime }}</div>
             </template>
           </el-table-column>
-          <el-table-column property="totalDates" label="持续时间" align="center" width="150">
+          <el-table-column property="duration" label="持续时间" align="center" width="150">
             <template #default="scope">
-              <div>{{ scope.row.batchTotalDates }}</div>
+              <div>{{ scope.row.duration }}</div>
             </template>
           </el-table-column>
-          <el-table-column property="batchTotalOrdersCount" label="总订单数" align="center" >
+          <el-table-column property="totalOrdersCount" label="总订单数" align="center" >
             <template #default="scope">
-              <div>{{ scope.row.batchTotalOrdersCount || 0 }}</div>
+              <div>{{ scope.row.totalOrdersCount || 0 }}</div>
             </template>
           </el-table-column>
-          <el-table-column property="batchTotalSoldQuantity" label="总售出量" align="center" >
+          <el-table-column property="totalSoldQuantity" label="总售出量" align="center" >
             <template #default="scope">
-              <div>{{ scope.row.batchTotalSoldQuantity || 0.00 }} {{ scope.row.snapshopGoodsUnit }}</div>
+              <div>{{ scope.row.totalSoldQuantity || 0.00 }} {{ scope.row.snapshot_goodsUnit }}</div>
             </template>
           </el-table-column>
-          <el-table-column property="batchTotalRevenue" label="总收入" align="center" >
+          <el-table-column property="totalRevenue" label="总收入" align="center" >
             <template #default="scope">
-              <div>￥{{ scope.row.batchTotalRevenue || 0.00 }}</div>
+              <div>￥{{ scope.row.totalRevenue || 0.00 }}</div>
             </template>
           </el-table-column>
           <el-table-column property="batchStatusText" label="批次状态" align="center" >
@@ -129,13 +129,13 @@
           </el-table-column>
           <el-table-column property="complete_by" label="操作人" align="center" width="120" >
             <template #default="scope">
-              <div v-if="scope.row.batchStatus==='completed'">{{ scope.row.batchCompleteBy }}</div>
-              <div v-if="scope.row.batchStatus==='canceled'">{{ scope.row.batchCancelBy }}</div>
+              <div v-if="scope.row.status==='completed'">{{ scope.row.complete_by }}</div>
+              <div v-if="scope.row.status==='canceled'">{{ scope.row.cancel_by }}</div>
             </template>
           </el-table-column>
           <el-table-column property="remark" label="备注" align="center" >
             <template #default="scope">
-              <div>{{ scope.row.batchRemark }}</div>
+              <div>{{ scope.row.remark }}</div>
             </template>
           </el-table-column>
           <!-- <el-table-column fixed="right" label="操作" width="110" align="center" >
@@ -176,7 +176,7 @@ const $route = useRoute()
 const $router = useRouter()
 
 let historyBatchSearchParams = reactive({
-  batchNo: '',
+  no: '',
   time: [],
   status: null,
 })
@@ -190,7 +190,7 @@ function historyBatchSearch() {
 }
 function historyBatchSearchReset() {
   Object.assign(historyBatchSearchParams, {
-    batchNo: '',
+    no: '',
     time: [],
     status: null,
   })
@@ -213,7 +213,7 @@ function getHistoryBatchesList() {
     id: $route.query.goodsId,
     pageNo: historyBatchPagination.pageNo,
     pageSize: historyBatchPagination.pageSize,
-    batchNo: historyBatchSearchParams.batchNo,
+    no: historyBatchSearchParams.no,
     startTime: historyBatchSearchParams.time[0],
     endTime: historyBatchSearchParams.time[1],
     status: historyBatchSearchParams.status,
@@ -229,33 +229,12 @@ function getHistoryBatchesList() {
         default: break;
       }
       return {
-        batchNo: item.no,
-        batchType: item.type,
-        batchTypeText: item.type==='preorder'?'预订':'现货',
-        batchStartTime: dayjs(item.startTime).format('YYYY-MM-DD HH:mm'),
-        batchEndTime: dayjs(item.endTime).format('YYYY-MM-DD HH:mm'),
-        batchTotalDates: calculateDateDurationByMinutes(item.startTime, item.endTime),
-        batchPreorderMinPrice: item.preorder_minPrice,
-        batchPreorderMaxPrice: item.preorder_maxPrice,
-        batchPreorderFinalPrice: item.preorder_finalPrice,
-        batchStockUnitPrice: item.stock_unitPrice,
-        batchStockTotalQuantity: item.stock_totalQuantity,
-        batchMinQuantity: item.minQuantity,
-        batchDiscounts: item.discounts_promotion,
-        batchTotalOrdersCount: item.totalOrdersCount,
-        batchTotalSoldQuantity: item.totalSoldQuantity,
-        batchTotalRevenue: item.totalRevenue,
-        batchShipProvinces: item.shipProvinces,
-        batchRemark: item.remark,
-        snapshopGoodsName: item.snapshot_goodsName,
-        snapshopGoodsUnit: item.snapshot_goodsUnit,
-        snapshopGoodsRemark: item.snapshot_goodsRemark,
-        batchStatus: item.status,
+        ...item,
+        typeText: item.type==='preorder'?'预订':'现货',
+        startTime: dayjs(item.startTime).format('YYYY-MM-DD HH:mm'),
+        endTime: dayjs(item.endTime).format('YYYY-MM-DD HH:mm'),
+        duration: calculateDateDurationByMinutes(item.startTime, item.endTime),
         batchStatusText: statusText,
-        batchCancelReason: item.cancel_reason,
-        batchStartBy: item.start_by,
-        batchCompleteBy: item.complete_by,
-        batchCancelBy: item.cancel_by,
       }
     })
   })
@@ -298,13 +277,39 @@ onMounted(() => {
       }
     }
   }
-  .postage {
-    display: flex;
-    .postage-item {
-      margin-right: 30px;
-      border: 2px solid #909090;
-      padding: 10px;
-      border-radius: 6px;
+  .detail {
+    .detail-item {
+      margin-bottom: 10px;
+    }
+    .discounts {
+      display: flex;
+    }
+    .postage {
+      display: flex;
+      .postage-content {
+        display: flex;
+        .postage-item {
+          margin-right: 30px;
+          border: 2px solid #909090;
+          padding: 10px;
+          border-radius: 6px;
+        }
+      }
+    }
+    .snapshot {
+      display: flex;
+      .snapshot-content {
+        margin-right: 30px;
+        border: 2px solid #909090;
+        padding: 10px;
+        border-radius: 6px;
+        .snapshot-item {
+          margin-bottom: 10px;
+        }
+        .snapshot-item:last-child {
+          margin-bottom: 0;
+        }
+      }
     }
   }
   .pagination-wrapper {

@@ -555,7 +555,6 @@ import {
   _deleteCurrentBatch,
   _cancelAllOrdersInCurrentBatch,
   _preorderBatchIsReadyToSell,
-  // _getGoodsStockRemainingQuantityFromRedis,
 } from '@/network/goods'
 import {
   _getCategory
@@ -1152,19 +1151,8 @@ function getGoodsDetailById() { // 获取详情
     }) || []
 
     getUsableProvince()
-
-    if (res.data.batch_type === 'stock') {
-      getGoodsStockRemainingQuantityFromRedis()
-    }
   })
 }
-
-// let stockRemainingQuantity = ref(null)
-// function getGoodsStockRemainingQuantityFromRedis() {
-//   _getGoodsStockRemainingQuantityFromRedis({ id: $route.query.id }).then(res => {
-//     stockRemainingQuantity.value = res.data.remainingQuantity
-//   })
-// }
 
 let categoryList = ref([])
 function getCategoryList() {
