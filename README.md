@@ -2,6 +2,8 @@
 、历史批次改为 所有类型的订单的quantity和ordersCount放到一个json中
 、检查 totalSoldQuantity 是否包含重复          历史批次 totalSoldQuantity改为totalOrdersQuantity  ，preorder批次加上totalCanceledQuantity
 
+
+
 、预订批次变为配送阶段后redis中要清空数据，此时的统计从数据库中查？  
 
 、redis发生错误的时候，这些数据怎么办
@@ -9,7 +11,7 @@
         每日凌晨用数据库订单表校正Redis数据
 
 
-
+缓存击穿、缓存雪崩
 
 
 
@@ -64,3 +66,5 @@
 
 
 nodejs 版本 v20.15.0
+
+

@@ -1,8 +1,8 @@
 // 如果小数为0或00则省略小数
 export default function formatNumber(number) {
-  if (!number) {
-    return '?'
-  }
+	if (isNaN(Number(number))) {
+		return '?'
+	}
 
 	let num = Number(number)
 	// 判断是否为整数
