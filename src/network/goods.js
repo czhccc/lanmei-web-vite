@@ -64,9 +64,9 @@ export function _getHistoryBatchesList(data) {
 }
 
 // 获取商品批次总计
-export function _getBatchTotalInfo(data) {
+export function _getBatchOrdersStatistic(data) {
   return request({
-    url: '/goods/getBatchTotalInfo',
+    url: '/goods/getBatchOrdersStatistic',
     method: 'get',
     params: data
   });

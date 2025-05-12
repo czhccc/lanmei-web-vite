@@ -1,17 +1,8 @@
 
-、历史批次改为 所有类型的订单的quantity和ordersCount放到一个json中
-、检查 totalSoldQuantity 是否包含重复          历史批次 totalSoldQuantity改为totalOrdersQuantity  ，preorder批次加上totalCanceledQuantity
+、preorder selling 无法上架，怎么重新算redis
+、预订批次变为配送阶段后redis中要清空数据，此时的统计从数据库中查？  删掉原来的reserved统计数据
 
-
-
-、预订批次变为配送阶段后redis中要清空数据，此时的统计从数据库中查？  
-
-、redis发生错误的时候，这些数据怎么办
-        考虑删除数据库中的remainingQuantity字段
-        每日凌晨用数据库订单表校正Redis数据
-
-
-缓存击穿、缓存雪崩
+、每日凌晨用数据库订单表校正Redis数据
 
 
 
@@ -50,14 +41,14 @@
 
 
 
-已预订 -> 未付款 -> 已付款 -送货-> 完成
+已预订 -> 未付款 -> 已付款 -送货-> 已完结
   ↓        ↓           ↘        ↙
- 取消    已取消           已退款
+ 取消     关闭            已退款
 
 
-已付款 -送货-> 完成
-      ↘       ↙
-        已退款
+已付款 -送货-> 已完结
+     ↘       ↙
+       已退款
 
 线下：
 先送货[未付款] -付款-> 已完结

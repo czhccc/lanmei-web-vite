@@ -19,6 +19,7 @@
                   <el-option label="已预订" value="reserved" />
                   <el-option label="已取消" value="canceled" />
                   <el-option label="未付款" value="unpaid" />
+                  <el-option label="已关闭" value="closed" />
                   <el-option label="已付款" value="paid" />
                   <el-option label="已发货" value="shipped" />
                   <el-option label="已完结" value="completed" />
@@ -137,6 +138,7 @@
             <div v-if="scope.row.status === 'reserved'">{{ dayjs(scope.row.preorder_time).format('YYYY-MM-DD HH:mm:ss') }}</div>
             <div v-if="scope.row.status === 'canceled'">{{ dayjs(scope.row.cancel_time).format('YYYY-MM-DD HH:mm:ss') }}</div>
             <div v-if="scope.row.status === 'unpaid'"><div>批次开售时间：</div>{{ dayjs(scope.row.batch_preorder_startSelling_time).format('YYYY-MM-DD HH:mm:ss') }}</div>
+            <div v-if="scope.row.status === 'closed'">{{ dayjs(scope.row.close_time).format('YYYY-MM-DD HH:mm:ss') }}</div>
             <div v-if="scope.row.status === 'paid'">{{ dayjs(scope.row.pay_time).format('YYYY-MM-DD HH:mm:ss') }}</div>
             <div v-if="scope.row.status === 'shipped'">{{ dayjs(scope.row.ship_time).format('YYYY-MM-DD HH:mm:ss') }}</div>
             <div v-if="scope.row.status === 'completed'">{{ dayjs(scope.row.complete_time).format('YYYY-MM-DD HH:mm:ss') }}</div>

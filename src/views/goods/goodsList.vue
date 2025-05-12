@@ -91,10 +91,9 @@
           </template>
         </el-table-column>
         <el-table-column prop="batchTypeText" label="批次类型" align="center" width="120"/>
-        <el-table-column prop="totalOrdersCount" label="总订单数" align="center" width="130">
+        <el-table-column prop="totalOrdersCount" label="有效订单数" align="center" width="130">
           <template #default="scope">
-            <div v-if="scope.row.batch_type==='preorder' && !scope.row.batch_preorder_finalPrice">{{ scope.row.totalOrdersCount }}</div>
-            <div v-if="scope.row.batch_type==='preorder' && scope.row.batch_preorder_finalPrice">111111</div>
+            <div v-if="scope.row.batch_type==='preorder'">{{ scope.row.totalOrdersCount }}</div>
             <div v-if="scope.row.batch_type==='stock'">{{ scope.row.totalOrdersCount }}</div>
           </template>
         </el-table-column>
@@ -102,16 +101,18 @@
           <template #default="scope">
             <div v-if="scope.row.batch_type==='preorder'">
               <div v-if="!scope.row.batch_preorder_finalPrice">
-                <div>已预订：</div>
-                <div>{{ formatNumber(scope.row.batch_preorder_reservedQuantity) }} {{ scope.row.goods_unit }}</div>
+                <div>总预订数量：{{ formatNumber(scope.row.batch_preorder_reservedQuantity) }} {{ scope.row.goods_unit }}</div>
+                <div>总预订订单数：{{ scope.row.batch_preorder_reservedOrdersCount }}</div>
               </div>
               <div v-if="scope.row.batch_preorder_finalPrice">
-                ???
+                <div>已完成数量：{{ formatNumber(scope.row.batch_preorder_finishedQuantity) }} / {{ scope.row.batch_preorder_totalReservedQuantity }} {{ scope.row.goods_unit }}</div>
+                <div>已完成订单数：{{ formatNumber(scope.row.batch_preorder_finishedOrdersCount) }} / {{ formatNumber(scope.row.batch_preorder_totalReservedOrdersCount) }}</div>
               </div>
             </div>
             <div v-if="scope.row.batch_type==='stock'">
-              <div>已售卖：</div>
-              <div v-if="scope.row.batch_type==='stock'">{{ formatNumber(scope.row.stockSoldQuantity) }} / {{ formatNumber(scope.row.batch_stock_totalQuantity) }} {{ scope.row.goods_unit }}</div>
+              <div>剩余库存：{{ scope.row.batch_stock_remainingQuantity }} {{ scope.row.goods_unit }}</div>
+              <div>已完成数量：{{ formatNumber(scope.row.batch_stock_finishedQuantity) }} / {{ formatNumber(scope.row.batch_stock_totalQuantity) }} {{ scope.row.goods_unit }}</div>
+              <div>已完成订单数：{{ formatNumber(scope.row.batch_stock_finishedOrdersCount) }}</div>
             </div>
           </template>
         </el-table-column>

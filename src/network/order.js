@@ -54,6 +54,15 @@ export function _cancelOrder(data) {
   })
 }
 
+// 关闭订单
+export function _closeOrder(data) {
+  return request({
+    url: '/order/closeOrder',
+    method: 'post',
+    data
+  })
+}
+
 // 发货订单
 export function _shipOrder(data) {
   return request({

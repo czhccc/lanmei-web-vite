@@ -178,11 +178,14 @@
             <el-col :span="8" v-if="form.status!=='canceled'&&form.status!=='completed'&&form.status!=='refunded'">
               <el-form-item label="订单操作：" prop="status">
                 <div>
-                  <div style="margin-bottom: 10px;" v-if="form.batch_type==='preorder'&&(form.status==='reserved'||form.status==='unpaid')">
+                  <div style="margin-bottom: 10px;" v-if="form.batch_type==='preorder'&&form.status==='reserved'">
                     <el-button type="primary" @click="cancelOrder">取消预订</el-button>
                   </div>
+                  <div style="margin-bottom: 10px;" v-if="form.batch_type==='preorder'&&form.status==='unpaid'">
+                    <el-button type="primary" @click="closeOrder">关闭订单</el-button>
+                  </div>
                   <div style="margin-bottom: 10px;" v-if="form.status==='paid'">
-                    <el-button type="primary" @click="shipOrder" v-if="!form.receive_isHomeDelivery">发货</el-button>
+                    <el-button type="primary" @click="shipOrder">发货</el-button>
                   </div>
                   <div style="margin-bottom: 10px;" v-if="form.status==='shipped'||form.status==='paid'">
                     <el-popconfirm title="确定完结订单？" @confirm="completeOrder">
@@ -263,14 +266,40 @@
       <el-button type="primary" class="submitBtn" :loading=isSubmiting @click="toSubmit">提 交</el-button>
     </div>
 
-    <!-- 取消所有预订弹出框 -->
+    <!-- 关闭订单弹出框 -->
+    <el-dialog
+      v-model="isShowCloseOrderDialog"
+      title="确定关闭订单？"
+      width="600"
+      align-center
+    >
+      <div class="closeOrderDialog">
+        <el-input
+          v-model="closeOrderReason"
+          autosize
+          type="textarea"
+          placeholder="请输入关闭订单原因"
+          clearable
+          maxlength="100"
+          show-word-limit
+        />
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="isShowCloseOrderDialog = false">取消</el-button>
+          <el-button type="primary" @click="closeOrderDialogConfirm">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 取消预订弹出框 -->
     <el-dialog
       v-model="isShowCancelOrderDialog"
       title="确定取消预订？"
       width="600"
       align-center
     >
-      <div class="cancelAllOrderDialog">
+      <div class="cancelOrderDialog">
         <el-input
           v-model="cancelOrderReason"
           autosize
@@ -283,8 +312,8 @@
       </div>
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="isShowCancelAllOrdersDialog = false">取消</el-button>
-          <el-button type="primary" @click="cancelAllOrdersDialogConfirm">确定</el-button>
+          <el-button @click="isShowCancelOrderDialog = false">取消</el-button>
+          <el-button type="primary" @click="cancelOrderDialogConfirm">确定</el-button>
         </div>
       </template>
     </el-dialog>
@@ -297,12 +326,17 @@
       align-center
     >
       <div class="shipOrderOrderDialog">
-        <el-input
-          v-model="shipOrderTrackingNumber"
-          placeholder="请输入快递单号"
-          clearable
-          maxlength="30"
-        />
+        <div v-if="form.receive_isHomeDelivery">
+          已送货上门？
+        </div>
+        <div v-else>
+          <el-input
+            v-model="shipOrderTrackingNumber"
+            placeholder="请输入快递单号"
+            clearable
+            maxlength="30"
+          />
+        </div>
       </div>
       <template #footer>
         <div class="dialog-footer">
@@ -522,7 +556,7 @@ function getOrderDetailById() {
     })
 
     // 能否编辑
-    if (res.data.status === 'canceled' || res.data.status === 'completed' || res.data.status === 'refunded') {
+    if (res.data.status === 'canceled' || res.data.status === 'closed' || res.data.status === 'completed' || res.data.status === 'refunded') {
       isCanEdit.value = false     
     } else {
       isCanEdit.value = true
@@ -536,15 +570,6 @@ function getOrderDetailById() {
         time: dayjs(res.data.preorder_time).format('YYYY-MM-DD HH:mm:ss'),
         color: '#0bbd87',
       })
-      if (res.data.preorder_startSelling_time) {
-        historyArr.push({
-          statusText: '未付款',
-          content: `批次开始售卖`,
-          by: res.data.preorder_startSelling_by,
-          time: dayjs(res.data.preorder_startSelling_time).format('YYYY-MM-DD HH:mm:ss'),
-          color: '#f19304',
-        })
-      }
       if (res.data.status === 'canceled') {
         historyArr.push({
           statusText: '已取消',
@@ -554,58 +579,60 @@ function getOrderDetailById() {
           color: '#F62603',
         })
       }
-      if (res.data.pay_time) {
+      if (res.data.preorder_startSelling_time) {
         historyArr.push({
-          statusText: `已付款`,
-          content: `￥${res.data.pay_finalAmount}`,
-          time: dayjs(res.data.pay_time).format('YYYY-MM-DD HH:mm:ss'),
-          color: '#0bbd87',
+          statusText: '未付款',
+          content: `批次开始售卖`,
+          by: res.data.preorder_startSelling_by,
+          time: dayjs(res.data.preorder_startSelling_time).format('YYYY-MM-DD HH:mm:ss'),
+          color: '#f19304',
         })
-        if (res.data.receive_isHomeDelivery) {
+        if (res.data.close_time) {
           historyArr.push({
-            statusText: '',
-            time: '',
-            content: '待送货上门',
-            color: '#f19304',
+            statusText: '已关闭',
+            content: `关闭原因：${res.data.close_reason}`,
+            by: res.data.close_by,
+            time: dayjs(res.data.close_time).format('YYYY-MM-DD HH:mm:ss'),
+            color: '#F62603',
           })
         }
-      }
-      if (res.data.status === 'shipped') {
-        historyArr.push({
-          statusText: '已发货',
-          content: `快递单号：${res.data.ship_trackingNumber}`,
-          by: res.data.ship_by,
-          time: dayjs(res.data.ship_time).format('YYYY-MM-DD HH:mm:ss'),
-          color: '#0bbd87',
-        })
-      }
-      if (res.data.status === 'completed') {
-        historyArr.push({
-          statusText: '已完结',
-          time: dayjs(res.data.complete_time).format('YYYY-MM-DD HH:mm:ss'),
-          by: res.data.complete_by,
-          color: '#0bbd87',
-        })
+        if (res.data.pay_time) {
+          historyArr.push({
+            statusText: `已付款`,
+            content: `￥${res.data.pay_finalAmount} / ${res.data.receive_isHomeDelivery ? '待送货上门' : '待邮寄'}`,
+            time: dayjs(res.data.pay_time).format('YYYY-MM-DD HH:mm:ss'),
+            color: '#0bbd87',
+          })
+          if (res.data.ship_time) {
+            historyArr.push({
+              statusText: '已发货',
+              content: res.data.receive_isHomeDelivery ? `已送货上门` : `快递单号：${res.data.ship_trackingNumber}`,
+              by: res.data.ship_by,
+              time: dayjs(res.data.ship_time).format('YYYY-MM-DD HH:mm:ss'),
+              color: '#0bbd87',
+            })
+          }
+          if (res.data.complete_time) {
+            historyArr.push({
+              statusText: '已完结',
+              time: dayjs(res.data.complete_time).format('YYYY-MM-DD HH:mm:ss'),
+              by: res.data.complete_by,
+              color: '#0bbd87',
+            })
+          }
+        }
       }
     } else if (res.data.batch_type === 'stock') {
       historyArr.push({
         statusText: '已付款',
-        by: res.data.create_by,
+        content: `￥${res.data.pay_finalAmount} / ${res.data.receive_isHomeDelivery ? '待送货上门' : '待邮寄'}`,
         time: dayjs(res.data.pay_time).format('YYYY-MM-DD HH:mm:ss'),
         color: '#0bbd87',
       })
-      if (res.data.receive_isHomeDelivery) {
-        historyArr.push({
-          statusText: '',
-          time: '',
-          content: '待送货上门',
-          color: '#f19304',
-        })
-      }
       if (res.data.status === 'shipped') {
         historyArr.push({
           statusText: '已发货',
-          content: `快递单号：${res.data.ship_trackingNumber}`,
+          content: res.data.receive_isHomeDelivery ? `已送货上门` : `快递单号：${res.data.ship_trackingNumber}`,
           by: res.data.ship_by,
           time: dayjs(res.data.ship_time).format('YYYY-MM-DD HH:mm:ss'),
           color: '#0bbd87',
@@ -753,13 +780,38 @@ function getAllDistricts(code) {
   })
 }
 
+// 关闭订单
+let isShowCloseOrderDialog = ref(false)
+let closeOrderReason = ref('')
+function closeOrder() {
+  cancelOrderReason.value = ''
+  isShowCloseOrderDialog.value = true
+}
+function closeOrderDialogConfirm() {
+  _closeOrder({
+    orderId: form.id,
+    cancelOrderReason: closeOrderReason.value,
+  }).then(res => {
+    if (res.code === 200) {
+      isShowCloseOrderDialog.value = false
+      ElMessage({
+        message: '操作成功',
+        type: 'success',
+        plain: true,
+      })
+      getOrderDetailById()
+    }
+  })
+}
+
+// 取消订单
 let isShowCancelOrderDialog = ref(false)
 let cancelOrderReason = ref('')
 function cancelOrder() {
   cancelOrderReason.value = ''
   isShowCancelOrderDialog.value = true
 }
-function cancelAllOrdersDialogConfirm() {
+function cancelOrderDialogConfirm() {
   _cancelOrder({
     orderId: form.id,
     cancelOrderReason: cancelOrderReason.value,
@@ -776,6 +828,7 @@ function cancelAllOrdersDialogConfirm() {
   })
 }
 
+// 发货
 let isShowShipOrderDialog = ref(false)
 let shipOrderTrackingNumber = ref('')
 function shipOrder() {
@@ -783,7 +836,7 @@ function shipOrder() {
   isShowShipOrderDialog.value = true
 }
 function shipOrderDialogConfirm() {
-  if (!shipOrderTrackingNumber.value) {
+  if (!form.receive_isHomeDelivery && !shipOrderTrackingNumber.value) {
     ElMessage({
       message: '请输入快递单号',
       type: 'warning',
@@ -792,10 +845,14 @@ function shipOrderDialogConfirm() {
     return
   }
 
-  _shipOrder({
+  let params = {
     orderId: form.id,
-    trackingNumber: shipOrderTrackingNumber.value,
-  }).then(res => {
+  }
+  if (!form.receive_isHomeDelivery) {
+    params.shipTrackingNumber = shipOrderTrackingNumber.value
+  }
+
+  _shipOrder(params).then(res => {
     if (res.code === 200) {
       isShowShipOrderDialog.value = false
       ElMessage({
@@ -814,7 +871,6 @@ function completeOrder() {
     orderId: form.id
   }).then(res => {
     if (res.code === 200) {
-      isShowCancelOrderDialog.value = false
       ElMessage({
         message: '操作成功',
         type: 'success',

@@ -141,17 +141,17 @@
             <el-button class="title-btn" :type="isStartingNewCurrentBatch?'warning':'success'" @click="startNewBatch" v-if="!form.batch_no">{{ isStartingNewCurrentBatch ? '取消新批次' : '开启新批次' }}</el-button>
 
             <div v-if="form.batch_no">
-              <el-button class="title-btn" type="primary" v-if="form.batch_type==='preorder'&&!form.batch_preorder_FinalPrice&&currentBatchTotalInfo.totalOrdersCount>0" @click="showPreorderBatchIsReadyToSellDialog">开始售卖</el-button>
+              <el-button class="title-btn" type="primary" v-if="form.batch_type==='preorder'&&!form.batch_preorder_FinalPrice&&batchOrdersStatistic.totalOrdersCount>0" @click="showPreorderBatchIsReadyToSellDialog">开始售卖</el-button>
 
-              <el-popconfirm title="确认结束当前批次？" confirm-button-text="确定" cancel-button-text="取消" v-if="currentBatchTotalInfo.totalOrdersCount>0&&(form.batch_preorder_FinalPrice||(form.batch_type==='stock'))" @confirm="endCurrentBatch">
+              <el-popconfirm title="确认结束当前批次？" confirm-button-text="确定" cancel-button-text="取消" v-if="batchOrdersStatistic.totalOrdersCount>0&&(form.batch_preorder_FinalPrice||(form.batch_type==='stock'))" @confirm="endCurrentBatch">
                 <template #reference>
                   <el-button class="title-btn" type="warning">结束当前批次</el-button>
                 </template>
               </el-popconfirm>
 
-              <el-button class="title-btn" type="danger" @click="cancelCurrentBatchAllOrder" v-if="form.batch_type==='preorder'&&!form.batch_preorder_FinalPrice&&currentBatchTotalInfo.totalOrdersCount>0">取消所有预订</el-button>
+              <el-button class="title-btn" type="danger" @click="cancelCurrentBatchAllOrder" v-if="form.batch_type==='preorder'&&!form.batch_preorder_FinalPrice&&batchOrdersStatistic.totalOrdersCount>0">取消所有预订</el-button>
 
-              <el-popconfirm title="确认删除当前批次？" confirm-button-text="确定" cancel-button-text="取消" v-if="currentBatchTotalInfo.totalOrdersCount===0" @confirm="deleteCurrentBatch">
+              <el-popconfirm title="确认删除当前批次？" confirm-button-text="确定" cancel-button-text="取消" v-if="batchOrdersStatistic.totalOrdersCount===0" @confirm="deleteCurrentBatch">
                 <template #reference>
                   <el-button class="title-btn" type="danger">删除当前批次</el-button>
                 </template>
@@ -277,6 +277,11 @@
                 </div>
               </el-form-item>
             </el-col>
+            <el-col :span="8" v-if="form.batch_type==='stock'">
+              <el-form-item label="剩余库存：">
+                <div>{{ stockRemainingQuantity }} {{ form.goods_unit }}</div>
+              </el-form-item>
+            </el-col>
           </el-row>
           <el-row :gutter="20" style="margin-top: 10px;" v-if="form.batch_no">
             <el-col :span="8">
@@ -337,23 +342,31 @@
             <el-divider content-position="left">
               <div style="font-weight: 700;display: flex;align-items: center;">
                 <el-icon><i-ep-TrendCharts /></el-icon>
-                <span>批次总览</span>
+                <span>订单统计</span>
               </div>
             </el-divider>
 
             <div class="batchTotal">
               <div class="batchTotal-row">
                 <div class="batchTotal-item">
-                  <div class="batchTotal-item-title">总订单数：</div>
+                  <div class="batchTotal-item-title">统计时间：</div>
                   <div class="batchTotal-item-content">
-                    <span>{{ currentBatchTotalInfo.totalOrdersCount || 0 }}</span>
-                    <el-button type="primary"  style="margin-left: 30px;" v-if="currentBatchTotalInfo.totalOrdersCount>0" @click="seeOrdersByBatchNo">查看订单</el-button>
+                    <span>{{ batchOrdersStatistic.startTime }}</span>
                   </div>
                 </div>
-                <div class="batchTotal-item" v-if="form.batch_type==='stock'">
-                  <div class="batchTotal-item-title">剩余量：</div>
+                <div class="batchTotal-item">
+                  <div class="batchTotal-item-title">过期时间：</div>
                   <div class="batchTotal-item-content">
-                    <span>{{ formatNumber(currentBatchTotalInfo.remainingQuantity) }} {{form.goods_unit}}</span>
+                    <span>{{ batchOrdersStatistic.endTime }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="batchTotal-row batchTotal-row2">
+                <div class="batchTotal-item">
+                  <div class="batchTotal-item-title">批次总订单数：</div>
+                  <div class="batchTotal-item-content">
+                    <span>{{ batchOrdersStatistic.totalOrdersCount }}</span>
                   </div>
                 </div>
               </div>
@@ -364,11 +377,11 @@
                   <div class="batchTotal-item-content">
                     <div class="batchTotal-item-content-order">
                       <span class="batchTotal-item-content-label">订单数：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.reservedOrdersCount || 0 }}</span>
+                      <span class="batchTotal-item-content-value">{{ batchOrdersStatistic.reservedOrdersCount || 0 }}</span>
                     </div>
                     <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.reservedQuantity || 0 }} {{ form.goods_unit }}</span>
+                      <span class="batchTotal-item-content-value">{{ batchOrdersStatistic.reservedQuantity || 0 }} {{ form.goods_unit }}</span>
                     </div>
                   </div>
                 </div>
@@ -377,11 +390,11 @@
                   <div class="batchTotal-item-content">
                     <div class="batchTotal-item-content-order">
                       <span class="batchTotal-item-content-label">订单数：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.canceledOrdersCount || 0 }}</span>
+                      <span class="batchTotal-item-content-value">{{ batchOrdersStatistic.canceledOrdersCount || 0 }}</span>
                     </div>
                     <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.canceledQuantity || 0 }} {{ form.goods_unit }}</span>
+                      <span class="batchTotal-item-content-value">{{ batchOrdersStatistic.canceledQuantity || 0 }} {{ form.goods_unit }}</span>
                     </div>
                   </div>
                 </div>
@@ -393,11 +406,24 @@
                   <div class="batchTotal-item-content">
                     <div class="batchTotal-item-content-order">
                       <span class="batchTotal-item-content-label">订单数：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.unpaidOrdersCount || 0 }}</span>
+                      <span class="batchTotal-item-content-value">{{ batchOrdersStatistic.unpaidOrdersCount || 0 }}</span>
                     </div>
                     <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.unpaidQuantity || 0 }} {{ form.goods_unit }}</span>
+                      <span class="batchTotal-item-content-value">{{ batchOrdersStatistic.unpaidQuantity || 0 }} {{ form.goods_unit }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="batchTotal-item" v-if="form.batch_type==='preorder'">
+                  <div class="batchTotal-item-title">已关闭</div>
+                  <div class="batchTotal-item-content">
+                    <div class="batchTotal-item-content-order">
+                      <span class="batchTotal-item-content-label">订单数：</span>
+                      <span class="batchTotal-item-content-value">{{ batchOrdersStatistic.closedOrdersCount || 0 }}</span>
+                    </div>
+                    <div class="batchTotal-item-content-quantity">
+                      <span class="batchTotal-item-content-label">总量：</span>
+                      <span class="batchTotal-item-content-value">{{ batchOrdersStatistic.closedQuantity || 0 }} {{ form.goods_unit }}</span>
                     </div>
                   </div>
                 </div>
@@ -406,11 +432,11 @@
                   <div class="batchTotal-item-content">
                     <div class="batchTotal-item-content-order">
                       <span class="batchTotal-item-content-label">订单数：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.paidOrdersCount || 0 }}</span>
+                      <span class="batchTotal-item-content-value">{{ batchOrdersStatistic.paidOrdersCount || 0 }}</span>
                     </div>
                     <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.paidQuantity || 0 }} {{ form.goods_unit }}</span>
+                      <span class="batchTotal-item-content-value">{{ batchOrdersStatistic.paidQuantity || 0 }} {{ form.goods_unit }}</span>
                     </div>
                   </div>
                 </div>
@@ -419,11 +445,11 @@
                   <div class="batchTotal-item-content">
                     <div class="batchTotal-item-content-order">
                       <span class="batchTotal-item-content-label">订单数：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.shippedOrdersCount || 0 }}</span>
+                      <span class="batchTotal-item-content-value">{{ batchOrdersStatistic.shippedOrdersCount || 0 }}</span>
                     </div>
                     <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.shippedQuantity || 0 }} {{ form.goods_unit }}</span>
+                      <span class="batchTotal-item-content-value">{{ batchOrdersStatistic.shippedQuantity || 0 }} {{ form.goods_unit }}</span>
                     </div>
                   </div>
                 </div>
@@ -432,11 +458,11 @@
                   <div class="batchTotal-item-content">
                     <div class="batchTotal-item-content-order">
                       <span class="batchTotal-item-content-label">订单数：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.completedOrdersCount || 0 }}</span>
+                      <span class="batchTotal-item-content-value">{{ batchOrdersStatistic.completedOrdersCount || 0 }}</span>
                     </div>
                     <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.completedQuantity || 0 }} {{ form.goods_unit }}</span>
+                      <span class="batchTotal-item-content-value">{{ batchOrdersStatistic.completedQuantity || 0 }} {{ form.goods_unit }}</span>
                     </div>
                   </div>
                 </div>
@@ -445,11 +471,11 @@
                   <div class="batchTotal-item-content">
                     <div class="batchTotal-item-content-order">
                       <span class="batchTotal-item-content-label">订单数：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.refundedOrdersCount || 0 }}</span>
+                      <span class="batchTotal-item-content-value">{{ batchOrdersStatistic.refundedOrdersCount || 0 }}</span>
                     </div>
                     <div class="batchTotal-item-content-quantity">
                       <span class="batchTotal-item-content-label">总量：</span>
-                      <span class="batchTotal-item-content-value">{{ currentBatchTotalInfo.refundedQuantity || 0 }} {{ form.goods_unit }}</span>
+                      <span class="batchTotal-item-content-value">{{ batchOrdersStatistic.refundedQuantity || 0 }} {{ form.goods_unit }}</span>
                     </div>
                   </div>
                 </div>
@@ -551,10 +577,11 @@ import {
   _endCurrentBatch,
   _changeGoodsIsSelling,
   _getHistoryBatchesList,
-  _getBatchTotalInfo,
+  _getBatchOrdersStatistic,
   _deleteCurrentBatch,
   _cancelAllOrdersInCurrentBatch,
   _preorderBatchIsReadyToSell,
+  _getGoodsStockRemainingQuantityFromRedis,
 } from '@/network/goods'
 import {
   _getCategory
@@ -1122,7 +1149,10 @@ function getGoodsDetailById() { // 获取详情
 
       extraOptions.value = res.data.batch_extraOptions || []
 
-      getBatchTotalInfo({id: $route.query.id}) // 获取当前批次总计
+      getBatchOrdersStatistic({ id: $route.query.id }) // 获取当前批次总计
+      if (res.data.batch_type) {
+        getGoodsStockRemainingQuantityFromRedis({ id: $route.query.id })
+      }
 
       // 其他的禁止编辑
       setTimeout(() => {
@@ -1161,10 +1191,17 @@ function getCategoryList() {
   })
 }
 
-let currentBatchTotalInfo = ref({})
-function getBatchTotalInfo(params) {
-  _getBatchTotalInfo(params).then(res => {
-    currentBatchTotalInfo.value = res.data
+let batchOrdersStatistic = ref({})
+function getBatchOrdersStatistic(params) {
+  _getBatchOrdersStatistic(params).then(res => {
+    batchOrdersStatistic.value = res.data
+  })
+}
+
+let stockRemainingQuantity = ref(0)
+function getGoodsStockRemainingQuantityFromRedis(params) {
+  _getGoodsStockRemainingQuantityFromRedis(params).then(res => {
+    stockRemainingQuantity.value = res.data.remainingQuantity
   })
 }
 
