@@ -87,10 +87,7 @@ function login() {
     phone: phone.value,
     password: password.value,
   }).then(res => {
-    // Cookies.set('token', res.data.token)
     $router.replace('/home')
-
-    menuStore.getMenuList() // 获取路由
   })
 }
 

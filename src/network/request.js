@@ -35,7 +35,7 @@ service.interceptors.response.use(
 
     const res = response.data;
     
-    if (res.code === 200) {
+    if (res.code === 'SUCCESS') {
       return res;
     } else {
       console.log('响应拦截器', res);

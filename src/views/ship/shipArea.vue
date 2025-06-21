@@ -36,7 +36,7 @@ import {
   _changeUsable,
 } from '@/network/ship'
 
-import { PlainMessage } from '../../utils/message'
+import { PlainMessage } from '../../utils/plainMessage'
 
 let allData = ref(null)
 
@@ -73,9 +73,7 @@ function changeUsable(value, code) {
     code,
     value: value?1:0
   }).then(res => {
-    if (res.code === 200) {
-      PlainMessage.success('操作成功')
-    }
+    PlainMessage.success('操作成功')
   })
 }
 

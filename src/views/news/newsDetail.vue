@@ -89,7 +89,7 @@ import {
   _pinNews,
 } from '../../network/news'
 
-import { PlainMessage } from '../../utils/message'
+import { PlainMessage } from '../../utils/plainMessage'
 
 const $route = useRoute()
 const $router = useRouter()

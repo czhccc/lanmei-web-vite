@@ -38,6 +38,7 @@
         <el-table-column prop="roleText" label="角色" align="center" />
         <el-table-column fixed="right" label="操作" width="160" align="center" >
           <template #default="scope">
+            <el-button link type="primary" @click="tableUnlock(scope.row)" v-if="scope.row.isLocked===1">解锁</el-button>
             <el-button link type="primary" @click="tableEdit(scope.row)">编辑</el-button>
             <el-button link type="primary" @click="tableDelete(scope.row)">删除</el-button>
           </template>
@@ -79,8 +80,8 @@
           </el-form-item>
           <el-form-item label="角色" prop="role">
             <el-select v-model="form.role" placeholder="请选择" clearable>
-              <el-option label="管理员" :value="1" />
-              <el-option label="超级管理员" :value="2" />
+              <el-option label="管理员" value="admin" />
+              <!-- <el-option label="超级管理员" value="superadmin" /> -->
             </el-select>
           </el-form-item>
         </el-form>
@@ -102,7 +103,8 @@ import { onMounted, reactive, ref, nextTick } from 'vue';
 import {
   _getAdminList,
   _createOrUpdateAdmin,
-  _deleteAdmin
+  _deleteAdmin,
+  _unlockAdmin,
 } from '@/network/admin'
 
 // Table
@@ -169,10 +171,22 @@ function tableAdd() {
       phone: '',
       password: '',
       name: '',
-      role: 1,
+      role: 'admin',
     })
   })
   
+}
+function tableUnlock(record) {
+  _unlockAdmin({
+    phone: record.phone
+  }).then(res => {
+    ElMessage({
+      message: '解锁成功',
+      type: 'success',
+      plain: true,
+    })
+    getList()
+  })
 }
 function tableEdit(record) {
   formTitle.value = '编辑'
@@ -242,7 +256,7 @@ const getList = () => {
     tableData.value = res.data.records.map(item => {
       return {
         ...item,
-        roleText: item.role===1?'管理员':'超级管理员'
+        roleText: item.role==='admin'?'管理员':'超级管理员'
       }
     })
     pagination.total = res.data.total

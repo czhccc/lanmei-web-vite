@@ -134,6 +134,8 @@
       </template>
     </el-dialog>
 
+    <el-button @click="test" type="primary">测试按钮</el-button>
+
   </div>
 </template>
 
@@ -148,7 +150,11 @@ import {
   _deleteSystemLogsByTime
 } from '@/network/systemLogs'
 
-import { PlainMessage } from '../../utils/message'
+import { PlainMessage } from '../../utils/plainMessage'
+
+import {
+  _getCOSTemporaryKey
+} from '../../network/upload'
 
 // Table
 let searchParams = reactive({
@@ -268,6 +274,19 @@ function deleteDialogConfirm() {
     PlainMessage.success(res.message)
     deleteDialogVisible.value = false
     getList()
+  })
+}
+
+
+
+
+
+function test() {
+  console.log('测试按钮被点击了')
+  _getCOSTemporaryKey().then(res => {
+    console.log('获取COS临时密钥成功', res)
+  }).catch(err => {
+    console.error('获取COS临时密钥失败', err)
   })
 }
 

@@ -792,15 +792,13 @@ function closeOrderDialogConfirm() {
     orderId: form.id,
     cancelOrderReason: closeOrderReason.value,
   }).then(res => {
-    if (res.code === 200) {
-      isShowCloseOrderDialog.value = false
-      ElMessage({
-        message: '操作成功',
-        type: 'success',
-        plain: true,
-      })
-      getOrderDetailById()
-    }
+    isShowCloseOrderDialog.value = false
+    ElMessage({
+      message: '操作成功',
+      type: 'success',
+      plain: true,
+    })
+    getOrderDetailById()
   })
 }
 
@@ -816,15 +814,13 @@ function cancelOrderDialogConfirm() {
     orderId: form.id,
     cancelOrderReason: cancelOrderReason.value,
   }).then(res => {
-    if (res.code === 200) {
-      isShowCancelOrderDialog.value = false
-      ElMessage({
-        message: '操作成功',
-        type: 'success',
-        plain: true,
-      })
-      getOrderDetailById()
-    }
+    isShowCancelOrderDialog.value = false
+    ElMessage({
+      message: '操作成功',
+      type: 'success',
+      plain: true,
+    })
+    getOrderDetailById()
   })
 }
 
@@ -853,15 +849,13 @@ function shipOrderDialogConfirm() {
   }
 
   _shipOrder(params).then(res => {
-    if (res.code === 200) {
-      isShowShipOrderDialog.value = false
-      ElMessage({
-        message: '发货成功',
-        type: 'success',
-        plain: true,
-      })
-      getOrderDetailById()
-    }
+    isShowShipOrderDialog.value = false
+    ElMessage({
+      message: '发货成功',
+      type: 'success',
+      plain: true,
+    })
+    getOrderDetailById()
   })
 }
 
@@ -870,14 +864,12 @@ function completeOrder() {
   _completeOrder({
     orderId: form.id
   }).then(res => {
-    if (res.code === 200) {
-      ElMessage({
-        message: '操作成功',
-        type: 'success',
-        plain: true,
-      })
-      getOrderDetailById()
-    }
+    ElMessage({
+      message: '操作成功',
+      type: 'success',
+      plain: true,
+    })
+    getOrderDetailById()
   })
 }
 

@@ -26,3 +26,12 @@ export function _deleteAdmin(data) {
     data
   });
 }
+
+// 解锁管理员
+export function _unlockAdmin(data) {
+  return request({
+    url: '/admin/unlockAdmin',
+    method: 'post',
+    data
+  });
+}

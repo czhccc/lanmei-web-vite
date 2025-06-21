@@ -28,8 +28,6 @@ function loginOut() {
     }
   ).then(() => {
     _logout().then(res => {
-      localStorage.removeItem('menuList')
-      
       router.replace('/login')
     })
   })

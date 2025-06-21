@@ -72,7 +72,7 @@ import {
   _notify
 } from '@/network/notify'
 
-import { PlainMessage } from '../../utils/message'
+import { PlainMessage } from '../../utils/plainMessage'
 
 // Table
 let tableData = ref([])

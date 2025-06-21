@@ -349,6 +349,9 @@
             <div class="batchTotal">
               <div class="batchTotal-row">
                 <div class="batchTotal-item">
+                  <el-button @click="seeOrdersByBatchNo">查看订单</el-button>
+                </div>
+                <div class="batchTotal-item">
                   <div class="batchTotal-item-title">统计时间：</div>
                   <div class="batchTotal-item-content">
                     <span>{{ batchOrdersStatistic.startTime }}</span>
@@ -372,7 +375,7 @@
               </div>
 
               <div class="batchTotal-row batchTotal-row2" v-if="form.batch_type==='preorder'">
-                <div class="batchTotal-item">
+                <div class="batchTotal-item" v-if="!form.batch_preorder_FinalPrice">
                   <div class="batchTotal-item-title">已预订</div>
                   <div class="batchTotal-item-content">
                     <div class="batchTotal-item-content-order">
@@ -385,7 +388,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="batchTotal-item">
+                <div class="batchTotal-item" v-if="!form.batch_preorder_FinalPrice">
                   <div class="batchTotal-item-title">已取消</div>
                   <div class="batchTotal-item-content">
                     <div class="batchTotal-item-content-order">
@@ -796,13 +799,11 @@ function confirmPreorderBatchIsReadyToSell() {
   }
 
   _preorderBatchIsReadyToSell({ goodsId: form.goods_id, finalPrice: preorderFinalPrice.value }).then(res => {
-    if (res.code === 200) {
-      PlainMessage.success('操作成功')
+    PlainMessage.success('操作成功')
 
-      isShowPreorderBatchIsReadyToSellDialog.value = false
+    isShowPreorderBatchIsReadyToSellDialog.value = false
 
-      getGoodsDetailById()
-    }
+    getGoodsDetailById()
   })
 }
 
@@ -822,11 +823,9 @@ function cancelAllOrdersDialogConfirm() {
     id: form.goods_id,
     cancelReason: cancelAllOrdersReason.value
   }).then(res => {
-    if (res.code === 200) {
-      PlainMessage.success('操作成功')
-      isShowCancelAllOrdersDialog.value = false
-      getGoodsDetailById()
-    }
+    PlainMessage.success('操作成功')
+    isShowCancelAllOrdersDialog.value = false
+    getGoodsDetailById()
   })
 }
 function deleteCurrentBatch() { // 删除当前批次
@@ -862,45 +861,41 @@ function getUsableProvince() {
   postageRules.value = []
   unusableButChoosedProvince.value = []
   _getAll({ level: 'province' }).then(res => {
-    if (res.code === 200) {
-      // 所有 -> 选中rules -> 去除不可用     顺序不能乱，不然选中的rules显示不全
-      postageRules.value = res.data.map(item => {
-        if (form.batch_ship_provinces) {
-          let itemOfRules = form.batch_ship_provinces.find(el => el.code === item.code);
-          if (itemOfRules) {
-            if (!item.usable) {
-              unusableButChoosedProvince.value.push(item.name)
-            }
-            return { ...itemOfRules, isChoosed: true };
+    // 所有 -> 选中rules -> 去除不可用     顺序不能乱，不然选中的rules显示不全
+    postageRules.value = res.data.map(item => {
+      if (form.batch_ship_provinces) {
+        let itemOfRules = form.batch_ship_provinces.find(el => el.code === item.code);
+        if (itemOfRules) {
+          if (!item.usable) {
+            unusableButChoosedProvince.value.push(item.name)
           }
+          return { ...itemOfRules, isChoosed: true };
         }
-        if (item.usable) {
-          return {
-            code: item.code,
-            name: item.name,
-            isChoosed: false,
-            baseQuantity: null,
-            basePostage: null,
-            extraQuantity: null,
-            extraPostage: null,
-            freeShippingQuantity: null,
-          };
-        }
-        return null; // 显式返回 null 以避免 undefined
-      }).filter(Boolean); // 过滤掉 null/undefined
-    }
+      }
+      if (item.usable) {
+        return {
+          code: item.code,
+          name: item.name,
+          isChoosed: false,
+          baseQuantity: null,
+          basePostage: null,
+          extraQuantity: null,
+          extraPostage: null,
+          freeShippingQuantity: null,
+        };
+      }
+      return null; // 显式返回 null 以避免 undefined
+    }).filter(Boolean); // 过滤掉 null/undefined
   })
 }
 function getShipProvincesOfLastBatch() {
   _getShipProvincesOfLastBatch({ goodsId: $route.query.id }).then(res => {
-    if (res.code === 200) {
-      if (res.data) {
-        console.log(res.data);
-        postageRules.value = res.data.finalResult
-        unusableButChoosedProvince = res.data.unusableButChoosedProvince
-      } else {
-        PlainMessage.success(res.message)
-      }
+    if (res.data) {
+      console.log(res.data);
+      postageRules.value = res.data.finalResult
+      unusableButChoosedProvince = res.data.unusableButChoosedProvince
+    } else {
+      PlainMessage.success(res.message)
     }
   })
 }
@@ -1231,15 +1226,11 @@ onBeforeUnmount(() => {
 
 function clickGoodsIsSelling() {
   if (!form.goods_isSelling && !form.batch_no) {
-    PlainMessage.success(`无当前批次`)
-    return false;
-  }
-  if (form.batch_type==='preorder' && form.batch_preorder_FinalPrice) {
-    PlainMessage.success(`售卖阶段的预订批次无法上架`)
+    PlainMessage.warning(`无当前批次`)
     return false;
   }
   if (form.batch_type==='stock' && form.batchStockRemainingQuantity<=0) {
-    PlainMessage.success(`剩余量为0，无法上架`)
+    PlainMessage.warning(`剩余量为0，无法上架`)
     return false;
   }
   return true

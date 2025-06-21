@@ -1,5 +1,6 @@
 <template>
   <div class="app">
+    <!-- 主布局 -->
     <el-container class="app-wrapper" v-if="!isLogin">
       <el-header class="app-header">
         <Header />
@@ -13,31 +14,28 @@
         </el-main>
       </el-container>
     </el-container>
-    <div v-if="isLogin">
+    
+    <!-- 登录页布局 -->
+    <div v-else>
       <router-view />
     </div>
   </div>
 </template>
 
 <script setup>
-  import Header from './components/Header/Header.vue';
-  import Menu from './components/Menu/Menu.vue';
+import Header from './components/Header/Header.vue';
+import Menu from './components/Menu/Menu.vue';
 
-  import { onMounted, watch, nextTick, ref } from 'vue';
-  import { useRoute } from 'vue-router';
+import { ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 
-  const route = useRoute();
+const route = useRoute();
+const isLogin = ref(route.path === '/login');
 
-  let isLogin = ref(false)
-
-  // 在组件加载后监听路由变化
-  onMounted(() => {
-    // 使用 watch 监听 route 的变化
-    watch(() => route.path, (newVal, oldVal) => {
-      isLogin.value = newVal === '/login'
-    });
-  });
-
+// 监听路由变化
+watch(() => route.path, (newPath) => {
+  isLogin.value = newPath === '/login';
+});
 </script>
 
 <style lang="less">
