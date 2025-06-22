@@ -27,7 +27,7 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useMenuStore } from '../../store/menu'
+import { useMenuStore } from '../../store/menuStore'
 
 const route = useRoute();
 const router = useRouter();

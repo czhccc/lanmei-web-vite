@@ -150,7 +150,7 @@ import {
   _deleteSystemLogsByTime
 } from '@/network/systemLogs'
 
-import { PlainMessage } from '../../utils/plainMessage'
+import PlainMessage from '../../utils/plainMessage'
 
 import {
   _getCOSTemporaryKey

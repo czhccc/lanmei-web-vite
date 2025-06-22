@@ -13,6 +13,15 @@ export function _getCOSTemporaryKey(data) {
   return request({
     url: '/upload/getCOSTemporaryKey',
     method: 'get',
-    data
+    params: data
+  });
+}
+
+export function _handleCOSUrl(data) {
+  return request({
+    url: '/handleCOSUrl',
+    method: 'get',
+    params: data,
+    responseType: 'blob',
   });
 }

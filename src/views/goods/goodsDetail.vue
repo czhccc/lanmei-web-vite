@@ -65,6 +65,7 @@
                   class="coverImage-preview-image"
                 />
               </div>
+              <el-image :src="coverImageUrl" />
             </div>
           </div>
 
@@ -570,7 +571,7 @@ import '@wangeditor/editor/dist/css/style.css'
 
 import Sortable from 'sortablejs';
 
-import { PlainMessage } from '../../utils/plainMessage'
+import PlainMessage from '../../utils/plainMessage'
 
 import dayjs from 'dayjs'
 
@@ -590,7 +591,8 @@ import {
   _getCategory
 } from '@/network/category'
 import {
-  _uploadFile
+  _uploadFile,
+  _handleCOSUrl
 } from '@/network/upload'
 import {
   _getAll,
@@ -598,6 +600,8 @@ import {
 } from '@/network/ship'
 
 import formatNumber from '../../utils/formatNumber'
+
+import uploadToCOS from '../../utils/uploadToCOS'
 
 
 const fileSortableList = ref(null);
@@ -672,8 +676,18 @@ function handleFileChange(event, flag) {
     formData.append('file', file);
     formData.append('flag', `${flag}-${$route.query.id}`);
 
-    _uploadFile(formData).then(res => {
-      coverImageUrl.value = `${import.meta.env.VITE_BASE_URL}/${res.data.fileKey}`
+    uploadToCOS(file, 'goods/goods_coverImage/', `goodsId-${$route.query.id}`).then(res => {
+      console.log(res);
+      console.log(typeof res);
+
+      const encodedUrl = encodeURIComponent(res);
+      // return `${this.$apiBaseURL}/api/cos-proxy?url=${encodedUrl}`;
+      _handleCOSUrl({
+        url: encodedUrl
+      }).then(res2 => {
+        let theUrl = URL.createObjectURL(res2)
+        coverImageUrl.value = theUrl
+      })
     })
   }
 
@@ -706,6 +720,48 @@ function handleFileChange(event, flag) {
     })
   }
 }
+// function handleFileChange(event, flag) {
+//   const file = event.target.files[0];
+  
+//   if (file && flag==='goods_coverImage') {
+//     const formData = new FormData();
+//     formData.append('file', file);
+//     formData.append('flag', `${flag}-${$route.query.id}`);
+
+//     _uploadFile(formData).then(res => {
+//       coverImageUrl.value = `${import.meta.env.VITE_BASE_URL}/${res.data.fileKey}`
+//     })
+//   }
+
+//   if (file && flag==='goods_swiper') {
+//     let fileType = ''
+//     if (file.type.includes('image')) {
+//       fileType = 'image'
+//     } else if (file.type.includes('video')) {
+//       fileType = 'video'
+//     } else {
+//       alert('未知文件类型')
+//       return;
+//     }
+
+//     // 检查文件大小是否超过限制，例如限制为 10MB
+//     // const maxSize = 10 * 1024 * 1024;  // 10MB
+//     // if (file.size > maxSize) {
+//     //   alert('File size exceeds 10MB limit');
+//     //   return;
+//     // }
+//     const formData = new FormData();
+//     formData.append('file', file);
+//     formData.append('flag', `${flag}-${$route.query.id}`);
+
+//     _uploadFile(formData).then(res => {
+//       swiperList.value.push({
+//         type: fileType,
+//         url: `${import.meta.env.VITE_BASE_URL}/${res.data.fileKey}`
+//       })
+//     })
+//   }
+// }
 
 function fileRemove(index) {
   swiperList.value.splice(index, 1)
@@ -741,7 +797,7 @@ const richTextEditorConfig = {
   MENU_CONF: {
     uploadImage: {
       // 配置上传图片的服务器地址
-      server: 'http://localhost:8888/api/upload',
+      server: 'http://localhost:8800/api/upload',
 
       // 上传图片时的自定义参数，例如 token
       fieldName: 'file',
@@ -1263,6 +1319,37 @@ function seeHistoryBatches() {
     }
   }).href}`
   window.open(url, '_blank')
+}
+
+
+
+
+
+function getProxiedUrl(originalUrl) {
+  console.log('getProxiedUrl getProxiedUrl getProxiedUrl', originalUrl);
+  if (originalUrl) {
+    // 对原始URL编码后拼接到代理路由
+    const encodedUrl = encodeURIComponent(originalUrl);
+    // return `${this.$apiBaseURL}/api/cos-proxy?url=${encodedUrl}`;
+    _handleCOSUrl({
+      url: encodedUrl
+    }).then(res => {
+      console.log(res)
+      return res.data.url
+    })
+  }
+  
+}
+
+
+const getProxyUrl = (originalUrl) => {
+  if (originalUrl) {
+    // 提取COS路径部分
+    const url = new URL(originalUrl)
+    const path = url.pathname
+    
+    return `/cos-proxy${path}`
+  }
 }
 
 </script>

@@ -90,7 +90,7 @@ import {
   _editRecommendList,
 } from '@/network/recommend'
 
-import { PlainMessage } from '../../utils/plainMessage'
+import PlainMessage from '../../utils/plainMessage'
 
 let canChoosedGoods = ref([])
 let choosedGoods = ref([])

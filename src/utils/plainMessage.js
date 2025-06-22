@@ -10,9 +10,11 @@ const createPlainMessage = (type) => {
   }
 }
 
-export const PlainMessage = {
+const PlainMessage = {
   success: createPlainMessage('success'),
   warning: createPlainMessage('warning'),
   info: createPlainMessage('info'),
   error: createPlainMessage('error'),
 }
+
+export default PlainMessage

@@ -1,7 +1,7 @@
 // router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 
-import { useMenuStore } from '../store/menu'
+import { useMenuStore } from '../store/menuStore'
 
 const router = createRouter({
   history: createWebHistory(),

@@ -36,7 +36,7 @@ import {
   _changeUsable,
 } from '@/network/ship'
 
-import { PlainMessage } from '../../utils/plainMessage'
+import PlainMessage from '../../utils/plainMessage'
 
 let allData = ref(null)
 

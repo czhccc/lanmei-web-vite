@@ -1,4 +1,4 @@
-// store/menu.js
+// store/menuStore.js
 import { defineStore } from 'pinia'
 import { _getMenuList } from '../network/menu'
 import { setupDynamicRoutes } from '../router/index'

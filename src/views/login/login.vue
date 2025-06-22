@@ -36,10 +36,6 @@ import {
   _login
 } from '../../network/login'
 
-import { useMenuStore } from '../../store/menu'
-
-const menuStore = useMenuStore()
-
 const box = ref(null);
 const resizeBox = () => {
   const vw = window.innerWidth / 1920;

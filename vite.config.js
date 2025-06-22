@@ -37,17 +37,11 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8888/api',  // 目标服务器（后端）
+        target: 'http://localhost:8800/api',  // 目标服务器（后端）
         changeOrigin: true,  // 允许跨域
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '') // 重写路径
       },
     },
-    // port: 5173,
-    // open: true,
-    // overlay: {
-    //   warnings: false,
-    //   errors: true
-    // }
   },
 });

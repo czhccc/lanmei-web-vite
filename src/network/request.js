@@ -35,17 +35,19 @@ service.interceptors.response.use(
 
     const res = response.data;
     
-    if (res.code === 'SUCCESS') {
+    if (res.code) { // 正常请求
+      if (res.code === 'SUCCESS') {
+        return res;
+      } else {
+        ElMessage({
+          message: res.message || 'Error',
+          type: 'error',
+          plain: true
+        });
+        return Promise.reject(new Error(res.message || 'Error'));
+      }
+    } else { // 返回的是流，直接返回数据
       return res;
-    } else {
-      console.log('响应拦截器', res);
-      ElMessage({
-        message: res.message || 'Error',
-        type: 'error',
-        plain: true
-      });
-
-      return Promise.reject(new Error(res.message || 'Error'));
     }
   },
   error => {

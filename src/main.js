@@ -20,4 +20,26 @@ app.use(router);
 app.use(ElementPlus, {
   locale: zhCn,
 });
+
+// const rewriteCosHeaders = {
+//   install(app) {
+//     app.config.globalProperties.$cosPreview = (url) => {
+//       return url.includes('cos.ap-shanghai') 
+//         ? `${url}?response-content-disposition=inline` 
+//         : url
+//     }
+//   }
+// }
+
+// app.use(rewriteCosHeaders)
+
 app.mount('#app');
+
+import { useCosStore } from './store/cosStore';
+
+// 初始化
+function initApp() {
+  const cosStore = useCosStore();
+  cosStore.initCredentials();
+}
+initApp()

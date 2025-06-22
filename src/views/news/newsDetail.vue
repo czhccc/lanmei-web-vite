@@ -89,7 +89,7 @@ import {
   _pinNews,
 } from '../../network/news'
 
-import { PlainMessage } from '../../utils/plainMessage'
+import PlainMessage from '../../utils/plainMessage'
 
 const $route = useRoute()
 const $router = useRouter()
@@ -111,7 +111,7 @@ const richTextEditorConfig = {
   MENU_CONF: {
     uploadImage: {
       // 配置上传图片的服务器地址
-      server: 'http://localhost:8888/api/upload',
+      server: 'http://localhost:8800/api/upload',
 
       // 上传图片时的自定义参数，例如 token
       fieldName: 'file',
