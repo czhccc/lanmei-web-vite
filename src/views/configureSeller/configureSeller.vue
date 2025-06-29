@@ -99,6 +99,8 @@ import {
   _uploadFile
 } from '@/network/upload'
 
+import uploadToCOS from '../../utils/uploadToCOS'
+
 // 线下地址
 let offlineAddressList = reactive([
   // {
@@ -152,10 +154,10 @@ const richTextEditorConfig = {
   MENU_CONF: {
     uploadImage: {
       // 配置上传图片的服务器地址
-      server: `${import.meta.env.VITE_BASE_API}/api/upload`,
+      // server: `${import.meta.env.VITE_BASE_API}/api/upload`,
 
       // 上传图片时的自定义参数，例如 token
-      fieldName: 'file',
+      // fieldName: 'file',
       allowedFileTypes: ['image/jpeg', 'image/png', 'image/jpg'], // 允许上传的文件类型
 
       async customUpload(file, insertFn) {
@@ -163,10 +165,12 @@ const richTextEditorConfig = {
         formData.append('file', file)
         formData.append('flag', `aboutUs`);
         _uploadFile(formData).then(res => {
-          // 最后插入图片
-          console.log(`${import.meta.env.VITE_BASE_URL}/${res.data.fileKey}`)
           insertFn(`${import.meta.env.VITE_BASE_URL}/${res.data.fileKey}`)
         })
+
+        // uploadToCOS(file, 'seller/').then(res => {
+        //   insertFn(res)
+        // })
       },
     },
   },

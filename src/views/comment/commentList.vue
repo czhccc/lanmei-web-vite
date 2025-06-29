@@ -106,7 +106,7 @@
 <script setup>
 import { onMounted, reactive, ref, nextTick } from 'vue';
 
-import { PlainMessage } from '../../utils/plainMessage'
+import PlainMessage from '../../utils/plainMessage'
 
 import dayjs from 'dayjs'
 

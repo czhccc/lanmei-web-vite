@@ -9,8 +9,8 @@ import PlainMessage from './plainMessage';
 
 // 初始化 COS 实例（使用临时密钥更安全，此处以永久密钥为例）
 const cos = new COS({
-  SecretId: '...', // 替换为你的 SecretId
-  SecretKey: '...', // 替换为你的 SecretKey
+  SecretId: '', // 替换为你的 SecretId
+  SecretKey: '', // 替换为你的 SecretKey
 });
 
 /**
@@ -43,14 +43,7 @@ const uploadToCOS = (file, dir = 'images/', identifier = 'no-identifier') => {
 
     cos.putObject(
       {
-        Bucket: '...', // 存储桶名称
-        Region: 'ap-shanghai', // 存储桶地域（如 ap-shanghai）
-        Key: `${normalizedDir}${fileName}`, // 路径+文件名
-        Body: file,
-        StorageClass: 'STANDARD', // 存储类型
-        onProgress: (progressData) => {
-          console.log(`上传进度: ${progressData.percent * 100}%`);
-        },
+        
       },
       (err, data) => {
         console.log('上传结果:', err, data);

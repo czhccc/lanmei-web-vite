@@ -95,7 +95,7 @@ import PlainMessage from '../../utils/plainMessage'
 let canChoosedGoods = ref([])
 let choosedGoods = ref([])
 async function getSellingGoodsList() {
-  const [goodsList, recommendList] = await Promise.all([
+  const [goodsListRes, recommendListRes] = await Promise.all([
     _getGoodsList({
       pageNo: 1,
       pageSize: 9999,
@@ -104,8 +104,8 @@ async function getSellingGoodsList() {
     _getRecommendList()
   ])
   
-  goodsList.data.records.forEach(item => {
-    let hasChoosedItem = recommendList.data.records.find(recommendItem => recommendItem.goods_id === item.id)
+  goodsListRes.data.records.forEach(item => {
+    let hasChoosedItem = recommendListRes.data.find(recommendItem => recommendItem.goods_id === item.id)
 
     if (hasChoosedItem) {
       choosedGoods.value.push({

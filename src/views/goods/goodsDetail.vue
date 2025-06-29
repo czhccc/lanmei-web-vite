@@ -672,22 +672,18 @@ function handleFileChange(event, flag) {
   const file = event.target.files[0];
   
   if (file && flag==='goods_coverImage') {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('flag', `${flag}-${$route.query.id}`);
-
     uploadToCOS(file, 'goods/goods_coverImage/', `goodsId-${$route.query.id}`).then(res => {
-      console.log(res);
-      console.log(typeof res);
 
       const encodedUrl = encodeURIComponent(res);
-      // return `${this.$apiBaseURL}/api/cos-proxy?url=${encodedUrl}`;
       _handleCOSUrl({
         url: encodedUrl
       }).then(res2 => {
         let theUrl = URL.createObjectURL(res2)
         coverImageUrl.value = theUrl
       })
+
+
+      // coverImageUrl.value = res
     })
   }
 
@@ -708,14 +704,11 @@ function handleFileChange(event, flag) {
     //   alert('File size exceeds 10MB limit');
     //   return;
     // }
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('flag', `${flag}-${$route.query.id}`);
 
-    _uploadFile(formData).then(res => {
+    uploadToCOS(file, 'goods/goods_swiper/', `goodsId-${$route.query.id}`).then(res => {
       swiperList.value.push({
         type: fileType,
-        url: `${import.meta.env.VITE_BASE_URL}/${res.data.fileKey}`
+        url: res
       })
     })
   }
@@ -797,10 +790,10 @@ const richTextEditorConfig = {
   MENU_CONF: {
     uploadImage: {
       // 配置上传图片的服务器地址
-      server: 'http://localhost:8800/api/upload',
+      // server: 'http://localhost:8800/api/upload',
 
       // 上传图片时的自定义参数，例如 token
-      fieldName: 'file',
+      // fieldName: 'file',
       allowedFileTypes: ['image/jpeg', 'image/png', 'image/jpg'], // 允许上传的文件类型
 
       async customUpload(file, insertFn) {
@@ -808,10 +801,12 @@ const richTextEditorConfig = {
         formData.append('file', file)
         formData.append('flag', `goods_richText-${$route.query.id}`);
         _uploadFile(formData).then(res => {
-          // 最后插入图片
-          console.log(`${import.meta.env.VITE_BASE_URL}/${res.data.fileKey}`)
           insertFn(`${import.meta.env.VITE_BASE_URL}/${res.data.fileKey}`)
         })
+
+        // uploadToCOS(file, 'goods/goods_richText/', `goodsId-${$route.query.id}`).then(res => {
+        //   insertFn(res)
+        // })
       },
     },
   },
